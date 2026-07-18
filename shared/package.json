@@ -1,0 +1,15 @@
+{
+  "name": "shared",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@elysia/eden": "^1.4.10",
+    "elysia": "^1.4.28"
+  }
+}

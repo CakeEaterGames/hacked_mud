@@ -1,0 +1,58 @@
+stages:
+  # - lint
+  # - test
+  - deploy
+
+variables:
+  DOCKER_VERSION: "24.0"
+  PRODUCTION_HOST: "10.10.5.2"
+  STAGING_HOST: "10.10.5.3"
+
+.deploy_template: &deploy_template
+  stage: deploy
+  image: docker:${DOCKER_VERSION}
+  services:
+    - docker:dind
+
+
+deploy_to_demo:
+  <<: *deploy_template
+  variables:
+    COMPOSE_PROJECT_NAME: "sample_api_demo"
+  rules:
+    - if: '$DEPLOY && $CI_COMMIT_BRANCH == "demo"'
+      when: on_success
+  tags:
+    - deploy
+    - ${PRODUCTION_HOST}
+  script:
+    - docker-compose -f deploy/dc-deploy.yml --env-file ${CONFIG} up --build -d
+  environment: demo
+
+deploy_to_staging:
+  <<: *deploy_template
+  variables:
+    COMPOSE_PROJECT_NAME: "sample_api_staging"
+  rules:
+    - if: '$DEPLOY && $CI_COMMIT_BRANCH == "staging"'
+      when: on_success
+  tags:
+    - deploy
+    - ${STAGING_HOST}
+  script:
+    - docker-compose -f deploy/dc-deploy.yml --env-file ${CONFIG} up --build -d
+  environment: staging
+
+deploy_to_production:
+  <<: *deploy_template
+  variables:
+    COMPOSE_PROJECT_NAME: "sample_api_prod"
+  rules:
+    - if: '$DEPLOY && $CI_COMMIT_BRANCH == "main"'
+      when: on_success
+  tags:
+    - deploy
+    - ${PRODUCTION_HOST}
+  script:
+    - docker-compose -f deploy/dc-deploy.yml --env-file ${CONFIG} up --build -d
+  environment: production

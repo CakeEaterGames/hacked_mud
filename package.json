@@ -1,0 +1,40 @@
+{
+  "name": "sample",
+  "private": true,
+  "workspaces": [
+    "./*"
+  ],
+  "scripts": {
+    "lint": "bun run lint:backend && bun run lint:frontend",
+    "lint:backend": "cd backend && bun run lint",
+    "lint:frontend": "cd frontend && bun run lint",
+    "lint:fix": "bun run lint:backend:fix && bun run lint:frontend:fix",
+    "lint:backend:fix": "cd backend && bun run lint:fix",
+    "lint:frontend:fix": "cd frontend && bun run lint:fix",
+    "lint-staged": "lint-staged",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^10.4.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-vue": "^10.9.1",
+    "globals": "^17.6.0",
+    "husky": "^9.1.7",
+    "jiti": "^2.7.0",
+    "lint-staged": "^17.0.5",
+    "prettier": "^3.8.3",
+    "typescript-eslint": "^8.59.4",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@quasar/app-vite": "^2.6.0",
+    "eslint-plugin-import-x": "^4.16.2"
+  }
+}

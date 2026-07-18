@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: ../.
+      dockerfile: ./backend/Dockerfile 
+      target: development
+    restart: unless-stopped
+    # env_file: ".env.staging.local"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      API_BASE_URL: ${API_BASE_URL}
+      DASHBOARD_BACKEND_BASE_URL: ${DASHBOARD_BACKEND_BASE_URL}
+      DASHBOARD_BACKEND_FULL_URL: ${DASHBOARD_BACKEND_FULL_URL}
+      MINSOC_API_URL: ${MINSOC_API_URL}
+      MINSOC_API_KEY: ${MINSOC_API_KEY}
+      GIS_API_URL: ${GIS_API_URL}
+      GIS_API_KEY: ${GIS_API_KEY}
+      DEPLOY: ${DEPLOY}
+      NODE_ENV: ${NODE_ENV}
+      JWT_SECRET: ${JWT_SECRET}
+      DASHBOARD_DEFAULT_USER: ${DASHBOARD_DEFAULT_USER}
+      DASHBOARD_DEFAULT_PASS: ${DASHBOARD_DEFAULT_PASS}
+    volumes:
+      - ${LOGS_FOLDER_PATH}:/logs:rw
+      - ${DOCS_FOLDER_PATH}:/journals:rw
+    ports:
+      - ${API_BACKEND_PORT}:3000
+      - ${DASHBOARD_BACKEND_PORT}:3001
+
+  frontend:
+    build:
+      context: ../.
+      dockerfile: ./frontend/Dockerfile 
+      target: production
+      args:
+        DASHBOARD_FRONTEND_BASE_URL: ${DASHBOARD_FRONTEND_BASE_URL}
+        DASHBOARD_BACKEND_FULL_URL: ${DASHBOARD_BACKEND_FULL_URL}
+        API_FULL_URL: ${API_FULL_URL}
+    restart: unless-stopped
+    # env_file: ".env.staging.local"
+    ports:
+      - "${DASHBOARD_FRONTEND_PORT}:80"
+    depends_on:
+      - backend

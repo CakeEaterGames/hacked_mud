@@ -1,0 +1,51 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    "paths": {
+      "@backend/*": ["*"],
+      "@shared/*": ["../../shared/src/*"],
+      "@shared": ["../../shared/src"],
+    },
+
+    /* Language and Environment */
+    "target": "esnext",
+    "lib": ["ESNext"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+
+    /* Modules */
+    "types": ["bun-types"],
+    "allowImportingTsExtensions": true,
+    "allowArbitraryExtensions": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+
+    /* Emit */
+    "noEmit": true,
+
+    /* Interop */
+    "forceConsistentCasingInFileNames": true,
+
+    /* Type Checking */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true, // добавит тип `undefined` к любому необъявленному полю в типе
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+
+    /* Completeness */
+    "skipLibCheck": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx", 
+    "src/**/*.d.ts",
+    "test/**/*.ts",
+    "eslint.config.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
