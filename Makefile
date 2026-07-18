@@ -4,7 +4,7 @@
 
 COMPOSE = docker compose
 COMPOSE_FILE = -f deploy/dc-dev.yml
-_PROJECT_NAME = sample
+_PROJECT_NAME = hacked_mud
 PROJECT_NAME = -p ${_PROJECT_NAME}
 BACKEND_SERVICE = $(_PROJECT_NAME)-backend  
 

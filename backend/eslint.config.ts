@@ -40,8 +40,9 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {
-          varsIgnorePattern: "^log$", // Игнорировать неиспользованные импорты лога. // import { log } from "@utils/logger";
-          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^log$|^_$|^_.",
+          argsIgnorePattern: "^_$|^_.",
+          caughtErrorsIgnorePattern: "^_",
         },
       ],
 

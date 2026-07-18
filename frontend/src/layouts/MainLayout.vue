@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
 
-        <q-toolbar-title> Sample Dashboard </q-toolbar-title>
+        <q-toolbar-title> Hacked Mud Dashboard </q-toolbar-title>
 
         <q-toggle class="q-mr-md" v-model="darkMode" checked-icon="dark_mode" unchecked-icon="light_mode" color="dark"
           :label="$q.dark.isActive ? 'Тёмная' : 'Светлая'" @update:model-value="toggleDarkMode" />

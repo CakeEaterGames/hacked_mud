@@ -28,7 +28,6 @@ import { treaty } from '@elysia/eden'
 import type { apiAppTypes } from "@backend/apiApp"
 
 const links = [
-  { icon: "task", isAdmin: true, label: "Задача проекта", url: "http://portal.iturup.local/issues/sample" },
   { icon: "api", isAdmin: true, label: "Swagger текущего контура", url: removeSlashes(env.API_FULL_URL) + "/docs" },
 ]
 

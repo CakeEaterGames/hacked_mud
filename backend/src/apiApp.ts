@@ -22,7 +22,7 @@ const apiAppNoPrefix = new Elysia()
   .use(helloworldHandler)
   .use(healthHandler);
 
-export const apiApp = new Elysia({ prefix: env.API_BASE_URL, name: "sample-api" }).use(
+export const apiApp = new Elysia({ prefix: env.API_BASE_URL, name: "hacked-mud-api" }).use(
   apiAppNoPrefix
 );
 

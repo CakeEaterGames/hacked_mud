@@ -12,11 +12,6 @@ services:
       - /app/node_modules
       - ../backend/src:/app/backend/src:rw
       - ../shared:/app/shared:rw
-      # Раскомментируйте если нужно будет на этапе разработки
-      # - ${LOGS_FOLDER_PATH}:/logs:rw
-      # - ${DOCS_FOLDER_PATH}:/journals:rw
-    depends_on:
-      - postgres
 
   frontend:
     build:
@@ -34,16 +29,3 @@ services:
       - "${DASHBOARD_FRONTEND_PORT}:9000"
     depends_on:
       - backend
-
-  postgres:
-    image: postgres:15-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_HOST_AUTH_METHOD: trust  
-    ports:
-      - "${DB_PORT}:5432"
-    volumes:
-      - ~/service_volumes/sample_dev/postgres:/var/lib/postgresql/data

@@ -3,7 +3,7 @@
   "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "sample",
+      "name": "hacked_mud",
       "dependencies": {
         "@quasar/app-vite": "^2.6.0",
         "eslint-plugin-import-x": "^4.16.2",

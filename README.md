@@ -1,11 +1,6 @@
-# Sample Project
-
-Недоделаный sample project. 
-
-# TODO
-
-- example.env
-- gitlab-ci на тегах
-- readme
-- додумать аутентификацию
-- Перепроверить структуру бэка
+# Hacked Mud
+hackmud custom client for automation 
+ 
+```sh
+make dev
+```

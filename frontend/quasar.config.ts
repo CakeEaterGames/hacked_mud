@@ -213,7 +213,7 @@ export default defineConfig((/* ctx */) => {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'sample-dashboard-panel',
+        appId: 'hacked-mud-dashboard-panel',
       },
     },
 

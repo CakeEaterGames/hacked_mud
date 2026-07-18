@@ -87,6 +87,7 @@ export default defineConfig([
         {
           varsIgnorePattern: "^log$|^_",
           argsIgnorePattern: "^_",
+          
         },
       ],
       "@typescript-eslint/no-floating-promises": "error",

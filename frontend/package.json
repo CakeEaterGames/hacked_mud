@@ -1,8 +1,8 @@
 {
   "name": "frontend",
   "version": "0.0.1",
-  "description": "Sample Dashboard",
-  "productName": "Sample Dashboard",
+  "description": "Hacked Mud Dashboard",
+  "productName": "Hacked Mud Dashboard",
   "author": "RusalnTaranov <taranov.rr@iturupbank.ru>",
   "type": "module",
   "private": true,
