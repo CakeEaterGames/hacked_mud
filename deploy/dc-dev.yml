@@ -12,6 +12,14 @@ services:
       - /app/node_modules
       - ../backend/src:/app/backend/src:rw
       - ../shared:/app/shared:rw
+    privileged: true
+    pid: "host"              # Share host's PID namespace
+    ipc: "host"              # Share host's IPC namespace (optional, for shared memory)
+    cap_add:
+      - SYS_PTRACE           # Allow ptrace system call
+      - SYS_ADMIN            # May be needed for some memory operations
+    security_opt:
+      - apparmor:unconfined  # Disable AppArmor restrictions
 
   frontend:
     build:

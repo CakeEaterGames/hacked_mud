@@ -33,7 +33,7 @@ export type MonoClassField = {
 
 export type MonoFieldType = {
   ptr: bigint;
-  atributes: number;
+  attributes: number;
   isStatic: boolean;
   isConstant: boolean;
   typeCode: TypeCode;

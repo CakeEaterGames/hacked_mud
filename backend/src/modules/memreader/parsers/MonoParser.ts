@@ -11,6 +11,7 @@ import {
   _MonoDomainD,
 } from "../StructLayoutGenerator/definitions";
 import { StructLayoutGenerator } from "../StructLayoutGenerator";
+import { log } from "@backend/plugins/logger/logger";
 
 type MonoAssemblyIndexEntry = {
   name: string;
@@ -227,7 +228,7 @@ export class MonoParser {
       domain_vtables = await mr.readPtr();
     }
 
-    const fields = await this.parseClassFileds(cl.fields, clDef.field_count);
+    const fields = await this.parseClassFields(cl.fields, clDef.field_count);
 
     const data: MonoClass = {
       addr,
@@ -248,7 +249,7 @@ export class MonoParser {
     return data;
   }
 
-  private async parseClassFileds(addr: bigint, count: number): Promise<MonoClassField[]> {
+  private async parseClassFields(addr: bigint, count: number): Promise<MonoClassField[]> {
     if (addr == 0n) return [];
 
     const classFieldL = new StructLayoutGenerator(_MonoClassFieldD);
@@ -262,8 +263,8 @@ export class MonoParser {
         if (!r) break;
         fields.push(r);
       } catch (e) {
-        console.error("Error while parsing fields");
-        console.error(e);
+        log.error("Error while parsing fields");
+        log.error({ e });
         break;
       }
     }
@@ -333,12 +334,12 @@ export class MonoParser {
     // };
 
     const ptr = tp.klass;
-    const atributes = tp.bitfields;
+    const attributes = tp.bitfields;
 
-    const isStatic = (atributes & 0x10) == 0x10;
-    const isConstant = (atributes & 0x40) == 0x40;
-    const typeCode = 0xff & (atributes >> 16);
+    const isStatic = (attributes & 0x10) == 0x10;
+    const isConstant = (attributes & 0x40) == 0x40;
+    const typeCode = 0xff & (attributes >> 16);
 
-    return { ptr, atributes, isStatic, isConstant, typeCode };
+    return { ptr, attributes, isStatic, isConstant, typeCode };
   }
 }

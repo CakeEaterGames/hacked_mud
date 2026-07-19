@@ -206,7 +206,11 @@ export class LinkedObject {
     }
   }
 
-  async readArrayField(addr: bigint): Promise<ReadAnyObjectResponse[] | undefined> {
+  async readArrayField(
+    addr: bigint,
+    startIdx?: number,
+    endIdx?: number
+  ): Promise<ReadAnyObjectResponse[] | undefined> {
     const mr = new MemoryReader(this.pid, addr);
     try {
       const objectPtr = await mr.readPtr();
@@ -234,7 +238,14 @@ export class LinkedObject {
       // log("Count ", count)
       // log("Size ", BigInt(arrayDefinition.size))
       const elements = [];
-      for (let i = 0n; i < count; i++) {
+
+      // let st = startIdx !== undefined ? BigInt(startIdx) : 0n
+      // let ed = endIdx !== undefined ? BigInt(endIdx) : count
+
+      const st = 0n;
+      const ed = count;
+
+      for (let i = st; i < ed; i++) {
         const elementPtrAddr = start + i * BigInt(arrayDefinition.size);
         elements.push(await this.readAnyObject(elementDefinition.type.typeCode, elementPtrAddr));
       }
