@@ -3,10 +3,19 @@ import Elysia from "elysia";
 import { loggerConfigPlugin } from "@backend/plugins/logger/logger.plugin";
 import {
   getShellContentsRequestT,
-  getShellContentsResponseT,
-  type getShellContentsResponse,
+  HackmudUpdateEventT,
+  type HackmudUpdateEvent,
 } from "./hackmudShell.model";
-import { hackmudShell } from "./hackmudShell.service";
+import { HackmudListener, hackmudShell } from "./hackmudShell.service";
+import { log } from "@backend/plugins/logger/logger";
+import { getHackmudMemoryReader } from "../memreader";
+
+const connections = new Map<string, wsConnection>();
+
+//weird how Elysia doesn't have a type for that
+type wsConnection = {
+  send: (data: HackmudUpdateEvent) => number;
+};
 
 export const hackmudShellHandler = new Elysia()
   .use(loggerConfigPlugin)
@@ -49,4 +58,23 @@ export const hackmudShellHandler = new Elysia()
         toLogBody: false,
       },
     }
-  );
+  )
+  .ws("ws", {
+    response: HackmudUpdateEventT,
+    open(ws) {
+      log.debug("WS open {id}", { id: ws.id });
+      connections.set(ws.id, ws);
+    },
+    close(ws) {
+      log.debug("WS close {id}", { id: ws.id });
+      connections.delete(ws.id);
+    },
+  });
+
+const hm = await getHackmudMemoryReader();
+const _listener = new HackmudListener(hm!, event => {
+  log.debug("Updated");
+  for (const con of connections.values()) {
+    con.send(event);
+  }
+});

@@ -152,7 +152,7 @@ export class MonoParser {
     // };
 
     const classCacheSize = image.class_cache.size;
-    const num_entries = image.class_cache.num_entries;
+    const _num_entries = image.class_cache.num_entries;
     const gpointer = image.class_cache.table;
 
     const classes = [];

@@ -1,13 +1,14 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 import { ProcParser } from "./parsers/ProcParser";
-import { log } from "console";
+import { log } from "@backend/plugins/logger/logger";
 
 const execAsync = promisify(exec);
 
 export async function findHackmudProcess(): Promise<number[]> {
   try {
     const { stdout } = await execAsync("pgrep -f hackmud");
+    // log.debug(stdout)
     const pids = stdout
       .trim()
       .split("\n")

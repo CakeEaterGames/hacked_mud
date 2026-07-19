@@ -164,7 +164,7 @@ export class StructLayoutGenerator<T extends StructDefinition> {
       // Handle struct fields
       else if (fieldObj.type === "struct") {
         const structField = fieldObj;
-        const structLayout = this.getLayout(structField);
+        // const structLayout = this.getLayout(structField);
         const structBuffer = buffer.subarray(field.offset, field.offset + field.size);
         const structParser = new StructLayoutGenerator(structField.definition as StructDefinition);
         result[field.name] = structParser.parse(structBuffer);

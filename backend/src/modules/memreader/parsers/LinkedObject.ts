@@ -207,9 +207,10 @@ export class LinkedObject {
   }
 
   async readArrayField(
-    addr: bigint,
-    startIdx?: number,
-    endIdx?: number
+    addr: bigint
+    // Didn't manage to get this working
+    // startIdx?: number,
+    // endIdx?: number
   ): Promise<ReadAnyObjectResponse[] | undefined> {
     const mr = new MemoryReader(this.pid, addr);
     try {

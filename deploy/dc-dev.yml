@@ -6,12 +6,17 @@ services:
       target: development
     restart: unless-stopped
     env_file: ".env"
+    environment:
+      DISPLAY: ${DISPLAY_TO_USE:?}
     ports:
       - ${API_PORT}:3000
     volumes:
       - /app/node_modules
       - ../backend/src:/app/backend/src:rw
+      - ../backend/cache:/app/backend/cache:rw
       - ../shared:/app/shared:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/tmp/host.Xauthority:ro
     privileged: true
     pid: "host"              # Share host's PID namespace
     ipc: "host"              # Share host's IPC namespace (optional, for shared memory)

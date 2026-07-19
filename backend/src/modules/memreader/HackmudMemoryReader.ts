@@ -5,13 +5,7 @@ import { MonoParser } from "./parsers/MonoParser";
 import * as fs from "fs";
 
 import type { MonoClass } from "./parsers/types";
-import {
-  LinkedObject,
-  TypeCode,
-  type ArrayField,
-  type NumberField,
-  type ReadAnyObjectResponse,
-} from "./parsers/LinkedObject";
+import { LinkedObject, TypeCode, type ArrayField, type NumberField } from "./parsers/LinkedObject";
 import { shellToTerminalColors } from "./utils/shellToTerminalColors";
 import { bigIntReplacer } from "./utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";

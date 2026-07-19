@@ -5,7 +5,6 @@ import { env } from "./config";
 import { logtapePlugin } from "@backend/plugins/logger/logger.plugin";
 // import { logtapePlugin } from "./plugins/logger/logger.plugin";
 import { healthHandler } from "./modules/healthcheck/healthcheck.handler";
-import { helloworldHandler } from "./modules/helloworld/helloworld.handler";
 import { hackmudShellHandler } from "./modules/hackmudShell/hackmudShell.handler";
 // import { treaty } from '@elysia/eden'
 
@@ -20,7 +19,6 @@ const apiAppNoPrefix = new Elysia()
     })
   )
   .use(logtapePlugin)
-  .use(helloworldHandler)
   .use(hackmudShellHandler)
   .use(healthHandler);
 

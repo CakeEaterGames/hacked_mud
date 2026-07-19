@@ -1,12 +1,3 @@
-type ConnectionConfig = {
-  user: string | undefined;
-  // password: string | undefined;
-  host: string | undefined;
-  port: string | undefined;
-  database: string | undefined;
-  schema: string | undefined;
-};
-
 function notNull<T>(name: string, a: T) {
   if (a === null || a === undefined) throw new Error("Пустая переменная среды! " + name);
   return a as Exclude<T, null | undefined>;

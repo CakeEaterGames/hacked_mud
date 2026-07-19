@@ -1,34 +1,43 @@
 // app global css in SCSS form
+@font-face {
+    font-family: 'WhiteRabbit';
+    src: url('../assets/fonts/whiterabbit-webfont.ttf');
+}
+
+body {
+    font-family: 'WhiteRabbit';
+    font-weight: bold;
+}
 
 
-.sticky-header-table {
-  // min-height: 150px;
-  max-height: calc(100vh - 280px);
+/* Dark theme scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  .q-table__top,
-  // .q-table__bottom,
-  thead tr:first-child th {
-    background-color: $primary;
-  }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  thead tr th {
-    position: sticky;
-    z-index: 1;
-  }
-  
-  thead tr:first-child th {
-    top: 0;
-  }
+::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 4px;
+}
 
-  /* this is when the loading indicator appears */
-  &.q-table--loading thead tr:last-child th {
-    /* height of all previous header rows */
-    top: 48px;
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
 
-  /* prevent scrolling behind sticky top row on focus */
-  tbody {
-    /* height of all previous header rows */
-    scroll-margin-top: 48px;
-  }
+::-webkit-scrollbar-thumb:active {
+  background: #2d3748;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #4a5568 transparent;
 }

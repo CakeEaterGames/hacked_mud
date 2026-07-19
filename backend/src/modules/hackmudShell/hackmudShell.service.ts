@@ -101,8 +101,8 @@ export class HackmudListener {
   }
 }
 
-const hm = await getHackmudMemoryReader();
-const listener = new HackmudListener(hm!, event => {
-  log.debug("Updated");
-  log.debug(event);
-});
+// const hm = await getHackmudMemoryReader();
+// const listener = new HackmudListener(hm!, event => {
+//   log.debug("Updated");
+//   log.debug(event);
+// });
