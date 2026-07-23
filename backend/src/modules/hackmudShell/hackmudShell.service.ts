@@ -5,17 +5,18 @@ import type {
   HackmudMemoryReader,
   HackmudShellState,
 } from "../memreader/HackmudMemoryReader";
+import type { HackmudValidPid } from "../findClients/findClients.service";
 
-export abstract class hackmudShell {
-  public static async getContents() {
-    const hm = await getHackmudMemoryReader();
+export abstract class hackmudShellService {
+  public static async getContents(pid: number) {
+    const hm = await getHackmudMemoryReader(pid);
     if (!hm) throw Error();
     // await hm.update();
     // return hm.shell || "";
     return hm.readShell();
   }
-  public static async getGameState() {
-    const hm = await getHackmudMemoryReader();
+  public static async getGameState(pid: number) {
+    const hm = await getHackmudMemoryReader(pid);
     if (!hm) return ":(";
     const state = await hm.readGameState();
 

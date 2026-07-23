@@ -1,4 +1,3 @@
-import { ProcParser } from "./parsers/ProcParser";
 import { ElfParser } from "./parsers/ElfParser";
 import { MonoParser } from "./parsers/MonoParser";
 
@@ -9,6 +8,7 @@ import { LinkedObject, TypeCode, type ArrayField, type NumberField } from "./par
 import { shellToTerminalColors } from "./utils/shellToTerminalColors";
 import { bigIntReplacer } from "./utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";
+import { getProcMaps } from "./parsers/ProcParser";
 
 export type HackmudGameState = {
   hardlineState: number;
@@ -53,10 +53,15 @@ export class HackmudMemoryReader {
   constructor(private pid: number) {}
 
   async initialize() {
-    const procs = new ProcParser(this.pid);
-    await procs.init();
+    const procMaps = await getProcMaps(this.pid).match(
+      a => a,
+      e => {
+        log.error(e);
+        throw e;
+      }
+    );
 
-    const monoModule = procs.modules.find(m => m.path.includes("libmonobdwgc"));
+    const monoModule = procMaps.find(m => m.path.includes("libmonobdwgc"));
     this.notNull("monoModule", monoModule);
 
     const p = new ElfParser(this.pid, monoModule);
@@ -97,11 +102,7 @@ export class HackmudMemoryReader {
       );
     } else {
       log.debug("Looking for window objects... this may take a while...");
-      const windObjPtrs = await LinkedObject.findAllObjects(
-        this.windowClass,
-        procs.modules,
-        this.pid
-      );
+      const windObjPtrs = await LinkedObject.findAllObjects(this.windowClass, procMaps, this.pid);
       for (const addr of windObjPtrs) {
         const windowLinkedObj = new LinkedObject(this.pid, this.monoParser, this.windowClass, addr);
         const labelName = await windowLinkedObj.getFieldValueByName("labelName");

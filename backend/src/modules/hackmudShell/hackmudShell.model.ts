@@ -1,6 +1,8 @@
 import { t, type Static } from "elysia";
 
-export const getShellContentsRequestT = t.Object({});
+export const getShellContentsRequestT = t.Object({
+  pid: t.Number(),
+});
 export type getShellContentsRequest = typeof getShellContentsRequestT.static;
 
 export const getShellContentsResponseT = t.Object({

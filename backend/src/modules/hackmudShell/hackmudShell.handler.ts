@@ -6,9 +6,10 @@ import {
   HackmudUpdateEventT,
   type HackmudUpdateEvent,
 } from "./hackmudShell.model";
-import { HackmudListener, hackmudShell } from "./hackmudShell.service";
+import { HackmudListener, hackmudShellService } from "./hackmudShell.service";
 import { log } from "@backend/plugins/logger/logger";
 import { getHackmudMemoryReader } from "../memreader";
+import { findClientsService } from "../findClients/findClients.service";
 
 const connections = new Map<string, wsConnection>();
 
@@ -21,8 +22,8 @@ export const hackmudShellHandler = new Elysia()
   .use(loggerConfigPlugin)
   .post(
     "getShellContents",
-    async ({}) => {
-      return { data: await hackmudShell.getContents() }; //satisfies getShellContentsResponse;
+    async ({ body }) => {
+      return { data: await hackmudShellService.getContents(body.pid) }; //satisfies getShellContentsResponse;
     },
     {
       body: getShellContentsRequestT,
@@ -41,8 +42,8 @@ export const hackmudShellHandler = new Elysia()
   )
   .post(
     "getGameState",
-    async ({}) => {
-      return { data: await hackmudShell.getGameState() };
+    async ({ body }) => {
+      return { data: await hackmudShellService.getGameState(body.pid) };
     },
     {
       body: getShellContentsRequestT,
@@ -71,7 +72,15 @@ export const hackmudShellHandler = new Elysia()
     },
   });
 
-const hm = await getHackmudMemoryReader();
+const pids = await findClientsService.findClients().match(
+  a => a,
+  e => {
+    log.error(e);
+    throw e;
+  }
+);
+
+const hm = await getHackmudMemoryReader(pids[0]!.pid);
 const _listener = new HackmudListener(hm!, event => {
   log.debug("Updated");
   for (const con of connections.values()) {

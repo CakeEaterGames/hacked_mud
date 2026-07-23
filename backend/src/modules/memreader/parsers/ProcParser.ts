@@ -1,4 +1,6 @@
+import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { exec } from "child_process";
+import { err, ok, ResultAsync } from "neverthrow";
 
 export type ModuleInfo = {
   start: bigint;
@@ -7,43 +9,47 @@ export type ModuleInfo = {
   path: string;
 };
 
-export class ProcParser {
-  modules: ModuleInfo[] = [];
-  constructor(private pid: number) {}
+export function getProcMaps(pid: number): ResultAsync<ModuleInfo[], ExecError> {
+  return toResultAsync(_getProcMaps(pid));
+}
 
-  async init() {
-    await this.loadModules();
+async function _getProcMaps(pid: number): Promise<ResultAsync<ModuleInfo[], ExecError>> {
+  const cmd = `cat /proc/${pid}/maps`;
+  let stdout;
+  try {
+    stdout = (await execWithTimeout(cmd, 1000)).stdout;
+  } catch (e) {
+    return err({
+      type: "EXEC_ERROR",
+      cause: e as Error,
+      cmd,
+    } satisfies ExecError);
   }
 
-  private async loadModules() {
-    try {
-      const { stdout } = await this.execWithTimeout(`cat /proc/${this.pid}/maps`, 1000);
-      const lines = stdout.trim().split("\n");
+  const lines = stdout.trim().split("\n");
 
-      this.modules = lines.map(line => {
-        const [range, , , , , path] = line.split(/\s+/);
-        const [start, end] = range!.split("-").map(addr => BigInt("0x" + addr));
-        return { start: start!, end: end!, path: path || "", size: end! - start! };
-      });
-    } catch (error) {
-      throw error;
-    }
-  }
+  const modules = lines.map(line => {
+    const [range, , , , , path] = line.split(/\s+/);
+    const [start, end] = range!.split("-").map(addr => BigInt("0x" + addr));
+    return { start: start!, end: end!, path: path || "", size: end! - start! };
+  });
 
-  private async execWithTimeout(command: string, timeoutMs = 5000) {
-    return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
-      const child = exec(command, (error, stdout, stderr) => {
-        if (error) reject(error);
-        else resolve({ stdout, stderr });
-      });
+  return ok(modules);
+}
 
-      const timeout = setTimeout(() => {
-        child.kill("SIGKILL"); // Force kill
-        reject(new Error(`Command timed out after ${timeoutMs}ms`));
-      }, timeoutMs);
-
-      // Clean up timeout if process completes
-      child.on("exit", () => clearTimeout(timeout));
+async function execWithTimeout(command: string, timeoutMs = 5000) {
+  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+    const child = exec(command, (error, stdout, stderr) => {
+      if (error) reject(error);
+      else resolve({ stdout, stderr });
     });
-  }
+
+    const timeout = setTimeout(() => {
+      child.kill("SIGKILL"); // Force kill
+      reject(new Error(`Command timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    // Clean up timeout if process completes
+    child.on("exit", () => clearTimeout(timeout));
+  });
 }
