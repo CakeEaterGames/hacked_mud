@@ -1,22 +1,21 @@
 import { log } from "@backend/plugins/logger/logger";
-import { getHackmudMemoryReader } from "../memreader";
 import type {
   HackmudGameState,
   HackmudMemoryReader,
   HackmudShellState,
 } from "../memreader/HackmudMemoryReader";
-import type { HackmudValidPid } from "../findClients/findClients.service";
+import { memReaders } from "../findClients/findClients.service";
 
 export abstract class hackmudShellService {
   public static async getContents(pid: number) {
-    const hm = await getHackmudMemoryReader(pid);
+    const hm = memReaders.get(pid);
     if (!hm) throw Error();
     // await hm.update();
     // return hm.shell || "";
     return hm.readShell();
   }
   public static async getGameState(pid: number) {
-    const hm = await getHackmudMemoryReader(pid);
+    const hm = memReaders.get(pid);
     if (!hm) return ":(";
     const state = await hm.readGameState();
 
@@ -101,9 +100,3 @@ export class HackmudListener {
     }
   }
 }
-
-// const hm = await getHackmudMemoryReader();
-// const listener = new HackmudListener(hm!, event => {
-//   log.debug("Updated");
-//   log.debug(event);
-// });

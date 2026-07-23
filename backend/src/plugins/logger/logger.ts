@@ -3,20 +3,9 @@ import { getLogger } from "@logtape/logtape";
 import { getRotatingFileSink, getTimeRotatingFileSink } from "@logtape/file";
 import { getPrettyFormatter } from "@logtape/pretty";
 import { isDevelopment } from "../../config";
-import * as path from "path";
-import { mkdir } from "fs/promises";
+import { mkdirRecursiveAsync } from "@backend/utils/fs";
 
 const ONE_MB = 0x400 * 0x400;
-
-const mkdirRecursiveAsync = async (dirPath: string): Promise<void> => {
-  const normalizedPath = path.resolve(dirPath);
-  try {
-    await mkdir(normalizedPath, { recursive: true });
-  } catch (err) {
-    const e = err as { code: string };
-    if (e.code !== "EEXIST") throw e;
-  }
-};
 
 function getPretty() {
   return getPrettyFormatter({

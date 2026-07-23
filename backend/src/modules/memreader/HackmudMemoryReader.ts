@@ -9,6 +9,7 @@ import { shellToTerminalColors } from "./utils/shellToTerminalColors";
 import { bigIntReplacer } from "./utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";
 import { getProcMaps } from "./parsers/ProcParser";
+import { mkdirRecursiveAsync } from "@backend/utils/fs";
 
 export type HackmudGameState = {
   hardlineState: number;
@@ -25,6 +26,16 @@ export type HackmudShellState = {
   size: number;
   version: number;
   text: string[];
+};
+
+type cache = {
+  chatWindowPtr?: bigint;
+  shellWindowPtr?: bigint;
+};
+
+type cacheStr = {
+  chatWindowPtr?: string;
+  shellWindowPtr?: string;
 };
 
 export class HackmudMemoryReader {
@@ -49,10 +60,14 @@ export class HackmudMemoryReader {
   private lastShell: string[] | undefined;
 
   public shell: string | undefined;
+  private cacheDir: string | undefined;
 
   constructor(private pid: number) {}
 
   async initialize() {
+    this.cacheDir = "/app/backend/cache/" + this.pid;
+    await mkdirRecursiveAsync(this.cacheDir);
+
     const procMaps = await getProcMaps(this.pid).match(
       a => a,
       e => {
@@ -259,8 +274,9 @@ export class HackmudMemoryReader {
 
   dumpToFile(data: unknown, filename: string) {
     try {
-      fs.mkdirSync("dumps", { recursive: true });
-      fs.writeFileSync("dumps/" + filename, JSON.stringify(data, bigIntReplacer, 2));
+      const dir = this.cacheDir + "/dumps";
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(dir + "/" + filename, JSON.stringify(data, bigIntReplacer, 2));
       console.log(filename, "File data written successfully");
     } catch (error) {
       console.error(filename, "Error writing file:", error);
@@ -269,15 +285,20 @@ export class HackmudMemoryReader {
 
   saveCache(c: cache) {
     try {
-      fs.writeFileSync("cache.json", JSON.stringify(c, bigIntReplacer, 2));
-      console.log("cache.json", "File data written successfully");
+      fs.writeFileSync(this.cacheDir + "/cache.json", JSON.stringify(c, bigIntReplacer, 2));
+      console.log(this.cacheDir + "/cache.json", "File data written successfully");
     } catch (error) {
       console.error("Error writing file:", error);
     }
   }
   loadCache(): cache {
     try {
-      const data: cacheStr = JSON.parse(fs.readFileSync("cache.json").toString()) as cacheStr;
+      if (!fs.existsSync(this.cacheDir + "/cache.json")) {
+        return { chatWindowPtr: undefined, shellWindowPtr: undefined };
+      }
+      const data: cacheStr = JSON.parse(
+        fs.readFileSync(this.cacheDir + "/cache.json").toString()
+      ) as cacheStr;
       // log(data)
       const res: cache = {
         chatWindowPtr: undefined,
@@ -308,13 +329,3 @@ export class HackmudMemoryReader {
     }
   }
 }
-
-type cache = {
-  chatWindowPtr?: bigint;
-  shellWindowPtr?: bigint;
-};
-
-type cacheStr = {
-  chatWindowPtr?: string;
-  shellWindowPtr?: string;
-};

@@ -53,3 +53,4 @@ dist/server.exe
 
 notes.local
 /local
+backend/cache/*

@@ -3,7 +3,10 @@ import { promisify } from "util";
 import { log } from "@backend/plugins/logger/logger";
 import { getProcMaps } from "../memreader/parsers/ProcParser";
 import { err, ok, ResultAsync } from "neverthrow";
-import { type ExecError } from "@backend/utils/neverthrow";
+import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
+import { HackmudMemoryReader } from "../memreader/HackmudMemoryReader";
+import { HackmudListener } from "../hackmudShell/hackmudShell.service";
+import { onHackmudEvent } from "../hackmudShell/hackmudShell.handler";
 
 const execAsync = ResultAsync.fromThrowable(
   async (a: string) => promisify(exec)(a),
@@ -21,6 +24,8 @@ export type UselessPidError = {
 };
 
 export type HackmudValidPid = { pid: number; windowId: number; display: number };
+
+export const memReaders = new Map<number, HackmudMemoryReader>();
 
 export abstract class findClientsService {
   static findClients(): ResultAsync<HackmudValidPid[], ExecError> {
@@ -92,3 +97,20 @@ export abstract class findClientsService {
       });
   }
 }
+
+function populateMemReaders() {
+  return findClientsService.findClients().andThen(clients => {
+    async function temp(): Promise<ResultAsync<void, never>> {
+      for (const c of clients) {
+        const hm = new HackmudMemoryReader(c.pid);
+        await hm.initialize();
+        memReaders.set(c.pid, hm);
+        const _listener = new HackmudListener(hm, onHackmudEvent);
+      }
+      return ok();
+    }
+
+    return toResultAsync(temp());
+  });
+}
+populateMemReaders();

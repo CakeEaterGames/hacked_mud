@@ -9,3 +9,4 @@ deploy
 .env.example
 .env.*.local
 README.md
+backend/cache/*
