@@ -23,7 +23,8 @@ export default //withMermaid(
         {
           text: 'Guide',
           items: [
-            { text: 'Getting Started', link: '/docs/getting-started' },
+            { text: 'Preamble', link: '/docs/preamble' },
+            { text: 'Problem', link: '/docs/problem' },
           ]
         },
  
