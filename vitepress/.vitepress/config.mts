@@ -24,7 +24,7 @@ export default //withMermaid(
           text: 'Guide',
           items: [
             { text: 'Preamble', link: '/docs/preamble' },
-            { text: 'Problem', link: '/docs/problem' },
+            { text: 'Problem and Solution', link: '/docs/problem' },
           ]
         },
  

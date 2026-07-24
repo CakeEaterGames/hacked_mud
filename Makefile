@@ -10,11 +10,11 @@ BACKEND_SERVICE = $(_PROJECT_NAME)-backend
 
 help:
 	@echo 'Доступные команды:'
-	@echo '  make dev-d    - Запустить проект в режиме разработки с -d'
-	@echo '  make dev      - Запустить проект в режиме разработки'
-	@echo '  make lint     - Запустить линтер'
-	@echo '  make pg-push  - Обновить схему БД'
-
+	@echo '  make dev-d       - Запустить проект в режиме разработки с -d'
+	@echo '  make dev         - Запустить проект в режиме разработки'
+	@echo '  make lint        - Запустить линтер'
+	@echo '  make pg-push     - Обновить схему БД'
+	@echo '  make logs        - Просмотр логов backend контейнера'
 dev:
 	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build
 
@@ -29,4 +29,6 @@ lint:
 
 db-push:
 	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) exec $(BACKEND_SERVICE) bun run pg-push
- 
+
+logs:
+	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) logs -f backend

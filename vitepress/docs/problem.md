@@ -7,21 +7,21 @@ Some parts of the game are very easily to automated while others are next to imp
 
 There are 3 ways to execute actions in the game
 
-- 1. You run commands in the game terminal and get a response.
+1. You run commands in the game terminal and get a response.
 
-```hackmud
->>accts.balance
-1M130KGC
-```
+    ```hackmud
+    >>accts.balance
+    1M130KGC
+    ```
 
-- 2. You make scripts that execute multiple commands for you
+2. You make scripts that execute multiple commands for you
 
-```hackmud
->>your_name.your_script
-TODO
-```
+    ```hackmud
+    >>your_name.your_script
+    TODO
+    ```
 
-- 3. You put your script on a cron bot.
+3. You put your script on a cron bot.
 
 Crons are very speed limited and fragile
 
@@ -40,6 +40,7 @@ That means you can't really automate all actions of the game. You either have to
 We can keep a hackmud open and simulate keyboard key presses! We need to imitate a player.
 
 The loop is:
+
 ```mermaid
 flowchart TD
 
@@ -49,3 +50,22 @@ read[Read the memory of the game to see what is in the terminal]
 -->wait[Wait for a command to go through]
 -->read
 ```
+
+::: tip Note
+This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have limitations. It is not as fast and not 100% reliable
+:::
+
+This way we will can achieve quite a lot of things in the game. We can automate:
+
+- corp scraping
+- hardline entering
+- NPC breaching
+- loot filtering
+- and anything else your heart desires
+
+If you know a thing or two about hacking you may say
+> But why do all of this when you can just decompile the game and find the networking logic and just talk to the game server directly?
+
+Nah-uh-uh! Not allowed by the game developer! People did get banned for doing this.
+
+Now that we see the task at hand let's finally get to the point!

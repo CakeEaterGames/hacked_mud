@@ -27,12 +27,13 @@ Everything that is written in this guide complies with hackmud's rules. TODO ADD
 ## Software stack
 
 This software uses quite a lot of tools! You are not required to know how any of them work to understand this guide. Everything made here can be made in any other programming language
-- Backend: [ElysiaJS](https://elysiajs.com/) - My new favorite REST API framework that provides type safety and generates OpenAPI for your app 
+
+- Backend: [ElysiaJS](https://elysiajs.com/) - My new favorite REST API framework that provides type safety and generates OpenAPI for your app
 - Error Handling: [Neverthrow](https://github.com/supermacro/neverthrow) - A library that allows functions to return errors as values  
 - Frontend: [Quasar](https://quasar.dev/) - Vue based component library
-- Logging: [Logtape](https://logtape.org/) 
+- Logging: [Logtape](https://logtape.org/)
 - Documentation: [Vitepress](https://vitepress.dev/) - You are looking at it right now
-- Containerization: [Docker](https://www.docker.com/) 
+- Containerization: [Docker](https://www.docker.com/)
 
 ## Glossary
 
