@@ -1,0 +1,22 @@
+{
+  "name": "vitepress",
+  "private": true,
+  "scripts": {
+    "dev": "vitepress dev . --host 0.0.0.0 --port 5173",
+    "build": "vitepress build ."
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/mermaid": "^9.2.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@vuepress/markdown": "^1.9.10",
+    "mermaid": "^11.16.0",
+    "vue": "^3.5.0",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17"
+  }
+}

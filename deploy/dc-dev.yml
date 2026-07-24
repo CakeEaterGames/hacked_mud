@@ -42,3 +42,20 @@ services:
       - "${DASHBOARD_FRONTEND_PORT}:9000"
     depends_on:
       - backend
+
+  vitepress:
+    build:
+      context: ../.
+      dockerfile: ./vitepress/Dockerfile
+      target: development
+    restart: unless-stopped
+    env_file: ".env"
+    volumes:
+      - /app/node_modules
+      - /app/vitepress/node_modules
+      - /app/vitepress/.vitepress/cache
+      - ../vitepress/docs:/app/vitepress/docs:rw
+    ports:
+      - "${VITEPRESS_PORT}:5173"
+    environment:
+      - BUN_FORCE_INSTALL=1
