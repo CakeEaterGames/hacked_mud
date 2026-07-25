@@ -61,6 +61,7 @@ export default defineConfig((/* ctx */) => {
         DASHBOARD_FRONTEND_FULL_URL: process.env.DASHBOARD_FRONTEND_FULL_URL, 
         API_FULL_URL: process.env.API_FULL_URL,
         API_BASE_URL: process.env.API_BASE_URL,
+        VITEPRESS_FULL_URL: process.env.VITEPRESS_FULL_URL,
       },
       alias: {
         "@backend": fileURLToPath(new URL('../backend/src', import.meta.url)),

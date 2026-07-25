@@ -10,23 +10,7 @@ import { bigIntReplacer } from "./utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";
 import { getProcMaps } from "./parsers/ProcParser";
 import { mkdirRecursiveAsync } from "@backend/utils/fs";
-
-export type HackmudGameState = {
-  hardlineState: number;
-  hardlineStateStr: string;
-  gameState: number;
-  instructionsText: string;
-  timerCurrent: number;
-  isProcessing: boolean;
-};
-
-export type HackmudShellState = {
-  head: number;
-  tail: number;
-  size: number;
-  version: number;
-  text: string[];
-};
+import type { HackmudGameState, HackmudShellState } from "@shared/types/HackmudUpdateEvent.model";
 
 type cache = {
   chatWindowPtr?: bigint;
@@ -43,6 +27,7 @@ export class HackmudMemoryReader {
   private windowClass: MonoClass | undefined;
 
   private queueObj: LinkedObject | undefined;
+  private wrappedOutputObj: LinkedObject | undefined;
   private kernel: LinkedObject | undefined;
   private instructions: LinkedObject | undefined;
   private timer: LinkedObject | undefined;
@@ -57,12 +42,13 @@ export class HackmudMemoryReader {
   private hardlineStates: string[] | undefined;
   private gameStates: string[] | undefined;
   private lastShellVersion: number | undefined;
-  private lastShell: string[] | undefined;
+  private lastShell: (string | null)[] | undefined;
 
   public shell: string | undefined;
   private cacheDir: string | undefined;
+  public normalizedShell: string[] | undefined;
 
-  constructor(private pid: number) {}
+  constructor(public pid: number) {}
 
   async initialize() {
     this.cacheDir = "/app/backend/cache/" + this.pid;
@@ -136,6 +122,8 @@ export class HackmudMemoryReader {
     this.notNull("shellLinkedObject", this.shellLinkedObject);
     this.notNull("chatLinkedObject", this.chatLinkedObject);
 
+    this.wrappedOutputObj = await this.shellLinkedObject.getFieldValueByNameToObj("wrapped_output");
+
     const outputObj = await this.shellLinkedObject.getFieldValueByNameToObj("output");
 
     //looking for the name of the obfuscated field
@@ -195,6 +183,7 @@ export class HackmudMemoryReader {
 
   async readShell(): Promise<HackmudShellState> {
     this.notNull("queueObj", this.queueObj);
+    this.notNull("wrappedOutputObj", this.wrappedOutputObj);
     // log.debug({ O: this.queueObj.klass.fields.map(a => a.name) })
 
     const head = (await this.queueObj.getFieldValueByName("_head")) as NumberField;
@@ -202,10 +191,20 @@ export class HackmudMemoryReader {
     const size = (await this.queueObj.getFieldValueByName("_size")) as NumberField;
     const version = (await this.queueObj.getFieldValueByName("_version")) as NumberField;
 
+    // const items2 = await this.wrappedOutputObj.getFieldValueByName("_items") as ArrayField
+    const version2 = (await this.wrappedOutputObj.getFieldValueByName("_version")) as NumberField;
+
+    // if (this.lastShellVersion != version2.value) {
     if (this.lastShellVersion != version.value) {
-      const arr = (await this.queueObj.getFieldValueByName("_array")) as ArrayField;
       this.lastShellVersion = version.value;
-      this.lastShell = arr.value?.filter(a => a.value != null).map(a => a.value as string);
+      // const arr = (await this.queueObj.getFieldValueByName("_array")) as ArrayField;
+      // this.lastShell = arr.value?.map(a => a.value as string | null);
+      // this.normalizedShell = this.normalizeQueue(head.value, tail.value, this.lastShell || []).filter(a => a !== null)
+
+      // this.lastShellVersion = version2.value
+      // this.lastShell = items2.value?.map(a => a.value as string | null) || []
+      // this.normalizedShell = this.lastShell.filter(a => a !== null)
+      // log.debug(shellToTerminalColors(this.normalizedShell.join("\n")))
     }
 
     // const arrField = this.queueObj.klass.fields.find(a => a.name == "_array")!
@@ -220,7 +219,18 @@ export class HackmudMemoryReader {
       size: size.value,
       version: version.value,
       text: this.lastShell || [],
+      normalizedText: this.normalizedShell || [],
+      // normalizedText: this.normalizedShell || []
     };
+  }
+
+  public normalizeQueue<T>(head: number, tail: number, data: T[]) {
+    // If head is before tail, data is already contiguous
+    if (head <= tail) {
+      return data.slice(head, tail);
+    }
+    // Otherwise, combine the two segments
+    return data.slice(head).concat(data.slice(0, tail));
   }
 
   async readGameState(): Promise<HackmudGameState> {

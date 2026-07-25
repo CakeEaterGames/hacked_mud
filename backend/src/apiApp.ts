@@ -7,6 +7,7 @@ import { logtapePlugin } from "@backend/plugins/logger/logger.plugin";
 import { healthHandler } from "./modules/healthcheck/healthcheck.handler";
 import { hackmudShellHandler } from "./modules/hackmudShell/hackmudShell.handler";
 import { findClientsHandler } from "./modules/findClients/findClients.handler";
+import { socketServerHandler } from "./modules/socketServer/socketServer.handler";
 // import { treaty } from '@elysia/eden'
 
 const apiAppNoPrefix = new Elysia()
@@ -22,6 +23,7 @@ const apiAppNoPrefix = new Elysia()
   .use(logtapePlugin)
   .use(hackmudShellHandler)
   .use(findClientsHandler)
+  .use(socketServerHandler)
   .use(healthHandler);
 
 export const apiApp = new Elysia({ prefix: env.API_BASE_URL, name: "hacked-mud-api" }).use(

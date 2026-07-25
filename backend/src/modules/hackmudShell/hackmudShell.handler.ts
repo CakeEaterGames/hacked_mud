@@ -1,20 +1,8 @@
 import Elysia from "elysia";
 
 import { loggerConfigPlugin } from "@backend/plugins/logger/logger.plugin";
-import {
-  getShellContentsRequestT,
-  HackmudUpdateEventT,
-  type HackmudUpdateEvent,
-} from "./hackmudShell.model";
+import { getShellContentsRequestT } from "./hackmudShell.model";
 import { hackmudShellService } from "./hackmudShell.service";
-import { log } from "@backend/plugins/logger/logger";
-
-const connections = new Map<string, wsConnection>();
-
-//weird how Elysia doesn't have a type for that
-type wsConnection = {
-  send: (data: HackmudUpdateEvent) => number;
-};
 
 export const hackmudShellHandler = new Elysia()
   .use(loggerConfigPlugin)
@@ -57,22 +45,4 @@ export const hackmudShellHandler = new Elysia()
         toLogBody: false,
       },
     }
-  )
-  .ws("ws", {
-    response: HackmudUpdateEventT,
-    open(ws) {
-      log.debug("WS open {id}", { id: ws.id });
-      connections.set(ws.id, ws);
-    },
-    close(ws) {
-      log.debug("WS close {id}", { id: ws.id });
-      connections.delete(ws.id);
-    },
-  });
-
-export function onHackmudEvent(event: HackmudUpdateEvent) {
-  log.debug("Updated");
-  for (const con of connections.values()) {
-    con.send(event);
-  }
-}
+  );

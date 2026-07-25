@@ -5,8 +5,8 @@ import { getProcMaps } from "../memreader/parsers/ProcParser";
 import { err, ok, ResultAsync } from "neverthrow";
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { HackmudMemoryReader } from "../memreader/HackmudMemoryReader";
-import { HackmudListener } from "../hackmudShell/hackmudShell.service";
-import { onHackmudEvent } from "../hackmudShell/hackmudShell.handler";
+import { socketServerService } from "../socketServer/socketServer.service";
+import { HackmudClient } from "../hackmudClient/hackmudClient.service";
 
 const execAsync = ResultAsync.fromThrowable(
   async (a: string) => promisify(exec)(a),
@@ -24,8 +24,7 @@ export type UselessPidError = {
 };
 
 export type HackmudValidPid = { pid: number; windowId: number; display: number };
-
-export const memReaders = new Map<number, HackmudMemoryReader>();
+export const HackmudClients = new Map<number, HackmudClient>();
 
 export abstract class findClientsService {
   static findClients(): ResultAsync<HackmudValidPid[], ExecError> {
@@ -96,21 +95,38 @@ export abstract class findClientsService {
         return ok(false);
       });
   }
+
+  static repopulateMemReaders() {
+    return findClientsService
+      .findClients()
+      .andThen(clients => {
+        const toRemove = HackmudClients.entries()
+          .toArray()
+          .filter(k => !clients.find(c => c.pid == k[0]));
+        for (const expired of toRemove) {
+          expired[1].stop();
+          HackmudClients.delete(expired[0]);
+        }
+        return ok(clients);
+      })
+      .andThen(clients => {
+        async function temp(): Promise<ResultAsync<void, never>> {
+          for (const c of clients) {
+            if (HackmudClients.keys().find(a => a == c.pid)) continue;
+
+            const listener = new HackmudClient(
+              c,
+              socketServerService.onHackmudEvent.bind(socketServerService)
+            );
+            await listener.initialize();
+            HackmudClients.set(c.pid, listener);
+          }
+          return ok();
+        }
+
+        return toResultAsync(temp());
+      });
+  }
 }
 
-function populateMemReaders() {
-  return findClientsService.findClients().andThen(clients => {
-    async function temp(): Promise<ResultAsync<void, never>> {
-      for (const c of clients) {
-        const hm = new HackmudMemoryReader(c.pid);
-        await hm.initialize();
-        memReaders.set(c.pid, hm);
-        const _listener = new HackmudListener(hm, onHackmudEvent);
-      }
-      return ok();
-    }
-
-    return toResultAsync(temp());
-  });
-}
-populateMemReaders();
+findClientsService.repopulateMemReaders();

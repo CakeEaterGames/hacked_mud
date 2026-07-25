@@ -10,6 +10,7 @@ export namespace env {
   export const API_FULL_URL = notNull("API_FULL_URL", process.env.API_FULL_URL);
   export const DASHBOARD_FRONTEND_BASE_URL = notNull("DASHBOARD_FRONTEND_BASE_URL", process.env.DASHBOARD_FRONTEND_BASE_URL);
   export const DASHBOARD_FRONTEND_FULL_URL = notNull("DASHBOARD_FRONTEND_FULL_URL", process.env.DASHBOARD_FRONTEND_FULL_URL);  
+  export const VITEPRESS_FULL_URL = process.env.VITEPRESS_FULL_URL || ""  
 }
 
 export const isDevelopment = env.NODE_ENV === "development";
