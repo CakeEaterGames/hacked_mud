@@ -44,11 +44,16 @@ The loop is:
 ```mermaid
 flowchart TD
 
-read[Read the memory of the game to see what is in the terminal]
+send[Send virtual key presses to enter commands]
+-->read1[Read the memory of the game]
+-->state1{Did the command finish executing?}
+
+state1-->|No|read1
+state1-->|yes|read
+
+read[Read the memory of the game to see the result of the command]
 -->analyze[Decide what to do]
--->send[Send virtual key presses to enter commands]
--->wait[Wait for a command to go through]
--->read
+-->send
 ```
 
 ::: tip Note
