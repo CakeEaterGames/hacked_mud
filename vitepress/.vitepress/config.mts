@@ -25,6 +25,7 @@ export default //withMermaid(
           items: [
             { text: 'Preamble', link: '/docs/preamble' },
             { text: 'Problem and Solution', link: '/docs/problem' },
+            { text: 'Flushing the terminal', link: '/docs/flush' },
           ]
         },
  

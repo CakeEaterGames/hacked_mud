@@ -9,17 +9,17 @@ There are 3 ways to execute actions in the game
 
 1. You run commands in the game terminal and get a response.
 
-    ```hackmud
-    >>accts.balance
-    1M130KGC
-    ```
+   ```hackmud
+   >>accts.balance
+   1M130KGC
+   ```
 
 2. You make scripts that execute multiple commands for you
 
-    ```hackmud
-    >>your_name.your_script
-    TODO
-    ```
+   ```hackmud
+   >>your_name.your_script
+   TODO
+   ```
 
 3. You put your script on a cron bot.
 
@@ -52,7 +52,7 @@ read[Read the memory of the game to see what is in the terminal]
 ```
 
 ::: tip Note
-This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have limitations. It is not as fast and not 100% reliable
+This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have its' limitations. If you don't want to implement memory reading consider [flushing the terminal](flush)
 :::
 
 This way we will can achieve quite a lot of things in the game. We can automate:
@@ -64,6 +64,7 @@ This way we will can achieve quite a lot of things in the game. We can automate:
 - and anything else your heart desires
 
 If you know a thing or two about hacking you may say
+
 > But why do all of this when you can just decompile the game and find the networking logic and just talk to the game server directly?
 
 Nah-uh-uh! Not allowed by the game developer! People did get banned for doing this.
