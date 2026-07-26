@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md" @keydown.escape="toggleSettings">
+  <q-page class="q-pa-md" @keyup.escape="toggleSettings">
     <div class="row items-center q-gutter-sm">
       <div>hacked mud</div>
       <q-badge v-if="selectedClient"> {{ selectedClient.pid }} </q-badge>
@@ -12,7 +12,7 @@
         class="q-mt-sm col text-primary console sps"
         :innerHTML="selectedClient.shellHTML"
       />
-      <q-input v-model="input" dense>
+      <q-input v-model="input" dense @keyup="handleKeydown">
         <template v-slot:prepend>
           <q-spinner v-if="selectedClient.gameState.isProcessing"> </q-spinner>
           <q-icon v-else name="code" />
@@ -31,7 +31,7 @@
             <div class="q-gutter-sm">
               <q-btn
                 v-for="client in gameClients"
-                :key="'btn'+client.pid"
+                :key="'btn' + client.pid"
                 dense
                 color="primary"
                 :label="client.pid"
@@ -146,10 +146,59 @@ function chatToHTML(str: string) {
 
 function scrollToBottom() {
   const divElement = document.getElementById("shell");
-  if (divElement) divElement.scrollTop = divElement.scrollHeight;
+  if (divElement) divElement.scrollTop = divElement.scrollHeight + 100;
 }
 
-onMounted(async () => {
+async function inputCmd() {
+  if (!selectedClient.value) return;
+  const cmd = input.value;
+
+  commandHistory.value.push(cmd);
+  historyIndex.value = commandHistory.value.length;
+
+  input.value = "";
+  const res = await backend.sendCmd.post({ pid: selectedClient.value.pid, cmd });
+}
+
+async function handleKeydown(event: KeyboardEvent) {
+  console.log(event);
+
+  if (event.key === "Escape") {
+    toggleSettings();
+    return;
+  }
+
+  if (event.key === "Enter") {
+    await inputCmd();
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    if (historyIndex.value > 0) {
+      historyIndex.value--;
+      input.value = commandHistory.value[historyIndex.value] ?? "";
+    }
+    return;
+  }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    if (historyIndex.value < commandHistory.value.length - 1) {
+      historyIndex.value++;
+      input.value = commandHistory.value[historyIndex.value] ?? "";
+    } else {
+      historyIndex.value = commandHistory.value.length;
+      input.value = "";
+    }
+    return;
+  }
+}
+
+const commandHistory = ref<string[]>([]);
+const historyIndex = ref(-1);
+
+onMounted(() => {
   document.addEventListener("keyup", (event: KeyboardEvent) => {
     if (event.key === "Escape") {
       toggleSettings();
@@ -160,6 +209,7 @@ onMounted(async () => {
   ws.subscribe((message) => {
     const data = message.data;
     console.log("got", data);
+    console.log("got", data.pid);
     switch (data.type) {
       case "GameStateUpdate": {
         const c = findClient(data.pid);
@@ -170,27 +220,29 @@ onMounted(async () => {
       case "ShellUpdate": {
         const c = findClient(data.pid);
         if (!c) break;
-        c.shell = data.shellState.text.join("\n");
+        c.shell = data.shellState.normalizedText.join("\n");
+        // c.shellHTML = c.shell
         c.shellHTML = chatToHTML(c.shell);
         if (selectedClient.value?.pid == data.pid) {
-          scrollToBottom();
+          setTimeout(scrollToBottom, 200);
         }
         break;
       }
       case "FullClientListUpdate": {
         for (const c of data.clients) {
-          const sh = chatToHTML(c.shellState.text.join("\n"));
+          const sh = c.shellState.normalizedText.join("\n");
           if (!findClient(c.pid)) {
             gameClients.value.push({
               pid: c.pid,
               gameState: c.gameState,
               shell: sh,
               shellHTML: chatToHTML(sh),
+              // shellHTML: sh,
             });
           }
           if (!selectedClient.value) {
             selectedClient.value = gameClients.value[0];
-            scrollToBottom();
+            setTimeout(scrollToBottom, 200);
           }
         }
         break;

@@ -15,6 +15,10 @@ export class HackmudClient {
   public readonly pid: number;
   public readonly display: number;
   public readonly windowId: number;
+  public gameState?: HackmudGameState;
+  public shellState?: HackmudShellState;
+  private isUpdating = false;
+
   constructor(
     validPid: HackmudValidPid,
     private onUpdate: (event: HackmudUpdateEvent) => void
@@ -41,7 +45,7 @@ export class HackmudClient {
     if (this.isRunning()) return;
     this.interval = setInterval(() => {
       void this.update();
-    }, 1);
+    }, 2);
     this._isRunning = true;
   }
   public stop() {
@@ -51,9 +55,6 @@ export class HackmudClient {
     this._isRunning = false;
   }
 
-  private gameState?: HackmudGameState;
-  private shellState?: HackmudShellState;
-  private isUpdating = false;
   public async update() {
     if (this.isUpdating) return;
     this.isUpdating = true;
@@ -96,17 +97,23 @@ export class HackmudClient {
   }
 
   public async cmd(text: string) {
-    if (!this.shellState) return;
-    if (!this.gameState) return;
+    if (!this.shellState) throw Error("fuck");
+    if (!this.gameState) throw Error("fuck");
 
-    await this.update();
+    // await this.update();
+
+    while (this.gameState?.isProcessing) {
+      await sleep(17);
+      await this.update();
+    }
+
+    const { tail, version } = this.shellState;
     await virtualKeyboard.sendKeyToWindow(this.windowId, this.display, "Escape");
     await sleep(20);
     await virtualKeyboard.sendTextToWindow(this.windowId, this.display, text);
     await sleep(20);
     await virtualKeyboard.sendKeyToWindow(this.windowId, this.display, "Return");
 
-    const { head, tail, version } = this.shellState;
     let cnt = 0;
     while (version == this.shellState?.version || this.gameState?.isProcessing) {
       await sleep(17);
@@ -114,39 +121,36 @@ export class HackmudClient {
       cnt++;
       if (cnt >= 100 && !this.gameState.isProcessing) break;
     }
-    // await virtualKeyboard.sendTextToWindow(this.windowId, this.display, "#marker");
-    // await sleep(20);
-    // await virtualKeyboard.sendKeyToWindow(this.windowId, this.display, "Return");
-    // await sleep(1000);
 
     log.debug("DONE");
-    // await sleep(500);
+    await sleep(50);
     await this.update();
 
-    const dif = this.shellState.version - version;
-
-    function getLastLines(text: string, lineCount: number = 10): string {
-      const lines = text.split("\n");
-      const lastLines = lines.slice(-lineCount);
-      return lastLines.join("\n");
+    let dif = this.shellState.tail - tail;
+    if (dif < 0) {
+      dif += 2048;
     }
 
-    console.log(
-      getLastLines(shellToTerminalColors(this.shellState.normalizedText.join("\n")), dif / 2)
-    );
+    log.debug({ dif });
+
+    const res = this.shellState.normalizedText.slice(-dif);
+    return {
+      response: res,
+      fullShell: this.shellState.normalizedText,
+    };
   }
 }
 
 async function test() {
   await sleep(8000);
   while (true) {
-    // log.debug("While true")
+    await sleep(100);
     const c = HackmudClients.entries().toArray()[0]?.[1];
     if (!c) continue;
 
-    const res = await c.cmd("cake.index");
-    log.debug({ res });
-    await sleep(1000);
+    const res = await c.cmd("sys.specs");
+
+    console.log(shellToTerminalColors(res.response.join("\n")));
   }
 }
-void test();
+// void test();

@@ -4,7 +4,6 @@ import { log } from "@backend/plugins/logger/logger";
 import { getProcMaps } from "../memreader/parsers/ProcParser";
 import { err, ok, ResultAsync } from "neverthrow";
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
-import { HackmudMemoryReader } from "../memreader/HackmudMemoryReader";
 import { socketServerService } from "../socketServer/socketServer.service";
 import { HackmudClient } from "../hackmudClient/hackmudClient.service";
 

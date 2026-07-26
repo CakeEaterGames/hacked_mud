@@ -25,7 +25,7 @@ export const findClientsHandler = new Elysia().use(loggerConfigPlugin).post(
       summary: "Find Clients",
       description: "",
     },
-    tags: ["Test"],
+    tags: ["Shell"],
     loggerConfig: {
       toLogBody: false,
     },

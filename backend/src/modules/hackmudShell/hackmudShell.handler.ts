@@ -1,7 +1,7 @@
 import Elysia from "elysia";
 
 import { loggerConfigPlugin } from "@backend/plugins/logger/logger.plugin";
-import { getShellContentsRequestT } from "./hackmudShell.model";
+import { getShellContentsRequestT, SendCmdRequestT, SendCmdResponseT } from "./hackmudShell.model";
 import { hackmudShellService } from "./hackmudShell.service";
 
 export const hackmudShellHandler = new Elysia()
@@ -9,7 +9,7 @@ export const hackmudShellHandler = new Elysia()
   .post(
     "getShellContents",
     async ({ body }) => {
-      return { data: await hackmudShellService.getContents(body.pid) }; //satisfies getShellContentsResponse;
+      return { data: hackmudShellService.getContents(body.pid) }; //satisfies getShellContentsResponse;
     },
     {
       body: getShellContentsRequestT,
@@ -20,7 +20,7 @@ export const hackmudShellHandler = new Elysia()
         summary: "Get Shell Contents",
         description: "Returns the contents of the shell of a hackmud client",
       },
-      tags: ["Test"],
+      tags: ["Shell"],
       loggerConfig: {
         toLogBody: false,
       },
@@ -29,7 +29,7 @@ export const hackmudShellHandler = new Elysia()
   .post(
     "getGameState",
     async ({ body }) => {
-      return { data: await hackmudShellService.getGameState(body.pid) };
+      return { data: hackmudShellService.getGameState(body.pid) };
     },
     {
       body: getShellContentsRequestT,
@@ -40,7 +40,28 @@ export const hackmudShellHandler = new Elysia()
         summary: "Get Game State",
         description: "Returns the contents of the shell of a hackmud client",
       },
-      tags: ["Test"],
+      tags: ["Shell"],
+      loggerConfig: {
+        toLogBody: false,
+      },
+    }
+  )
+  .post(
+    "sendCmd",
+    async ({ body }) => {
+      const res = await hackmudShellService.sendCmd(body.pid, body.cmd);
+      return res;
+    },
+    {
+      body: SendCmdRequestT,
+      response: {
+        200: SendCmdResponseT,
+      },
+      detail: {
+        summary: "Send CMD",
+        description: "Sends a command and returns a response",
+      },
+      tags: ["Shell"],
       loggerConfig: {
         toLogBody: false,
       },

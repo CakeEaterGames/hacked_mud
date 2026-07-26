@@ -1,9 +1,9 @@
+import { log } from "@backend/plugins/logger/logger";
 import { bigintToFloat32, bigintToFloat64 } from "./FloatParser";
 import { MemoryReader } from "./MemoryReader";
 import type { MonoParser } from "./MonoParser";
 import type { ModuleInfo } from "./ProcParser";
 import type { MonoClass, MonoClassField } from "./types";
-import { log } from "console";
 
 export class LinkedObject {
   constructor(
@@ -44,12 +44,15 @@ export class LinkedObject {
     for (const module of allModules) {
       if (module.path) continue;
 
+      log.debug("Reading module with size: " + module.size);
+
       let buf;
       try {
         const mr = new MemoryReader(pid, module.start);
         buf = await mr.readBytes(Number(module.size));
+        log.debug("Read buffer");
       } catch (error) {
-        log(error);
+        log.error({ error });
         continue;
       }
 
@@ -207,10 +210,9 @@ export class LinkedObject {
   }
 
   async readArrayField(
-    addr: bigint
-    // Didn't manage to get this working
-    // startIdx?: number,
-    // endIdx?: number
+    addr: bigint,
+    startIdx?: number,
+    endIdx?: number
   ): Promise<ReadAnyObjectResponse[] | undefined> {
     const mr = new MemoryReader(this.pid, addr);
     try {
@@ -240,11 +242,11 @@ export class LinkedObject {
       // log("Size ", BigInt(arrayDefinition.size))
       const elements = [];
 
-      // let st = startIdx !== undefined ? BigInt(startIdx) : 0n
-      // let ed = endIdx !== undefined ? BigInt(endIdx) : count
+      const st = startIdx !== undefined ? BigInt(startIdx) : 0n;
+      const ed = endIdx !== undefined ? BigInt(endIdx) : count;
 
-      const st = 0n;
-      const ed = count;
+      // const st = 0n;
+      // const ed = count;
 
       for (let i = st; i < ed; i++) {
         const elementPtrAddr = start + i * BigInt(arrayDefinition.size);

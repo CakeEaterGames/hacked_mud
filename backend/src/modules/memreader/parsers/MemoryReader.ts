@@ -1,3 +1,4 @@
+import { log } from "@backend/plugins/logger/logger";
 import * as fs from "fs";
 
 export class MemoryReader {
@@ -8,13 +9,37 @@ export class MemoryReader {
     // this.pos = 0n;
   }
 
-  async readMemory(address: bigint, size: number, toAdvance = true): Promise<Buffer> {
+  async readMemory(
+    address: bigint,
+    size: number,
+    toAdvance = true,
+    timeoutMs = 500000
+  ): Promise<Buffer> {
     const memPath = `/proc/${this.pid}/mem`;
     const fd = await fs.promises.open(memPath, "r");
+    // log.debug("Opened")
 
+    if (size < 0) {
+      log.error("WTF");
+    }
     try {
       const buffer = Buffer.alloc(size);
-      const { bytesRead } = await fd.read(buffer, 0, size, Number(address));
+      // log.debug("Allocated")
+
+      const readPromise = fd.read(buffer, 0, size, Number(address));
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                `Memory read timeout after ${timeoutMs}ms at address 0x${address.toString(16)}`
+              )
+            ),
+          timeoutMs
+        )
+      );
+
+      const { bytesRead } = await Promise.race([readPromise, timeoutPromise]);
 
       if (bytesRead !== size) {
         throw new Error(`Only read ${bytesRead} of ${size} bytes at 0x${address.toString(16)}`);
@@ -22,6 +47,9 @@ export class MemoryReader {
 
       if (toAdvance) this.pos += BigInt(size);
       return buffer;
+    } catch (e) {
+      log.error({ e });
+      throw e;
     } finally {
       await fd.close();
     }

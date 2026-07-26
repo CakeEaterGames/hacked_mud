@@ -4,7 +4,7 @@ import { MonoParser } from "./parsers/MonoParser";
 import * as fs from "fs";
 
 import type { MonoClass } from "./parsers/types";
-import { LinkedObject, TypeCode, type ArrayField, type NumberField } from "./parsers/LinkedObject";
+import { LinkedObject, TypeCode, type NumberField } from "./parsers/LinkedObject";
 import { shellToTerminalColors } from "./utils/shellToTerminalColors";
 import { bigIntReplacer } from "./utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";
@@ -41,12 +41,9 @@ export class HackmudMemoryReader {
 
   private hardlineStates: string[] | undefined;
   private gameStates: string[] | undefined;
-  private lastShellVersion: number | undefined;
-  private lastShell: (string | null)[] | undefined;
 
   public shell: string | undefined;
   private cacheDir: string | undefined;
-  public normalizedShell: string[] | undefined;
 
   constructor(public pid: number) {}
 
@@ -181,46 +178,177 @@ export class HackmudMemoryReader {
     log.debug(states);
   }
 
+  // async readShellOld(): Promise<HackmudShellState> {
+  //   this.notNull("queueObj", this.queueObj);
+  //   this.notNull("wrappedOutputObj", this.wrappedOutputObj);
+  //   // log.debug({ O: this.queueObj.klass.fields.map(a => a.name) })
+
+  //   const head = (await this.queueObj.getFieldValueByName("_head")) as NumberField;
+  //   const tail = (await this.queueObj.getFieldValueByName("_tail")) as NumberField;
+  //   const size = (await this.queueObj.getFieldValueByName("_size")) as NumberField;
+  //   const version = (await this.queueObj.getFieldValueByName("_version")) as NumberField;
+
+  //   // const items2 = await this.wrappedOutputObj.getFieldValueByName("_items") as ArrayField
+  //   const version2 = (await this.wrappedOutputObj.getFieldValueByName("_version")) as NumberField;
+
+  //   // if (this.lastShellVersion != version2.value) {
+  //   if (this.lastShellVersion != version.value) {
+  //     this.lastShellVersion = version.value;
+  //     const arrField = this.queueObj.klass.fields.find(a => a.name == "_array")!;
+  //     const partArray = (
+  //       await this.queueObj.readArrayField(
+  //         this.queueObj.objectAddr + BigInt(arrField.offset),
+  //         tail.value - 5,
+  //         tail.value
+  //       )
+  //     )?.map(a => a.value);
+  //     log.debug({ partArray });
+  //     const arr = (await this.queueObj.getFieldValueByName("_array")) as ArrayField;
+  //     this.lastShell = arr.value?.map(a => a.value as string | null);
+  //     this.normalizedShell = this.normalizeQueue(
+  //       head.value,
+  //       tail.value,
+  //       this.lastShell || []
+  //     ).filter(a => a !== null);
+
+  //     // this.lastShellVersion = version2.value
+  //     // this.lastShell = items2.value?.map(a => a.value as string | null) || []
+  //     // this.normalizedShell = this.lastShell.filter(a => a !== null)
+  //     // log.debug(shellToTerminalColors(this.normalizedShell.join("\n")))
+  //   }
+
+  //   // const arrField = this.queueObj.klass.fields.find(a => a.name == "_array")!
+
+  //   // const shortRead = await this.queueObj.readArrayField(this.queueObj.objectAddr + BigInt(arrField.offset), tail.value, head.value)
+  //   // log.debug({ shortRead })
+
+  //   // const text = lines?.map(a => a.value).join("\n");
+  //   return {
+  //     head: head.value,
+  //     tail: tail.value,
+  //     size: size.value,
+  //     version: version.value,
+  //     text: this.lastShell || [],
+  //     normalizedText: this.normalizedShell || [],
+  //     // normalizedText: this.normalizedShell || []
+  //   };
+  // }
+
+  private getReadQueueTask(
+    prev: { head: number; tail: number },
+    cur: { head: number; tail: number }
+  ) {
+    // This function takes queue heads and tails
+    // and tells what regions of the queue cache need to be updated
+    // [st; ed)
+
+    const size = 2048;
+
+    if (cur.head < cur.tail && cur.tail - cur.head < 10) {
+      // if the queue is small
+      return {
+        clear: [{ st: 0, ed: size }],
+        read: [{ st: cur.head, ed: cur.tail }],
+      };
+    }
+
+    const read = [];
+    if (cur.tail != prev.tail) {
+      if (cur.tail > prev.tail) {
+        // No wrap has happened
+        read.push({ st: prev.tail, ed: cur.tail });
+      } else {
+        // wrapped to start
+        read.push({ st: prev.tail, ed: size });
+        read.push({ st: 0, ed: cur.tail });
+      }
+    }
+
+    const clear = [];
+    if (cur.head != prev.head) {
+      if (cur.head > prev.head) {
+        // No wrap has happened
+        clear.push({ st: prev.head, ed: cur.head });
+      } else {
+        // wrapped to start
+        clear.push({ st: prev.head, ed: size });
+        clear.push({ st: 0, ed: cur.head });
+      }
+    }
+
+    return {
+      clear: clear,
+      read: read,
+    };
+  }
+
+  public shellData = {
+    head: 0,
+    tail: 0,
+    size: 0,
+    version: -1,
+    data: new Array(2048).fill(null) as (string | null)[],
+    normalizedData: [] as string[],
+  };
+
   async readShell(): Promise<HackmudShellState> {
     this.notNull("queueObj", this.queueObj);
     this.notNull("wrappedOutputObj", this.wrappedOutputObj);
     // log.debug({ O: this.queueObj.klass.fields.map(a => a.name) })
 
-    const head = (await this.queueObj.getFieldValueByName("_head")) as NumberField;
-    const tail = (await this.queueObj.getFieldValueByName("_tail")) as NumberField;
-    const size = (await this.queueObj.getFieldValueByName("_size")) as NumberField;
-    const version = (await this.queueObj.getFieldValueByName("_version")) as NumberField;
+    const _head = (await this.queueObj.getFieldValueByName("_head")) as NumberField;
+    const _tail = (await this.queueObj.getFieldValueByName("_tail")) as NumberField;
+    const _size = (await this.queueObj.getFieldValueByName("_size")) as NumberField;
+    const _version = (await this.queueObj.getFieldValueByName("_version")) as NumberField;
 
-    // const items2 = await this.wrappedOutputObj.getFieldValueByName("_items") as ArrayField
-    const version2 = (await this.wrappedOutputObj.getFieldValueByName("_version")) as NumberField;
+    const head = _head.value;
+    const tail = _tail.value;
+    const size = _size.value;
+    const version = _version.value;
 
-    // if (this.lastShellVersion != version2.value) {
-    if (this.lastShellVersion != version.value) {
-      this.lastShellVersion = version.value;
-      // const arr = (await this.queueObj.getFieldValueByName("_array")) as ArrayField;
-      // this.lastShell = arr.value?.map(a => a.value as string | null);
-      // this.normalizedShell = this.normalizeQueue(head.value, tail.value, this.lastShell || []).filter(a => a !== null)
+    if (this.shellData.version != version) {
+      this.shellData.version = version;
+      const arrField = this.queueObj.klass.fields.find(a => a.name == "_array")!;
 
-      // this.lastShellVersion = version2.value
-      // this.lastShell = items2.value?.map(a => a.value as string | null) || []
-      // this.normalizedShell = this.lastShell.filter(a => a !== null)
-      // log.debug(shellToTerminalColors(this.normalizedShell.join("\n")))
+      const tasks = this.getReadQueueTask(
+        { head: this.shellData.head, tail: this.shellData.tail },
+        { head, tail }
+      );
+
+      for (const clr of tasks.clear) {
+        this.shellData.data.fill(null, clr.st, clr.ed);
+      }
+      for (const read of tasks.read) {
+        const partArray = (
+          await this.queueObj.readArrayField(
+            this.queueObj.objectAddr + BigInt(arrField.offset),
+            read.st,
+            read.ed
+          )
+        )?.map(a => a.value) as string[];
+
+        for (let i = 0; i < partArray.length; i++) {
+          this.shellData.data[read.st + i] = partArray[i] ?? null;
+        }
+      }
+
+      this.shellData.normalizedData = this.normalizeQueue(head, tail, this.shellData.data).filter(
+        a => a !== null
+      );
+
+      this.shellData.head = head;
+      this.shellData.tail = tail;
+      this.shellData.size = size;
+      this.shellData.version = version;
     }
 
-    // const arrField = this.queueObj.klass.fields.find(a => a.name == "_array")!
-
-    // const shortRead = await this.queueObj.readArrayField(this.queueObj.objectAddr + BigInt(arrField.offset), tail.value, head.value)
-    // log.debug({ shortRead })
-
-    // const text = lines?.map(a => a.value).join("\n");
     return {
-      head: head.value,
-      tail: tail.value,
-      size: size.value,
-      version: version.value,
-      text: this.lastShell || [],
-      normalizedText: this.normalizedShell || [],
-      // normalizedText: this.normalizedShell || []
+      head,
+      tail,
+      size,
+      version,
+      text: this.shellData.data,
+      normalizedText: this.shellData.normalizedData,
     };
   }
 
