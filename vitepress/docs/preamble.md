@@ -38,7 +38,7 @@ This software uses quite a lot of tools! You are not required to know how any of
 ## Glossary
 
 - memreader - Short for memory reader
-- OOG - Out Of Game script.  
+- OOG - Out Of Game. Usually refers to a program designed to interact with hackmud as a bot  
 
 ---
 

@@ -160,7 +160,7 @@ mono_get_root_domain (void)
 }
 ```
 
-When reading the next 8 bytes and dissasembling them we get this:
+When reading the next 8 bytes and disassembling them we get this:
 
 ```hex
 # 0: 48 8b 05 [fc 11 44] 00   mov rax, qword ptr [rip + 0x4411fc]
