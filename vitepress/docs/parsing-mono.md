@@ -75,11 +75,15 @@ struct _MonoDomain {
 All fields are positioned in memory one after the other. In this struct we only need to read `*domain_assemblies` and `*friendly_name`. This means that we need to somehow calculate the offset at which those 2 fields are positioned and read from there. You can
 - a. Calculate the offsets by hand and hard code them into the mem reader
 - b. Write a struct layout generator that calculates offsets for you
+
 If you want to keep your sanity I would suggest option b
+
+## Struct Layout
 
 Here's a layout of a _MonoClass struct.
 
 TODO replace with _MonoDomain
+
 TODO change the line height
 
 ```raw
@@ -142,3 +146,12 @@ TODO change the line height
 │ 256-263 │ next_class_cache │ 8 bytes                     │
 └──────────────────────────────────────────────────────────┘
 ```
+
+Here's a quick reference of how much space each data type takes
+
+TODO 
+
+### Padding
+
+TODO
+
