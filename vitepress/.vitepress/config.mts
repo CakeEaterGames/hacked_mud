@@ -28,6 +28,7 @@ export default //withMermaid(
             { text: 'Flushing the terminal', link: '/docs/flush' },
             { text: 'Finding mono root domain (Linux)', link: '/docs/finding-mono-root-domain' },
             { text: 'Sending virtual inputs (Linux)', link: '/docs/sending-virtual-Inputs' },
+            { text: 'Parsing mono', link: '/docs/parsing-mono' },
           ]
         },
  
