@@ -9,12 +9,7 @@ export class MemoryReader {
     // this.pos = 0n;
   }
 
-  async readMemory(
-    address: bigint,
-    size: number,
-    toAdvance = true,
-    timeoutMs = 500000
-  ): Promise<Buffer> {
+  async readMemory(address: bigint, size: number, toAdvance = true): Promise<Buffer> {
     const memPath = `/proc/${this.pid}/mem`;
     const fd = await fs.promises.open(memPath, "r");
     // log.debug("Opened")
@@ -26,20 +21,8 @@ export class MemoryReader {
       const buffer = Buffer.alloc(size);
       // log.debug("Allocated")
 
-      const readPromise = fd.read(buffer, 0, size, Number(address));
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(
-              new Error(
-                `Memory read timeout after ${timeoutMs}ms at address 0x${address.toString(16)}`
-              )
-            ),
-          timeoutMs
-        )
-      );
-
-      const { bytesRead } = await Promise.race([readPromise, timeoutPromise]);
+      const data = await fd.read(buffer, 0, size, Number(address));
+      const bytesRead = data.bytesRead;
 
       if (bytesRead !== size) {
         throw new Error(`Only read ${bytesRead} of ${size} bytes at 0x${address.toString(16)}`);

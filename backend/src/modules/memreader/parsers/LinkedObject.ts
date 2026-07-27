@@ -41,27 +41,34 @@ export class LinkedObject {
 
   static async findAllObjects(klass: MonoClass, allModules: ModuleInfo[], pid: number) {
     const results = [];
+    const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
+
     for (const module of allModules) {
       if (module.path) continue;
 
       log.debug("Reading module with size: " + module.size);
 
-      let buf;
-      try {
-        const mr = new MemoryReader(pid, module.start);
-        buf = await mr.readBytes(Number(module.size));
-        log.debug("Read buffer");
-      } catch (error) {
-        log.error({ error });
-        continue;
-      }
+      // Process in chunks to avoid holding entire buffer
+      for (let offset = 0; offset < module.size; offset += CHUNK_SIZE) {
+        const chunkSize = Math.min(CHUNK_SIZE, Number(module.size) - offset);
+        let chunk;
 
-      for (let pos = 0; pos < buf.length - 8; pos += 8) {
-        const value = buf.readBigUint64LE(pos);
-        // log(value)
-        if (value == klass.domain_vtables) {
-          results.push(module.start + BigInt(pos));
+        try {
+          const mr = new MemoryReader(pid, module.start + BigInt(offset));
+          chunk = await mr.readBytes(chunkSize);
+        } catch (error) {
+          log.error({ error, offset });
+          break;
         }
+
+        for (let pos = 0; pos < chunk.length - 8; pos += 8) {
+          const value = chunk.readBigUint64LE(pos);
+          if (value == klass.domain_vtables) {
+            results.push(module.start + BigInt(offset + pos));
+          }
+        }
+
+        // chunk will be GC'd on next iteration
       }
     }
     return results;
@@ -243,7 +250,9 @@ export class LinkedObject {
       const elements = [];
 
       const st = startIdx !== undefined ? BigInt(startIdx) : 0n;
-      const ed = endIdx !== undefined ? BigInt(endIdx) : count;
+      let ed = endIdx !== undefined ? BigInt(endIdx) : count;
+
+      if (ed > count) ed = count;
 
       // const st = 0n;
       // const ed = count;

@@ -128,4 +128,8 @@ export abstract class findClientsService {
   }
 }
 
-findClientsService.repopulateMemReaders();
+try {
+  void findClientsService.repopulateMemReaders();
+} catch (e) {
+  log.error({ e });
+}
