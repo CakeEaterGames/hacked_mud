@@ -28,6 +28,16 @@ username    137363 44.5 16.2 9290812 2658944 ?     Rl   Jul26 485:17 /home/steam
 I have 2 hackmud instances running. One was launched from the desktop and another was launched in a docker container.
 We need to parse the strings to get PIDs 7738 and 137363.
 
+::: tip
+Use this function to execute shell commands in TypeScript
+```ts
+import { exec } from "child_process";
+import { promisify } from "util";
+const execAsync = promisify(exec);
+const res = await exec("ps aux | grep -v grep | grep hackmud")
+```
+:::
+
 ## What is proc
 
 ::: info AI
@@ -116,29 +126,34 @@ npm install elfy
 
 ---
 
-```js
+```ts
 import { ELF } from "elfy";
 import fs from "fs";
 
+interface Symbol {
+  name: string;
+  value: number;
+}
+
 // Read the ELF from process memory
-const fd = fs.openSync(`/proc/${pid}/mem`, "r");
-const buffer = Buffer.alloc(endAddr - startAddr);
+const fd: number = fs.openSync(`/proc/${pid}/mem`, "r");
+const buffer: Buffer = Buffer.alloc(endAddr - startAddr);
 fs.readSync(fd, buffer, 0, buffer.length, startAddr);
 fs.closeSync(fd);
 
 // Parse and find the symbol
 const elf = ELF.parse(buffer);
-const symtab = elf.sectionHeaders.find(s => s.name === ".symtab");
-const strtab = elf.sectionHeaders.find(s => s.name === ".strtab");
+const symtab = elf.sectionHeaders.find((s: { name: string }) => s.name === ".symtab");
+const strtab = elf.sectionHeaders.find((s: { name: string }) => s.name === ".strtab");
 
 if (!symtab || !strtab) throw new Error("Symbol table not found");
 
-const symData = elf.readSection(symtab);
-const strData = elf.readSection(strtab);
-const symbols = elf.parseSymbolTable(symData, strData);
+const symData: Buffer = elf.readSection(symtab);
+const strData: Buffer = elf.readSection(strtab);
+const symbols: Symbol[] = elf.parseSymbolTable(symData, strData);
 
-const target = symbols.find(s => s.name === "mono_get_root_domain");
-const offset = target.value - startAddr;
+const target: Symbol | undefined = symbols.find((s: Symbol) => s.name === "mono_get_root_domain");
+const offset: number = target!.value - startAddr;
 
 console.log(`mono_get_root_domain at offset: 0x${offset.toString(16)}`);
 ```
