@@ -6,9 +6,9 @@ Before we start let's clarify some things.
 
 Any piece of text that is written by AI will be explicitly marked as such. Note the `ai` marker in the top right corner of the box
 
-```ai
+::: info ai
 Hi my name is Deepseek and I wrote this piece of text
-```
+:::
 
 I hate when articles are written with AI but you can't quite tell if they are. So I would like to be explicit here.
 
