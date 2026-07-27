@@ -2,7 +2,8 @@
 
 ## Roadmap
 
-In this section of the guide we will execute a series of linux commands to eventually get the pointer to mono_root_domain of a hackmud process.
+In this section of the guide we will execute a series of linux commands to eventually get the pointer to mono_root_domain of a hackmud process, which is necessary for reading the memory of a mono application.
+
 here's a rough roadmap of what we need to do:
 
 1. Locate the hackmud process ID(s)
@@ -30,12 +31,14 @@ We need to parse the strings to get PIDs 7738 and 137363.
 
 ::: tip
 Use this function to execute shell commands in TypeScript
+
 ```ts
 import { exec } from "child_process";
 import { promisify } from "util";
 const execAsync = promisify(exec);
-const res = await exec("ps aux | grep -v grep | grep hackmud")
+const res = await exec("ps aux | grep -v grep | grep hackmud");
 ```
+
 :::
 
 ## What is proc
@@ -91,7 +94,7 @@ Parse every line and extract the following values:
 - end - 00201000
 - path - /home/username/.steam/debian-installation/steamapps/common/hackmud/hackmud_lin.x86_64
 
-For now we will only need the ibmonobdwg map, but later on we will need all of them.
+For now we will only need the libmonobdwgc map, but later on we will need all of them.
 
 As you can see there are 4 memory mappings for libmonobdwgc-2.0.so.
 **We need the first executable section (r-xp)**. The `r-xp` segment contains the actual machine code we need to disassemble.
@@ -111,8 +114,8 @@ username@hostname:~$ cat /proc/7738/maps | grep libmonobdwgc
 To get the ELF file:
 
 1. Open this file `/proc/${pid}/mem`
-2. Skip to the start of the map (7c2586600000 from an example above)
-3. Read bytes from from start to the end of the map (7c2586600000-7c25869a1000)
+2. Skip to the start of the map (0x7c2586600000 from an example above)
+3. Read bytes from from start to the end of the map (0x7c2586600000-0x7c25869a1000)
 
 This binary data is our ELF file
 
@@ -178,7 +181,7 @@ mono_get_root_domain (void)
 When reading the next 8 bytes and disassembling them we get this:
 
 ```hex
-# 0: 48 8b 05 [fc 11 44] 00   mov rax, qword ptr [rip + 0x4411fc]
+# 0: 48 8b 05 fc 11 44 00   mov rax, qword ptr [rip + 0x4411fc]
 # 7: c3                       ret
 ```
 
