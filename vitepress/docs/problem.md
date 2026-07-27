@@ -37,7 +37,7 @@ That means you can't really automate all actions of the game. You either have to
 
 ## Solution
 
-We can keep a hackmud open and simulate keyboard key presses! We need to imitate a player.
+We can keep a hackmud window open and simulate keyboard key presses! We need to imitate a player.
 
 The loop is:
 
@@ -49,7 +49,7 @@ send[Send virtual key presses to enter commands]
 -->state1{Did the command finish executing?}
 
 state1-->|No|read1
-state1-->|yes|read
+state1-->|Yes|read
 
 read[Read the memory of the game to see the result of the command]
 -->analyze[Decide what to do]
@@ -57,7 +57,7 @@ read[Read the memory of the game to see the result of the command]
 ```
 
 ::: tip Note
-This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have its' limitations. If you don't want to implement memory reading consider [flushing the terminal](flush)
+This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have its limitations. If you don't want to implement memory reading consider [flushing the terminal](flush)
 :::
 
 This way we will can achieve quite a lot of things in the game. We can automate:

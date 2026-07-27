@@ -4,17 +4,17 @@ Before we start let's clarify some things.
 
 ## AI-Generated Content
 
-Any piece of text that is written by AI will be explicitly marked as such.
+Any piece of text that is written by AI will be explicitly marked as such. Note the `ai` marker in the top right corner of the box
 
 ```ai
 Hi my name is Deepseek and I wrote this piece of text
 ```
 
-I hate when articles are written with AI but you can't quite tell if they are. So I would like to be explicit in this article.
+I hate when articles are written with AI but you can't quite tell if they are. So I would like to be explicit here.
 
 ## Language
 
-English is not my native language. There are may be typos and grammatical errors. Please open a pull request if you would like to correct something. It is quite simple.
+English is not my native language. There are may be typos and grammatical errors. Please open a pull request if you would like to correct something. You can do it on github with a couple of clicks
 
 ## Expertise
 
