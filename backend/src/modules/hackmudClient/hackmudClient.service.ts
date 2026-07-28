@@ -90,6 +90,8 @@ export class HackmudClient {
         this.onUpdate({ type: "ShellUpdate", pid: this.memoryReader.pid, shellState: shell });
       }
       this.shellState = shell;
+
+      await this.spamHardlineNumbers();
     } finally {
       // log.debug("...updated")
       this.isUpdating = false; // Release lock even if an error occurs
@@ -138,6 +140,23 @@ export class HackmudClient {
       response: res,
       fullShell: this.shellState.normalizedText,
     };
+  }
+
+  async spamHardlineNumbers() {
+    //  "hardlineState": 3, "hardlineStateStr": "Patching",
+    if (this.gameState?.hardlineState == 3) {
+      try {
+        await sleep(1000);
+        log.debug("CALL");
+        await virtualKeyboard.sendTextToWindow(
+          this.windowId,
+          this.display,
+          "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+        );
+      } catch (e) {
+        log.warn({ e });
+      }
+    }
   }
 }
 

@@ -2,15 +2,24 @@
   <q-page class="q-pa-md" @keyup.escape="toggleSettings">
     <div class="row items-center q-gutter-sm">
       <div>hacked mud</div>
+      <div>
+        {{ selectedClient?.gameState }}
+      </div>
       <q-badge v-if="selectedClient"> {{ selectedClient.pid }} </q-badge>
       <q-btn dense icon="settings" v-on:click="toggleSettings" />
     </div>
     <div v-if="selectedClient">
+      <div class="overlay">
+        <div class="overlay-text text-h2 text-red" v-if="[7, 8, 9].includes(selectedClient.gameState.gameState)">
+          {{ selectedClient.gameState.instructionsText }}
+        </div>
+      </div>
       <div
         ref="shell"
         id="shell"
         class="q-mt-sm col text-primary console sps"
         :innerHTML="selectedClient.shellHTML"
+        :class="selectedClient.gameState.gameState == 10 ? 'red-border' : ''"
       />
       <q-input v-model="input" dense @keyup="handleKeydown">
         <template v-slot:prepend>
@@ -18,6 +27,11 @@
           <q-icon v-else name="code" />
         </template>
       </q-input>
+      <div
+        v-if="selectedClient.gameState.gameState == 10"
+        class="hardline-progress q-mt-sm"
+        :style="{ width: (selectedClient.gameState.timerCurrent / 120) * 100 + '%' }"
+      ></div>
     </div>
 
     <q-dialog v-model="toShowSettings" no-esc-dismiss>
@@ -64,6 +78,26 @@
 </template>
 
 <style scoped>
+ 
+.overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  color: white; /* Adjust based on your background */
+  text-align: center;
+}
+
+.red-border {
+  border-color: red !important;
+}
+
+.hardline-progress {
+  background-color: red;
+  height: 4px;
+}
+
 .sps {
   white-space-collapse: preserve-spaces;
   white-space: pre;
@@ -74,7 +108,7 @@
   overflow-y: scroll;
   overflow-x: auto;
   /* height: 620px; */
-  height: 88vh;
+  height: 87vh;
   border: 2px;
   border-style: solid;
   padding: 10px;
@@ -121,6 +155,7 @@ type gameClient = {
     hardlineStateStr: string;
     instructionsText: string;
     timerCurrent: number;
+    gameState: number;
   };
   shell: string;
   shellHTML: string;
@@ -208,8 +243,8 @@ onMounted(() => {
   const ws = backend.ws.subscribe();
   ws.subscribe((message) => {
     const data = message.data;
-    console.log("got", data);
-    console.log("got", data.pid);
+    // console.log("got", data);
+    // console.log("got", data.pid);
     switch (data.type) {
       case "GameStateUpdate": {
         const c = findClient(data.pid);
@@ -223,6 +258,7 @@ onMounted(() => {
         c.shell = data.shellState.normalizedText.join("\n");
         // c.shellHTML = c.shell
         c.shellHTML = chatToHTML(c.shell);
+        console.log(selectedClient.value?.pid == data.pid)
         if (selectedClient.value?.pid == data.pid) {
           setTimeout(scrollToBottom, 200);
         }
