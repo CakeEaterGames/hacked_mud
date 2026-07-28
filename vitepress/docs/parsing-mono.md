@@ -84,9 +84,8 @@ Here's a layout of a _MonoClass struct.
 
 TODO replace with _MonoDomain
 
-TODO change the line height
 
-```raw
+<pre style="font-family:monospace;line-height:1.1;font-size:14px">
 ┌──────────────────────────────────────────────────────────┐
 │ _MonoClass                                               │
 │ Size: 232 bytes, Alignment: 8 bytes                      │
@@ -145,8 +144,8 @@ TODO change the line height
 │ 252-255 │ [padding]        │ 4 bytes░░░░░░░░░░░░░░░░░░░░ │
 │ 256-263 │ next_class_cache │ 8 bytes                     │
 └──────────────────────────────────────────────────────────┘
-```
-
+</pre>
+ 
 Here's a quick reference of how much space each data type takes
 
 TODO 
@@ -155,3 +154,4 @@ TODO
 
 TODO
 
+ 
