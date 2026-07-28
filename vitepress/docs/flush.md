@@ -53,4 +53,4 @@ Here's a list of things you can't do with the flush method
 
 ## Conclusion
 
-While this method does have limitations, they are not so bad. You can find workarounds for all of them. In fact, before writing hacked mud I used this method and achieved very good results. Memory reading is a flex. It is for power users. It is for cases when 90% stability is not enough and you need the full 100%.
+While this method does have limitations, they are not so bad. You can find workarounds for all of them. In fact, before writing `hacked mud` I used this method and achieved very good results. Memory reading is a flex. It is for power users. It is for cases when 90% stability is not enough and you need the full 100%.

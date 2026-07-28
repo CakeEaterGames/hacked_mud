@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: "Hacked Mud"
+  name: "hacked mud"
   text: "Or how to read memory of mono applications"
   tagline: "Guide"
   actions:
