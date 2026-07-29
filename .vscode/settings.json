@@ -1,9 +1,14 @@
 {
     "cSpell.words": [
+        "aname",
         "batchmode",
+        "bitfields",
         "cmdline",
         "elfy",
         "Elysia",
+        "gint",
+        "gpointer",
+        "guint",
         "hardline",
         "ibmonobdwg",
         "klass",
@@ -12,6 +17,9 @@
         "memreader",
         "Neverthrow",
         "strtab",
-        "symtab"
+        "symtab",
+        "VALUETYPE",
+        "vtable",
+        "vtables"
     ]
 }
