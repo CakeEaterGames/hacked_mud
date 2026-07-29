@@ -320,7 +320,7 @@ export class MonoParser {
     return fields;
   }
 
-  private async parseClassField(addr: bigint): Promise<MonoClassField | undefined> {
+  private parseClassField(addr: bigint): ResultAsync<MonoClassField, MemoryReaderError> {
     // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/class-internals.h#L150
     // struct _MonoClassField {
     // 	/* Type of the field */
@@ -339,28 +339,30 @@ export class MonoParser {
     // };
 
     const classFieldL = new StructLayoutGenerator(_MonoClassFieldD);
-    const mr = new MemoryReader(this.pid, addr);
-    const buf = await mr.readBytes(classFieldL.layout.size);
-    const classField = classFieldL.parse(buf);
-
-    const name = await MemoryReader.readString(this.pid, classField.name);
-
     const monoTypeL = new StructLayoutGenerator(_MonoTypeD);
-    mr.seek(classField.type);
-    const buf2 = await mr.readBytes(monoTypeL.layout.size);
-    const monoType = monoTypeL.parse(buf2);
 
-    const type = this.parseFieldType(monoType);
-
-    const data: MonoClassField = {
-      name: name,
-      type: type,
-      parent_ptr: classField.parent,
-      offset: classField.offset,
-    };
-
-    // log(data)
-    return data;
+    return this.mr.readBytes(classFieldL.layout.size)
+      .andThen(raw => {
+        const classField = classFieldL.parse(raw);
+        this.mr.seek(classField.name)
+        return this.mr.readString().map(name => ({ name, classField }))
+      })
+      .andThen(ctx => {
+        this.mr.seek(ctx.classField.type);
+        return this.mr.readBytes(monoTypeL.layout.size).map(rawType => ({ ...ctx, rawType }))
+      })
+      .andThen(ctx => {
+        const monoType = monoTypeL.parse(ctx.rawType);
+        const type = this.parseFieldType(monoType);
+        const data: MonoClassField = {
+          name: ctx.name,
+          type: type,
+          parent_ptr: ctx.classField.parent,
+          offset: ctx.classField.offset,
+        };
+        return ok(data)
+      })
+ 
   }
 
   public parseFieldType(tp: { klass: bigint; bitfields: number }): MonoFieldType {
