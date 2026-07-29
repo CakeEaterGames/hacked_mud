@@ -1,4 +1,3 @@
-
 export type SectionHeader = {
   name: string;
   type: string;
@@ -33,8 +32,6 @@ export type SymbolHeader = {
   st_value: bigint;
   st_size: bigint;
 };
-
-
 
 export const SectionTypeMap: Record<number, string> = {
   0x0: "SHT_NULL - Section header table entry unused",

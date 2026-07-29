@@ -13,7 +13,6 @@ import { MonoParser } from "../monoParser/monoParser.service";
 import type { MonoClass } from "../monoParser/monoParser.types";
 import type { cache, cacheStr } from "./hackmudMemoryReader.types";
 
-
 export class HackmudMemoryReader {
   private monoParser: MonoParser | undefined;
   private windowClass: MonoClass | undefined;

@@ -1,7 +1,13 @@
 import { MemoryReader } from "../memoryReader/memoryReader.service";
 import type { ModuleInfo } from "../procParser/procParser.types";
-import { SectionTypeMap, STRINGS_SH_TYPE, SYMBOL_SH_TYPE, type ProgramHeader, type SectionHeader, type SymbolHeader } from "./ElfParser.types";
-
+import {
+  SectionTypeMap,
+  STRINGS_SH_TYPE,
+  SYMBOL_SH_TYPE,
+  type ProgramHeader,
+  type SectionHeader,
+  type SymbolHeader,
+} from "./ElfParser.types";
 
 export class ElfParser {
   is64Bit?: boolean;
