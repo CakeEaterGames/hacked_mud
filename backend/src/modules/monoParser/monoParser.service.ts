@@ -9,12 +9,7 @@ import {
   _MonoClassFieldD,
   _MonoTypeD,
 } from "./monoParser.models";
-import type { MonoClass, MonoAssembly, MonoClassField, MonoFieldType } from "./monoParser.types";
-
-type MonoAssemblyIndexEntry = {
-  name: string;
-  addr: bigint;
-};
+import type { MonoClass, MonoAssembly, MonoClassField, MonoFieldType, MonoAssemblyIndexEntry } from "./monoParser.types";
 
 export class MonoParser {
   constructor(

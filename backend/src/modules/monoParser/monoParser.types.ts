@@ -38,3 +38,9 @@ export type MonoFieldType = {
   isConstant: boolean;
   typeCode: TypeCode;
 };
+
+
+export type MonoAssemblyIndexEntry = {
+  name: string;
+  addr: bigint;
+};
