@@ -1,4 +1,4 @@
-import type { TypeCode } from "../linkedObject/linkedObject.service";
+import type { TypeCode } from "../linkedObject/LinledObject.types";
 
 export type MonoAssembly = {
   name: string;

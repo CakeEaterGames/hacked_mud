@@ -2,7 +2,7 @@ import { ElfParser } from "../ElfParser/ElfParser.service";
 
 import * as fs from "fs";
 
-import { LinkedObject, TypeCode, type NumberField } from "../linkedObject/linkedObject.service";
+import { LinkedObject } from "../linkedObject/linkedObject.service";
 import { shellToTerminalColors } from "../../utils/shellToTerminalColors";
 import { bigIntReplacer } from "../../utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";
@@ -12,6 +12,7 @@ import type { HackmudGameState, HackmudShellState } from "@shared/types/HackmudU
 import { MonoParser } from "../monoParser/monoParser.service";
 import type { MonoClass } from "../monoParser/monoParser.types";
 import type { cache, cacheStr } from "./hackmudMemoryReader.types";
+import { TypeCode, type NumberField } from "../linkedObject/LinledObject.types";
 
 export class HackmudMemoryReader {
   private monoParser: MonoParser | undefined;
