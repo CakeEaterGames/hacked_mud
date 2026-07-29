@@ -23,6 +23,11 @@ export type ExecError = {
   cmd?: string;
 };
 
+export type FSError = {
+  type: "FS_ERROR";
+  cause: Error;
+};
+
 // TODO вынести куда-нибудь
 function errorToObject(err: Error) {
   return { message: err.message, cause: err.cause, name: err.name, stack: err.stack };
