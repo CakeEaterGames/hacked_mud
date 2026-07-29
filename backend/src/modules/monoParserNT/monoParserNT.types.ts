@@ -1,5 +1,10 @@
 import type { TypeCode } from "../linkedObject/LinledObject.types";
 
+export type AssemblyNotFoundError = {
+  type: "ASSEMBLY_NOT_FOUND_ERROR";
+  name: string;
+};
+
 export type MonoAssembly = {
   name: string;
   // addr: addr,

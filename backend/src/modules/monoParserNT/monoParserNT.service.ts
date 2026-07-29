@@ -1,5 +1,5 @@
 import { log } from "@backend/plugins/logger/logger";
-import { MemoryReader } from "../memoryReader/memoryReader.service";
+
 import { StructLayoutGenerator } from "../structLayoutGenerator/structLayoutGenerator.service";
 import {
   _MonoDomainD,
@@ -8,36 +8,50 @@ import {
   _MonoClassDefD,
   _MonoClassFieldD,
   _MonoTypeD,
-} from "./monoParser.models";
+} from "./monoParserNT.models";
 import type {
   MonoClass,
   MonoAssembly,
   MonoClassField,
   MonoFieldType,
   MonoAssemblyIndexEntry,
-} from "./monoParser.types";
+  AssemblyNotFoundError,
+} from "./monoParserNT.types";
+import { MemoryReader } from "../memoryReaderNT/memoryReader.service";
+import { err, errAsync, ok, okAsync, ResultAsync } from "neverthrow";
+import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 
 export class MonoParser {
+  private mr: MemoryReader;
+  private root: bigint;
+
   constructor(
     public pid: number,
-    private origin: bigint,
-    private mono_get_root_domain: bigint
-  ) {}
-
-  public assemblyIndexes: MonoAssemblyIndexEntry[] = [];
-  public monoClasses: MonoClass[] = [];
-
-  public async init() {
-    const root = this.origin + this.mono_get_root_domain;
-    this.assemblyIndexes = await this.findMonoAssemblies(root);
-  }
-  public async parseAssemblyByName(name: string) {
-    const ass = this.assemblyIndexes.find(a => a.name == name);
-    if (!ass) throw new Error("Failed to find assembly: " + name);
-    return await this.parseAssembly(ass?.addr);
+    origin: bigint,
+    mono_get_root_domain: bigint
+  ) {
+    this.root = origin + mono_get_root_domain;
+    this.mr = new MemoryReader(pid, this.root);
   }
 
-  private async findMonoAssemblies(addr: bigint): Promise<MonoAssemblyIndexEntry[]> {
+  public assemblyIndexes?: MonoAssemblyIndexEntry[];
+  public monoClasses?: MonoClass[];
+
+  public parseAssemblyByName(name: string) {
+    return this.findMonoAssemblies().andThen(assemblies => {
+      const ass = assemblies.find(a => a.name == name);
+      if (!ass) {
+        return err({
+          type: "ASSEMBLY_NOT_FOUND_ERROR",
+          name: name,
+        } satisfies AssemblyNotFoundError);
+      }
+      //TODO REMOVE OK
+      return ok(this.parseAssembly(ass));
+    });
+  }
+
+  private findMonoAssemblies(): ResultAsync<MonoAssemblyIndexEntry[], MemoryReaderError> {
     //The function accepts a pointer to
     // mono_get_root_domain (void)
     // {
@@ -45,61 +59,96 @@ export class MonoParser {
     // }
     // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/domain.c#L964
 
-    const mr = new MemoryReader(this.pid, addr);
+    if (this.assemblyIndexes) return okAsync(this.assemblyIndexes);
 
-    // log((await mr.readBytes(32, false, false)))
+    const MonoDomainL = new StructLayoutGenerator(_MonoDomainD);
+
+    this.mr.seek(this.root);
+
     // 48 8b 05 fc 11 44 00      # 0: 48 8b 05 fc 11 44 00   mov rax, qword ptr [rip + 0x4411fc]
     // c3                        # 7: c3                      ret
 
-    mr.skip(3n);
-    const relativeOffset = await mr.readUInt32();
-    //because the instruction is 7 bytes long
-    mr.seek(addr + 7n + BigInt(relativeOffset));
-    const appDomainPtr = await mr.readPtr();
+    this.mr.skip(3n);
+    return this.mr
+      .readUInt32()
+      .andThen(relativeOffset => {
+        //because the instruction is 7 bytes long
+        this.mr.seek(this.root + 7n + BigInt(relativeOffset));
+        return this.mr.readPtr();
+      })
+      .andThen(appDomainPtr => {
+        this.mr.seek(appDomainPtr);
+        return this.mr.readBytes(MonoDomainL.layout.size);
+      })
+      .andThen(rawData => {
+        const domain = MonoDomainL.parse(rawData);
+        const domain_assemblies = domain.domain_assemblies; /// points to an linked list of pointers
+        this.mr.seek(domain_assemblies);
+        return ResultAsync.fromSafePromise(
+          this._collectAssemblyPointers(domain_assemblies)
+        ).andThen(a => a);
+      })
+      .andThen(assemblyPointers => {
+        return ResultAsync.fromSafePromise(this._collectAssemblyNames(assemblyPointers)).andThen(
+          a => a
+        );
+      })
+      .andThen(result => {
+        this.assemblyIndexes = result;
+        return ok(result);
+      });
+  }
 
-    // log("appDomainPtr " + appDomainPtr)
-
-    const MonoDomainL = new StructLayoutGenerator(_MonoDomainD);
-    mr.seek(appDomainPtr);
-    const domain = MonoDomainL.parse(await mr.readBytes(MonoDomainL.layout.size));
-
-    const domain_assemblies = domain.domain_assemblies; /// points to an linked list of pointers
-    mr.seek(domain_assemblies);
-
-    const assemblyPtrs = [];
+  private async _collectAssemblyPointers(
+    start: bigint
+  ): Promise<ResultAsync<bigint[], MemoryReaderError>> {
+    this.mr.seek(start);
+    const assemblyPointers: bigint[] = [];
     while (true) {
       // typedef struct _GSList GSList;
       // struct _GSList {
       // 	gpointer data;
       // 	GSList *next;
       // };
-      const assemblyPtr = await mr.readPtr(); // pointer to the element
-      const next = await mr.readPtr(); // pointer to next linked list element
-      mr.seek(next);
+      const next = await this.mr
+        .readPtr()
+        .andThen(assemblyPtr => {
+          // pointer to the element
+          assemblyPointers.push(assemblyPtr);
+          return this.mr.readPtr();
+        })
+        .andThen(next => {
+          // pointer to the next array element
+          this.mr.seek(next);
+          return ok(next);
+        });
 
-      if (next == 0n) break;
-      assemblyPtrs.push(assemblyPtr);
+      if (next.isErr()) return err(next.error);
+      if (next.value == 0n) break;
     }
-    // log(assemblyPtrs)
-
-    const assemblies = [];
-
-    for (const ptr of assemblyPtrs) {
-      const mr = new MemoryReader(this.pid, ptr);
-      mr.skip(16n); //skip gint32 ref_count -> ...sneaky 4 bytes here for pointer offset -> char *basedir -> arrive at MonoAssemblyName const char *name;
-      const MonoAssemblyName_namePtr = await mr.readPtr();
-      mr.seek(MonoAssemblyName_namePtr);
-      const nameStr = await mr.readString();
-      // log(nameStr)
-
-      assemblies.push({ name: nameStr, addr: ptr });
-      // let ass = await this.parseAssembly(ptr)
-      // if (ass) assemblies.push(ass)
-    }
-    return assemblies;
+    return ok(assemblyPointers);
   }
 
-  private async parseAssembly(addr: bigint): Promise<MonoAssembly | undefined> {
+  private async _collectAssemblyNames(
+    assemblyPointers: bigint[]
+  ): Promise<ResultAsync<MonoAssemblyIndexEntry[], MemoryReaderError>> {
+    const assemblies = [];
+    for (const ptr of assemblyPointers) {
+      this.mr.seek(ptr);
+      this.mr.skip(16n); //skip gint32 ref_count -> ...sneaky 4 bytes here for pointer offset -> char *basedir -> arrive at MonoAssemblyName const char *name;
+      const nameStr = await this.mr.readPtr().andThen(MonoAssemblyName_namePtr => {
+        this.mr.seek(MonoAssemblyName_namePtr);
+        return this.mr.readString();
+      });
+      if (nameStr.isErr()) return err(nameStr.error);
+      assemblies.push({ name: nameStr.value, addr: ptr });
+    }
+    return ok(assemblies);
+  }
+
+  private async parseAssembly(
+    assemblyEntry: MonoAssemblyIndexEntry
+  ): Promise<MonoAssembly | undefined> {
     // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L214
 
     // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L162
@@ -126,7 +175,7 @@ export class MonoParser {
     // };
 
     const MonoAssemblyL = new StructLayoutGenerator(_MonoAssemblyD);
-    const mr2 = new MemoryReader(this.pid, addr);
+    const mr2 = new MemoryReader(this.pid, assemblyEntry.addr);
 
     const assembly = MonoAssemblyL.parse(await mr2.readBytes(MonoAssemblyL.layout.size));
     const nameStr = await MemoryReader.readString(this.pid, assembly.aname.name);
@@ -168,7 +217,7 @@ export class MonoParser {
     }
 
     const ass: MonoAssembly = {
-      name: nameStr!,
+      name: nameStr,
       // addr: addr,
       classes: classes,
     };
@@ -304,7 +353,7 @@ export class MonoParser {
     const type = this.parseFieldType(monoType);
 
     const data: MonoClassField = {
-      name: name!,
+      name: name,
       type: type,
       parent_ptr: classField.parent,
       offset: classField.offset,
