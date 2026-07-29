@@ -3,12 +3,12 @@ import type {
   HackmudShellState,
   HackmudUpdateEvent,
 } from "@shared/types/HackmudUpdateEvent.model";
-import { HackmudMemoryReader } from "../memreader/HackmudMemoryReader";
+import { HackmudMemoryReader } from "../hackmudMemoryReader/hackmudMemoryReader.service";
 import { HackmudClients, type HackmudValidPid } from "../findClients/findClients.service";
 import { virtualKeyboard } from "../virtualKeyboard/virtualKeyboard.service";
 import { sleep } from "bun";
 import { log } from "@backend/plugins/logger/logger";
-import { shellToTerminalColors } from "../memreader/utils/shellToTerminalColors";
+import { shellToTerminalColors } from "../../utils/shellToTerminalColors";
 
 export class HackmudClient {
   public readonly memoryReader: HackmudMemoryReader;

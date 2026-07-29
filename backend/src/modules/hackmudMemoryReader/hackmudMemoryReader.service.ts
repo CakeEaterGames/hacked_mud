@@ -1,26 +1,18 @@
-import { ElfParser } from "./parsers/ElfParser";
-import { MonoParser } from "./parsers/MonoParser";
+import { ElfParser } from "../ElfParser/ElfParser.service";
 
 import * as fs from "fs";
 
-import type { MonoClass } from "./parsers/types";
-import { LinkedObject, TypeCode, type NumberField } from "./parsers/LinkedObject";
-import { shellToTerminalColors } from "./utils/shellToTerminalColors";
-import { bigIntReplacer } from "./utils/bigIntReplacer";
+import { LinkedObject, TypeCode, type NumberField } from "../linkedObject/linkedObject.service";
+import { shellToTerminalColors } from "../../utils/shellToTerminalColors";
+import { bigIntReplacer } from "../../utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";
-import { getProcMaps } from "./parsers/ProcParser";
+import { getProcMaps } from "../procParser/procParser.service";
 import { mkdirRecursiveAsync } from "@backend/utils/fs";
 import type { HackmudGameState, HackmudShellState } from "@shared/types/HackmudUpdateEvent.model";
+import { MonoParser } from "../monoParser/monoParser.service";
+import type { MonoClass } from "../monoParser/monoParser.types";
+import type { cache, cacheStr } from "./hackmudMemoryReader.types";
 
-type cache = {
-  chatWindowPtr?: bigint;
-  shellWindowPtr?: bigint;
-};
-
-type cacheStr = {
-  chatWindowPtr?: string;
-  shellWindowPtr?: string;
-};
 
 export class HackmudMemoryReader {
   private monoParser: MonoParser | undefined;

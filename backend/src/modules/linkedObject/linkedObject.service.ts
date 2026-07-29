@@ -1,8 +1,8 @@
 import { log } from "@backend/plugins/logger/logger";
-import { MemoryReader } from "./MemoryReader";
-import type { MonoParser } from "./MonoParser";
-import type { ModuleInfo } from "./ProcParser";
-import type { MonoClass, MonoClassField } from "./types";
+import type { MonoClass, MonoClassField } from "../monoParser/monoParser.types";
+import { MemoryReader } from "../memoryReader/memoryReader.service";
+import type { MonoParser } from "../monoParser/monoParser.service";
+import type { ModuleInfo } from "../procParser/procParser.types";
 
 export class LinkedObject {
   constructor(

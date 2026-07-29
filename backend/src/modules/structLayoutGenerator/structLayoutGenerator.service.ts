@@ -9,7 +9,7 @@ import {
   type StructLayout,
   type StructLayoutField,
   type StructParsedType,
-} from "./types";
+} from "./structLayoutGenerator.types";
 
 export class StructLayoutGenerator<T extends StructDefinition> {
   public layout: StructLayout;

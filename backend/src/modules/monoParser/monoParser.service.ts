@@ -1,17 +1,15 @@
-import { MemoryReader } from "./MemoryReader";
-import type { MonoAssembly, MonoClass, MonoClassField, MonoFieldType } from "./types";
+import { log } from "@backend/plugins/logger/logger";
+import { MemoryReader } from "../memoryReader/memoryReader.service";
+import { StructLayoutGenerator } from "../structLayoutGenerator/structLayoutGenerator.service";
 import {
-  _MonoClassDefD,
-  _MonoClassFieldD,
-  _MonoClassD,
-  _MonoTypeD,
-  _MonoAssemblyNameD,
+  _MonoDomainD,
   _MonoAssemblyD,
   _MonoImageD,
-  _MonoDomainD,
-} from "../StructLayoutGenerator/definitions";
-import { StructLayoutGenerator } from "../StructLayoutGenerator";
-import { log } from "@backend/plugins/logger/logger";
+  _MonoClassDefD,
+  _MonoClassFieldD,
+  _MonoTypeD,
+} from "./monoParser.models";
+import type { MonoClass, MonoAssembly, MonoClassField, MonoFieldType } from "./monoParser.types";
 
 type MonoAssemblyIndexEntry = {
   name: string;

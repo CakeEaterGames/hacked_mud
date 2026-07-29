@@ -1,136 +1,90 @@
+import { log } from "@backend/plugins/logger/logger";
 import * as fs from "fs";
-import type { FileHandle, FileReadResult } from "fs/promises";
-import { err, ok, okAsync, Result, ResultAsync } from "neverthrow";
-import type { MemoryReaderError } from "./memoryReader.types";
-
-const alloc = Result.fromThrowable(
-  Buffer.alloc.bind(Buffer),
-  e => ({ cause: e as Error, type: "MEMORY_READER_ERROR" }) satisfies MemoryReaderError
-);
-
 
 export class MemoryReader {
-  file?: FileHandle;
-
   constructor(
     public pid: number,
     public pos: bigint
-  ) {}
+  ) {
+    // this.pos = 0n;
+  }
 
-  private open(): ResultAsync<FileHandle, MemoryReaderError> {
-    if (this.file) return okAsync(this.file);
+  async readMemory(address: bigint, size: number, toAdvance = true): Promise<Buffer> {
     const memPath = `/proc/${this.pid}/mem`;
-    return ResultAsync.fromPromise(
-      fs.promises.open(memPath, "r"),
-      e =>
-        ({
-          type: "MEMORY_READER_ERROR",
-          cause: e as Error,
-        }) satisfies MemoryReaderError
-    ).map(fileHandle => {
-      this.file = fileHandle;
-      return fileHandle;
-    });
-  }
+    const fd = await fs.promises.open(memPath, "r");
+    // log.debug("Opened")
 
-  close(): ResultAsync<void, MemoryReaderError> {
-    if (!this.file) return okAsync();
-    return ResultAsync.fromPromise(
-      this.file.close(),
-      e =>
-        ({
-          type: "MEMORY_READER_ERROR",
-          cause: e as Error,
-        }) satisfies MemoryReaderError
-    ).map(_ => {
-      this.file = undefined;
-    });
-  }
+    if (size < 0) {
+      log.error("WTF");
+    }
+    try {
+      const buffer = Buffer.alloc(size);
+      // log.debug("Allocated")
 
-  fileRead(
-    f: FileHandle,
-    buffer: Buffer<ArrayBuffer>,
-    bufferSize: number,
-    address: bigint
-  ): ResultAsync<FileReadResult<Buffer<ArrayBuffer>>, MemoryReaderError> {
-    return ResultAsync.fromPromise(
-      f.read(buffer, 0, bufferSize, Number(address)),
-      e =>
-        ({
-          type: "MEMORY_READER_ERROR",
-          cause: e as Error,
-        }) satisfies MemoryReaderError
-    );
-  }
+      const data = await fd.read(buffer, 0, size, Number(address));
+      const bytesRead = data.bytesRead;
 
-  readMemory(
-    address: bigint,
-    size: number,
-    toAdvance = true
-  ): ResultAsync<Buffer<ArrayBuffer>, MemoryReaderError> {
-    return this.open()
-      .andThen(file => alloc(size).map(buffer => ({ file, buffer })))
-      .andThen(ctx =>
-        this.fileRead(ctx.file, ctx.buffer, size, address).map(data => ({ ...ctx, data }))
-      )
-      .andThen(ctx => {
-        if (ctx.data.bytesRead != size) {
-          return err({
-            type: "MEMORY_READER_ERROR",
-            cause: new Error(
-              `Only read ${ctx.data.bytesRead} of ${size} bytes at 0x${address.toString(16)}`
-            ),
-          } satisfies MemoryReaderError);
-        }
-        if (toAdvance) this.pos += BigInt(size);
-        return ok(ctx.buffer);
-      });
-  }
+      if (bytesRead !== size) {
+        throw new Error(`Only read ${bytesRead} of ${size} bytes at 0x${address.toString(16)}`);
+      }
 
+      if (toAdvance) this.pos += BigInt(size);
+      return buffer;
+    } catch (e) {
+      log.error({ e });
+      throw e;
+    } finally {
+      await fd.close();
+    }
+  }
   seek(pos: bigint) {
     this.pos = pos;
-    return this.pos;
   }
 
   skip(n: bigint) {
     this.pos += n;
-    return this.pos;
   }
 
-  readBytes(n: number, toAdvance = true): ResultAsync<Buffer, MemoryReaderError> {
-    return this.readMemory(this.pos, n, toAdvance);
+  async readBytes(n: number, toAdvance = true) {
+    const r = await this.readMemory(this.pos, n, toAdvance);
+    return r;
   }
 
-  readUInt8(): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(this.pos, 1).map(buffer => buffer.readUInt8(0));
+  async readUInt8(): Promise<number> {
+    const buffer = await this.readMemory(this.pos, 1);
+    return buffer.readUInt8(0);
+  }
+  async readInt8(): Promise<number> {
+    const buffer = await this.readMemory(this.pos, 1);
+    return buffer.readInt8(0);
   }
 
-  readInt8(): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(this.pos, 1).map(buffer => buffer.readInt8(0));
+  async readUInt16(): Promise<number> {
+    const buffer = await this.readMemory(this.pos, 2);
+    return buffer.readUInt16LE(0);
+  }
+  async readInt16(): Promise<number> {
+    const buffer = await this.readMemory(this.pos, 2);
+    return buffer.readInt16LE(0);
   }
 
-  readUInt16() {
-    return this.readMemory(this.pos, 2).map(buffer => buffer.readUInt16LE(0));
+  async readUInt32(): Promise<number> {
+    const buffer = await this.readMemory(this.pos, 4);
+    return buffer.readUInt32LE(0);
   }
 
-  readInt16(): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(this.pos, 2).map(buffer => buffer.readInt16LE(0));
+  async readInt32(): Promise<number> {
+    const buffer = await this.readMemory(this.pos, 4);
+    return buffer.readInt32LE(0);
   }
 
-  readUInt32(): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(this.pos, 4).map(buffer => buffer.readUInt32LE(0));
+  async readInt64(): Promise<bigint> {
+    const buffer = await this.readMemory(this.pos, 8);
+    return buffer.readBigInt64LE(0);
   }
-
-  readInt32(): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(this.pos, 4).map(buffer => buffer.readInt32LE(0));
-  }
-
-  readInt64(): ResultAsync<bigint, MemoryReaderError> {
-    return this.readMemory(this.pos, 8).map(buffer => buffer.readBigInt64LE(0));
-  }
-
-  readUInt64(): ResultAsync<bigint, MemoryReaderError> {
-    return this.readMemory(this.pos, 8).map(buffer => buffer.readBigUInt64LE(0));
+  async readUInt64(): Promise<bigint> {
+    const buffer = await this.readMemory(this.pos, 8);
+    return buffer.readBigUInt64LE(0);
   }
 
   alignForPtr() {
@@ -139,28 +93,28 @@ export class MemoryReader {
     if (alignedPos > currentPos) {
       this.seek(alignedPos);
     }
-    return this.pos;
   }
 
-  readPtr(): ResultAsync<bigint, MemoryReaderError> {
+  async readPtr() {
     this.alignForPtr();
-    return this.readUInt64();
+    return await this.readUInt64();
   }
 
-  readString(maxLength: number = 512): ResultAsync<string, MemoryReaderError> {
-    return this.readMemory(this.pos, maxLength).andThen(buffer => {
-      const origin = this.pos;
-      let end = 0;
-      while (end < maxLength && buffer[end] !== 0) end++;
-      this.pos = origin + BigInt(end) + 1n;
-      return ok(buffer.toString("utf8", 0, end));
-    });
+  async readString(maxLength: number = 512): Promise<string> {
+    const origin = this.pos;
+    const buffer = await this.readMemory(this.pos, maxLength);
+
+    let end = 0;
+    while (end < maxLength && buffer[end] !== 0) end++;
+
+    this.pos = origin + BigInt(end) + 1n;
+
+    return buffer.toString("utf8", 0, end);
   }
 
-  static readString(pid: number, pos: bigint): ResultAsync<string, MemoryReaderError> {
+  static async readString(pid: number, pos: bigint) {
+    if (!pos) return null;
     const nsReader = new MemoryReader(pid, pos);
-    return nsReader.readString().andTee(_ => {
-      nsReader.close();
-    });
+    return await nsReader.readString();
   }
 }

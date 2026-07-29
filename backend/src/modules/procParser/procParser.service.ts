@@ -1,13 +1,7 @@
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { exec } from "child_process";
 import { err, ok, ResultAsync } from "neverthrow";
-
-export type ModuleInfo = {
-  start: bigint;
-  end: bigint;
-  size: bigint;
-  path: string;
-};
+import type { ModuleInfo } from "./procParser.types";
 
 export function getProcMaps(pid: number): ResultAsync<ModuleInfo[], ExecError> {
   return toResultAsync(_getProcMaps(pid));

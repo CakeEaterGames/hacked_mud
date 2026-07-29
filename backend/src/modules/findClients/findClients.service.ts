@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 import { log } from "@backend/plugins/logger/logger";
-import { getProcMaps } from "../memreader/parsers/ProcParser";
+import { getProcMaps } from "../procParser/procParser.service";
 import { err, ok, ResultAsync } from "neverthrow";
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { socketServerService } from "../socketServer/socketServer.service";
