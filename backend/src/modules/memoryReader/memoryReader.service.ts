@@ -1,16 +1,13 @@
 import * as fs from "fs";
 import type { FileHandle, FileReadResult } from "fs/promises";
 import { err, ok, okAsync, Result, ResultAsync } from "neverthrow";
+import type { MemoryReaderError } from "./memoryReader.types";
 
 const alloc = Result.fromThrowable(
   Buffer.alloc.bind(Buffer),
   e => ({ cause: e as Error, type: "MEMORY_READER_ERROR" }) satisfies MemoryReaderError
 );
 
-export type MemoryReaderError = {
-  type: "MEMORY_READER_ERROR";
-  cause: Error;
-};
 
 export class MemoryReader {
   file?: FileHandle;
