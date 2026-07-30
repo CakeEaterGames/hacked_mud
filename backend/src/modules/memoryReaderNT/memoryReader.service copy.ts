@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import type { FileHandle, FileReadResult } from "fs/promises";
 import { err, ok, okAsync, Result, ResultAsync } from "neverthrow";
-import type { MemoryReaderError } from "./memoryReader.models";
+import type { MemoryReaderError, ReadMemoryResult } from "./memoryReader.models";
 
 const alloc = Result.fromThrowable(
   Buffer.alloc.bind(Buffer),
@@ -59,7 +59,10 @@ export class MemoryReader {
     );
   }
 
-  readMemory(address: bigint, size: number): ResultAsync<Buffer, MemoryReaderError> {
+  readMemory(
+    address: bigint,
+    size: number
+  ): ResultAsync<ReadMemoryResult<Buffer>, MemoryReaderError> {
     return this.open()
       .andThen(file => alloc(size).map(buffer => ({ file, buffer })))
       .andThen(ctx =>
@@ -74,44 +77,62 @@ export class MemoryReader {
             ),
           } satisfies MemoryReaderError);
         }
-        return ok(ctx.buffer);
+        return ok({ value: ctx.buffer, next: address + BigInt(size) });
       });
   }
 
-  readBytes(addr: bigint, n: number): ResultAsync<Buffer, MemoryReaderError> {
+  readBytes(addr: bigint, n: number): ResultAsync<ReadMemoryResult<Buffer>, MemoryReaderError> {
     return this.readMemory(addr, n);
   }
 
-  readUInt8(addr: bigint): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(addr, 1).map(res => res.readUInt8(0));
+  readUInt8(addr: bigint): ResultAsync<ReadMemoryResult<number>, MemoryReaderError> {
+    return this.readMemory(addr, 1).map(res => ({ value: res.value.readUInt8(0), next: res.next }));
   }
 
-  readInt8(addr: bigint): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(addr, 1).map(res => res.readInt8(0));
+  readInt8(addr: bigint): ResultAsync<ReadMemoryResult<number>, MemoryReaderError> {
+    return this.readMemory(addr, 1).map(res => ({ value: res.value.readInt8(0), next: res.next }));
   }
 
-  readUInt16(addr: bigint): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(addr, 2).map(res => res.readUInt16LE(0));
+  readUInt16(addr: bigint): ResultAsync<ReadMemoryResult<number>, MemoryReaderError> {
+    return this.readMemory(addr, 2).map(res => ({
+      value: res.value.readUInt16LE(0),
+      next: res.next,
+    }));
   }
 
-  readInt16(addr: bigint): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(addr, 2).map(res => res.readInt16LE(0));
+  readInt16(addr: bigint): ResultAsync<ReadMemoryResult<number>, MemoryReaderError> {
+    return this.readMemory(addr, 2).map(res => ({
+      value: res.value.readInt16LE(0),
+      next: res.next,
+    }));
   }
 
-  readUInt32(addr: bigint): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(addr, 4).map(res => res.readUInt32LE(0));
+  readUInt32(addr: bigint): ResultAsync<ReadMemoryResult<number>, MemoryReaderError> {
+    return this.readMemory(addr, 4).map(res => ({
+      value: res.value.readUInt32LE(0),
+      next: res.next,
+    }));
   }
 
-  readInt32(addr: bigint): ResultAsync<number, MemoryReaderError> {
-    return this.readMemory(addr, 4).map(res => res.readInt32LE(0));
+  readInt32(addr: bigint): ResultAsync<ReadMemoryResult<number>, MemoryReaderError> {
+    return this.readMemory(addr, 4).map(res => ({
+      value: res.value.readInt32LE(0),
+      next: res.next,
+    }));
   }
 
-  readInt64(addr: bigint): ResultAsync<bigint, MemoryReaderError> {
-    return this.readMemory(addr, 8).map(res => res.readBigInt64LE(0));
+  readInt64(addr: bigint): ResultAsync<ReadMemoryResult<bigint>, MemoryReaderError> {
+    return this.readMemory(addr, 8).map(res => ({
+      value: res.value.readBigInt64LE(0),
+      next: res.next,
+    }));
   }
 
-  readUInt64(addr: bigint): ResultAsync<bigint, MemoryReaderError> {
-    return this.readMemory(addr, 8).map(res => res.readBigUInt64LE(0));
+  readUInt64(addr: bigint): ResultAsync<ReadMemoryResult<bigint>, MemoryReaderError> {
+    return this.readMemory(addr, 8).map(res => ({
+      value: res.value.readBigUInt64LE(0),
+      next: res.next,
+    }));
   }
 
   alignForPtr(addr: bigint) {
@@ -120,18 +141,24 @@ export class MemoryReader {
     return addr;
   }
 
-  readPtr(addr: bigint): ResultAsync<bigint, MemoryReaderError> {
+  readPtr(addr: bigint): ResultAsync<ReadMemoryResult<bigint>, MemoryReaderError> {
     return this.readUInt64(this.alignForPtr(addr));
   }
 
-  readString(addr: bigint, maxLength: number = 512): ResultAsync<string, MemoryReaderError> {
+  readString(
+    addr: bigint,
+    maxLength: number = 512
+  ): ResultAsync<ReadMemoryResult<string>, MemoryReaderError> {
     return this.readMemory(addr, maxLength).andThen(buffer => {
       const origin = addr;
       let end = 0;
       // TODO can this read an incomplete string?
-      while (end < maxLength && buffer[end] !== 0) end++;
-      // const next = origin + BigInt(end) + 1n;
-      return ok(buffer.toString("utf8", 0, end));
+      while (end < maxLength && buffer.value[end] !== 0) end++;
+      const next = origin + BigInt(end) + 1n;
+      return ok({
+        value: buffer.value.toString("utf8", 0, end),
+        next,
+      });
     });
   }
 }

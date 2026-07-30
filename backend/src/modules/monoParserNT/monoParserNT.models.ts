@@ -801,3 +801,16 @@ export const _MonoDomainD = defineStruct({
     // the rest of the struct remains unmapped
   ],
 });
+
+// struct _GSList {
+// 	gpointer data;
+// 	GSList *next;
+// };
+
+export const _GSList = defineStruct({
+  name: "_GSList",
+  fields: [
+    { ctype: "gpointer", name: "data", type: "ptr" },
+    { ctype: "GSList", name: "next", type: "ptr" },
+  ],
+});

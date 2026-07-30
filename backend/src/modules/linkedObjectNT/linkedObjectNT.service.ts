@@ -101,8 +101,6 @@ export class LinkedObject {
   }
 
   async readAnyObject(type: TypeCode, addr: bigint): Promise<ReadAnyObjectResponse> {
-    const mr = new MemoryReader(this.pid, addr);
-
     switch (type) {
       case TypeCode.U1:
         return { type: "number", value: await mr.readUInt8() };
@@ -270,7 +268,6 @@ export class LinkedObject {
   }
 
   async readObjField(addr: bigint) {
-    const mr = new MemoryReader(this.pid, addr);
     try {
       const objectPtr = await mr.readPtr();
       if (objectPtr == 0n) return;

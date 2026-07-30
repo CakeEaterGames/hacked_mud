@@ -8,6 +8,7 @@ import {
   _MonoClassDefD,
   _MonoClassFieldD,
   _MonoTypeD,
+  _GSList,
 } from "./monoParserNT.models";
 import type {
   MonoClass,
@@ -63,27 +64,21 @@ export class MonoParser {
 
     const MonoDomainL = new StructLayoutGenerator(_MonoDomainD);
 
-    this.mr.seek(this.root);
-
     // 48 8b 05 fc 11 44 00      # 0: 48 8b 05 fc 11 44 00   mov rax, qword ptr [rip + 0x4411fc]
-    // c3                        # 7: c3                      ret
+    // c3                        # 7: c3                     ret
 
-    this.mr.skip(3n);
     return this.mr
-      .readUInt32()
+      .readUInt32(this.root + 3n)
       .andThen(relativeOffset => {
         //because the instruction is 7 bytes long
-        this.mr.seek(this.root + 7n + BigInt(relativeOffset));
-        return this.mr.readPtr();
+        return this.mr.readPtr(this.root + 7n + BigInt(relativeOffset));
       })
       .andThen(appDomainPtr => {
-        this.mr.seek(appDomainPtr);
-        return this.mr.readBytes(MonoDomainL.layout.size);
+        return this.mr.readBytes(appDomainPtr, MonoDomainL.layout.size);
       })
       .andThen(rawData => {
         const domain = MonoDomainL.parse(rawData);
         const domain_assemblies = domain.domain_assemblies; /// points to an linked list of pointers
-        this.mr.seek(domain_assemblies);
         return toResultAsync(this._collectAssemblyPointers(domain_assemblies));
       })
       .andThen(assemblyPointers => {
@@ -98,29 +93,32 @@ export class MonoParser {
   private async _collectAssemblyPointers(
     start: bigint
   ): Promise<ResultAsync<bigint[], MemoryReaderError>> {
-    this.mr.seek(start);
     const assemblyPointers: bigint[] = [];
+    let ptr = start;
+    const GSListL = new StructLayoutGenerator(_GSList);
+
     while (true) {
       // typedef struct _GSList GSList;
       // struct _GSList {
       // 	gpointer data;
       // 	GSList *next;
       // };
-      const next = await this.mr
-        .readPtr()
-        .andThen(assemblyPtr => {
-          // pointer to the element
-          assemblyPointers.push(assemblyPtr);
-          return this.mr.readPtr();
+      const read = await this.mr
+        .readBytes(ptr, GSListL.layout.size)
+        .andThen(rawList => {
+          const list = GSListL.parse(rawList);
+          // pointer to the assembly
+          assemblyPointers.push(list.data);
+          // pointer to the next list element
+          return this.mr.readPtr(list.next);
         })
         .andThen(next => {
-          // pointer to the next array element
-          this.mr.seek(next);
+          ptr = next;
           return ok(next);
         });
 
-      if (next.isErr()) return err(next.error);
-      if (next.value == 0n) break;
+      if (read.isErr()) return err(read.error);
+      if (read.value == 0n) break;
     }
     return ok(assemblyPointers);
   }
@@ -130,11 +128,11 @@ export class MonoParser {
   ): Promise<ResultAsync<MonoAssemblyIndexEntry[], MemoryReaderError>> {
     const assemblies = [];
     for (const ptr of assemblyPointers) {
-      this.mr.seek(ptr);
-      this.mr.skip(16n); //skip gint32 ref_count -> ...sneaky 4 bytes here for pointer offset -> char *basedir -> arrive at MonoAssemblyName const char *name;
-      const nameStr = await this.mr.readPtr().andThen(MonoAssemblyName_namePtr => {
-        this.mr.seek(MonoAssemblyName_namePtr);
-        return this.mr.readString();
+      // Skipping 16 bytes to arrive at at MonoAssemblyName const char *name;
+      // Refer to _MonoAssemblyD struct definition
+      // This is done to not read the entire struct
+      const nameStr = await this.mr.readPtr(ptr + 16n).andThen(MonoAssemblyName_namePtr => {
+        return this.mr.readString(MonoAssemblyName_namePtr);
       });
       if (nameStr.isErr()) return err(nameStr.error);
       assemblies.push({ name: nameStr.value, addr: ptr });
@@ -173,21 +171,19 @@ export class MonoParser {
     const MonoAssemblyL = new StructLayoutGenerator(_MonoAssemblyD);
     const MonoImageL = new StructLayoutGenerator(_MonoImageD);
 
-    this.mr.seek(assemblyEntry.addr);
-
     return this.mr
-      .readBytes(MonoAssemblyL.layout.size)
+      .readBytes(assemblyEntry.addr, MonoAssemblyL.layout.size)
       .andThen(raw => {
         const assembly = MonoAssemblyL.parse(raw);
 
-        this.mr.seek(assembly.aname.name);
-        return this.mr.readString().map(nameStr => ({ assembly, nameStr }));
+        return this.mr.readString(assembly.aname.name).map(nameStr => ({ assembly, nameStr }));
       })
       .andThen(ctx => {
         // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L355
 
-        this.mr.seek(ctx.assembly.image);
-        return this.mr.readBytes(MonoImageL.layout.size).map(rawImage => ({ ...ctx, rawImage }));
+        return this.mr
+          .readBytes(ctx.assembly.image, MonoImageL.layout.size)
+          .map(rawImage => ({ ...ctx, rawImage }));
       })
       .andThen(ctx => {
         return toResultAsync(this._hashTableLoop(ctx.rawImage)).map(classes => ({
@@ -229,9 +225,8 @@ export class MonoParser {
     const classes = [];
 
     for (let i = 0; i < classCacheSize; i++) {
-      this.mr.seek(gpointer + BigInt(i * 8)); // a pointer is 8 bytes long
-
-      const loopAddrRes = await this.mr.readPtr();
+      // a pointer is 8 bytes long
+      const loopAddrRes = await this.mr.readPtr(gpointer + BigInt(i * 8));
       if (loopAddrRes.isErr()) return err(loopAddrRes.error);
       let loopAddr = loopAddrRes.value;
 
@@ -274,9 +269,8 @@ export class MonoParser {
 
     const layout = new StructLayoutGenerator(_MonoClassDefD);
 
-    this.mr.seek(addr);
     return this.mr
-      .readBytes(layout.layout.size)
+      .readBytes(addr, layout.layout.size)
       .andThen(raw => {
         const classDefinition = layout.parse(raw);
         const klass = classDefinition.klass;
@@ -289,12 +283,10 @@ export class MonoParser {
         return okAsync({ klass, classDefinition, isValueType, isEnum, this_arg_type });
       })
       .andThen(ctx => {
-        this.mr.seek(ctx.klass.name);
-        return this.mr.readString().map(name => ({ ...ctx, name }));
+        return this.mr.readString(ctx.klass.name).map(name => ({ ...ctx, name }));
       })
       .andThen(ctx => {
-        this.mr.seek(ctx.klass.name_space);
-        return this.mr.readString().map(name_space => ({ ...ctx, name_space }));
+        return this.mr.readString(ctx.klass.name_space).map(name_space => ({ ...ctx, name_space }));
       })
       .andThen(ctx => {
         if (ctx.klass.runtime_info != 0n) {
@@ -303,8 +295,9 @@ export class MonoParser {
           // 	/* domain_vtables is indexed by the domain id and the size is max_domain + 1 */
           // 	MonoVTable *domain_vtables [MONO_ZERO_LEN_ARRAY];
           // } MonoClassRuntimeInfo;
-          this.mr.seek(ctx.klass.runtime_info + 8n);
-          return this.mr.readPtr().map(domain_vtables => ({ ...ctx, domain_vtables }));
+          return this.mr
+            .readPtr(ctx.klass.runtime_info + 8n)
+            .map(domain_vtables => ({ ...ctx, domain_vtables }));
         }
         return okAsync({ ...ctx, domain_vtables: 0n });
       })
@@ -380,18 +373,16 @@ export class MonoParser {
     const classFieldL = new StructLayoutGenerator(_MonoClassFieldD);
     const monoTypeL = new StructLayoutGenerator(_MonoTypeD);
 
-    this.mr.seek(addr);
-
     return this.mr
-      .readBytes(classFieldL.layout.size)
+      .readBytes(addr, classFieldL.layout.size)
       .andThen(raw => {
         const classField = classFieldL.parse(raw);
-        this.mr.seek(classField.name);
-        return this.mr.readString().map(name => ({ name, classField }));
+        return this.mr.readString(classField.name).map(name => ({ name, classField }));
       })
       .andThen(ctx => {
-        this.mr.seek(ctx.classField.type);
-        return this.mr.readBytes(monoTypeL.layout.size).map(rawType => ({ ...ctx, rawType }));
+        return this.mr
+          .readBytes(ctx.classField.type, monoTypeL.layout.size)
+          .map(rawType => ({ ...ctx, rawType }));
       })
       .andThen(ctx => {
         const monoType = monoTypeL.parse(ctx.rawType);
