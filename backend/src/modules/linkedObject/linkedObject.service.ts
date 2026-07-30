@@ -3,7 +3,7 @@ import type { MonoClass, MonoClassField } from "../monoParser/monoParser.types";
 import { MemoryReader } from "../memoryReader/memoryReader.service";
 import type { MonoParser } from "../monoParser/monoParser.service";
 import type { ModuleInfo } from "../procParser/procParser.types";
-import { type ClassField, TypeCode, type ReadAnyObjectResponse } from "./LinledObject.types";
+import { type ClassField, TypeCode, type ReadAnyObjectResponse } from "./LinkedObject.types";
 
 export class LinkedObject {
   constructor(
