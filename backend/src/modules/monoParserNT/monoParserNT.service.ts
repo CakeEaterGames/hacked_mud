@@ -23,18 +23,17 @@ import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 import { toResultAsync } from "@backend/utils/neverthrow";
 
 export class MonoParser {
-  private mr: MemoryReader;
-  private root: bigint;
-
+  
   constructor(
     public pid: number,
     origin: bigint,
-    mono_get_root_domain: bigint
+    mono_get_root_domain: bigint,
+    private mr: MemoryReader,
   ) {
     this.root = origin + mono_get_root_domain;
-    this.mr = new MemoryReader(pid, this.root);
   }
-
+  
+  private root: bigint;
   public assemblyIndexes?: MonoAssemblyIndexEntry[];
   public monoClasses: MonoClass[] = [];
 
@@ -274,8 +273,10 @@ export class MonoParser {
     // 	MonoClass *next_class_cache;
     // };
 
+
     const layout = new StructLayoutGenerator(_MonoClassDefD);
 
+    this.mr.seek(addr)
     return this.mr
       .readBytes(layout.layout.size)
       .andThen(raw => {

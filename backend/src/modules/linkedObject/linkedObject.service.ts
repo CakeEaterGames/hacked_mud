@@ -313,7 +313,7 @@ export class LinkedObject {
   }
 }
 
-export function bigintToFloat64(rawBits: bigint): number {
+function bigintToFloat64(rawBits: bigint): number {
   const buffer = new ArrayBuffer(8);
   const view = new DataView(buffer);
   view.setUint32(0, Number(rawBits & 0xffffffffn), true);
@@ -321,7 +321,7 @@ export function bigintToFloat64(rawBits: bigint): number {
   return view.getFloat64(0, true);
 }
 
-export function bigintToFloat32(rawBits: bigint): number {
+function bigintToFloat32(rawBits: bigint): number {
   const buffer = new ArrayBuffer(4);
   const view = new DataView(buffer);
   view.setUint32(0, Number(rawBits & 0xffffffffn), true);
