@@ -226,38 +226,42 @@ export class LinkedObject {
     return this.mr.readPtr(addr).andThen(objectPtr => {
       if (objectPtr == 0n) ok(null);
 
+      const ctx = {
+        arrayDefinitionPtr: undefined as bigint | undefined,
+        arrayDefinition: undefined as MonoClass | undefined,
+        elementDefinition: undefined as MonoClass | undefined,
+      };
+
       return this.mr
         .readPtr(objectPtr)
         .andThen(vtable => this.mr.readPtr(vtable))
-        .andThen(arrayDefinitionPtr =>
-          this.mono
-            .getClassByAddr(arrayDefinitionPtr)
-            .map(arrayDefinition => ({ arrayDefinition, arrayDefinitionPtr }))
-        )
-        .andThen(ctx =>
-          this.mr
-            .readPtr(ctx.arrayDefinitionPtr)
-            .map(elementDefinitionPtr => ({ ...ctx, elementDefinitionPtr }))
-        )
-        .andThen(ctx =>
-          this.mono
-            .getClassByAddr(ctx.elementDefinitionPtr)
-            .map(elementDefinition => ({ ...ctx, elementDefinition }))
-        )
-        .andThen(ctx =>
+        .andThen(arrayDefinitionPtr => {
+          ctx.arrayDefinitionPtr = arrayDefinitionPtr;
+          return this.mono.getClassByAddr(arrayDefinitionPtr);
+        })
+        .andThen(arrayDefinition => {
+          ctx.arrayDefinition = arrayDefinition;
+          return this.mr.readPtr(ctx.arrayDefinitionPtr!);
+        })
+        .andThen(elementDefinitionPtr => {
+          return this.mono.getClassByAddr(elementDefinitionPtr);
+        })
+        .andThen(elementDefinition => {
+          ctx.elementDefinition = elementDefinition;
           //skipping over objectPtr and 2 other pointers??
-          this.mr.readInt32(objectPtr + 8n + 8n + 8n).map(count => ({ ...ctx, count }))
-        )
-        .andThen(ctx => {
+          return this.mr.readInt32(objectPtr + 8n + 8n + 8n);
+        })
+        .andThen(elementCount => {
+          //skipping over objectPtr and 2 other pointers and element count
           const start = this.mr.alignForPtr(objectPtr + 8n + 8n + 8n + 4n);
 
           const st = startIndex !== undefined ? startIndex : 0;
-          let ed = endIndex !== undefined ? endIndex : ctx.count;
+          let ed = endIndex !== undefined ? endIndex : elementCount;
 
-          if (ed > ctx.count) ed = ctx.count;
+          if (ed > elementCount) ed = elementCount;
 
           return toResultAsync(
-            this._readArrayData(ctx.arrayDefinition, ctx.elementDefinition, start, st, ed)
+            this._readArrayData(ctx.arrayDefinition!, ctx.elementDefinition!, start, st, ed)
           );
         });
     });
