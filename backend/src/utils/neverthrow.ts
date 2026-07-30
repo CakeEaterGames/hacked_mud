@@ -24,6 +24,7 @@ export type UnsupportedError = {
 
 export type NullPointerError = {
   type: "NULL_POINTER_ERROR";
+  var: string;
 };
 
 export type ExecError = {

@@ -58,6 +58,7 @@ export class LinkedObject {
       if (!field.class_type) {
         return err({
           type: "NULL_POINTER_ERROR",
+          var: "class_type",
         } satisfies NullPointerError);
       }
 
