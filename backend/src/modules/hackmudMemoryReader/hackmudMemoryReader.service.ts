@@ -12,7 +12,7 @@ import type { HackmudGameState, HackmudShellState } from "@shared/types/HackmudU
 import { MonoParser } from "../monoParser/monoParser.service";
 import type { MonoClass } from "../monoParser/monoParser.types";
 import type { cache, cacheStr } from "./hackmudMemoryReader.types";
-import { TypeCode, type NumberField } from "../linkedObject/LinkedObject.types";
+import { TypeCode, type NumberField } from "../linkedObject/linkedObject.types";
 
 export class HackmudMemoryReader {
   private monoParser: MonoParser | undefined;
