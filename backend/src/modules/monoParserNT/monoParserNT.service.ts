@@ -19,7 +19,7 @@ import type {
   AssemblyNotFoundError,
 } from "./monoParserNT.types";
 import { MemoryReader } from "../memoryReaderNT/memoryReader.service";
-import { err, errAsync, ok, okAsync, ResultAsync } from "neverthrow";
+import { err, errAsync, ok, okAsync, Result, ResultAsync } from "neverthrow";
 import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 import { toResultAsync } from "@backend/utils/neverthrow";
 
@@ -92,7 +92,7 @@ export class MonoParser {
 
   private async _collectAssemblyPointers(
     start: bigint
-  ): Promise<ResultAsync<bigint[], MemoryReaderError>> {
+  ): Promise<Result<bigint[], MemoryReaderError>> {
     const assemblyPointers: bigint[] = [];
     let ptr = start;
     const GSListL = new StructLayoutGenerator(_GSList);
@@ -125,7 +125,7 @@ export class MonoParser {
 
   private async _collectAssemblyNames(
     assemblyPointers: bigint[]
-  ): Promise<ResultAsync<MonoAssemblyIndexEntry[], MemoryReaderError>> {
+  ): Promise<Result<MonoAssemblyIndexEntry[], MemoryReaderError>> {
     const assemblies = [];
     for (const ptr of assemblyPointers) {
       // Skipping 16 bytes to arrive at at MonoAssemblyName const char *name;
@@ -201,9 +201,7 @@ export class MonoParser {
       });
   }
 
-  private async _hashTableLoop(
-    rawImage: Buffer
-  ): Promise<ResultAsync<MonoClass[], MemoryReaderError>> {
+  private async _hashTableLoop(rawImage: Buffer): Promise<Result<MonoClass[], MemoryReaderError>> {
     // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/utils/mono-internal-hash.h#L36
     // struct _MonoInternalHashTable
     // {
@@ -328,7 +326,7 @@ export class MonoParser {
   private async _parseClassFields(
     addr: bigint,
     count: number
-  ): Promise<ResultAsync<MonoClassField[], MemoryReaderError>> {
+  ): Promise<Result<MonoClassField[], MemoryReaderError>> {
     if (addr == 0n) return ok([]);
 
     const classFieldL = new StructLayoutGenerator(_MonoClassFieldD);

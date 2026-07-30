@@ -9,7 +9,7 @@ import {
   type ReadFieldResponse,
 } from "./linkedObjectNT.types";
 import type { MemoryReader } from "../memoryReaderNT/memoryReader.service";
-import { err, errAsync, ok, okAsync, ResultAsync } from "neverthrow";
+import { err, errAsync, ok, okAsync, Result, ResultAsync } from "neverthrow";
 import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 import { MonoParser } from "../monoParserNT/monoParserNT.service";
 import {
@@ -274,7 +274,7 @@ export class LinkedObject {
     origin: bigint,
     startIndex: number,
     endIndex: number
-  ): Promise<ResultAsync<ReadAnyObjectResponse[], MemoryReaderError>> {
+  ): Promise<Result<ReadAnyObjectResponse[], MemoryReaderError>> {
     const elements = [];
 
     for (let i = startIndex; i < endIndex; i++) {

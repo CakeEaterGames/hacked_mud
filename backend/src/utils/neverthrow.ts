@@ -60,7 +60,7 @@ export function safeQuery<T>(query: Promise<T>): ResultAsync<T, QueryError> {
  * @param promiseResult - A promise that resolves to a Result<T, E>
  * @returns ResultAsync<T, E>
  */
-export function toResultAsync<T, E>(promiseResult: Promise<ResultAsync<T, E>>): ResultAsync<T, E> {
+export function toResultAsync<T, E>(promiseResult: Promise<Result<T, E>>): ResultAsync<T, E> {
   return ResultAsync.fromPromise(promiseResult, error => {
     throw error;
   }).andThen(result => result);

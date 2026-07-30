@@ -2,7 +2,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import { log } from "@backend/plugins/logger/logger";
 import { getProcMaps } from "../procParser/procParser.service";
-import { err, ok, ResultAsync } from "neverthrow";
+import { err, ok, Result, ResultAsync } from "neverthrow";
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { socketServerService } from "../socketServer/socketServer.service";
 import { HackmudClient } from "../hackmudClient/hackmudClient.service";
@@ -109,7 +109,7 @@ export abstract class findClientsService {
         return ok(clients);
       })
       .andThen(clients => {
-        async function temp(): Promise<ResultAsync<void, never>> {
+        async function temp(): Promise<Result<void, never>> {
           for (const c of clients) {
             if (HackmudClients.keys().find(a => a == c.pid)) continue;
 

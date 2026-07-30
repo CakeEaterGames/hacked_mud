@@ -14,7 +14,7 @@ import type { cache, cacheStr, InitedHackmudReader } from "./hackmudMemoryReader
 import { TypeCode } from "../linkedObject/linkedObject.types";
 import { MonoParser } from "../monoParserNT/monoParserNT.service";
 import { MemoryReader } from "../memoryReaderNT/memoryReader.service";
-import { err, ok, okAsync, ResultAsync } from "neverthrow";
+import { err, ok, okAsync, Result, ResultAsync } from "neverthrow";
 import {
   toResultAsync,
   type ExecError,
@@ -62,7 +62,7 @@ export class HackmudMemoryReader {
   }
 
   private async _initialize(): Promise<
-    ResultAsync<
+    Result<
       InitedHackmudReader,
       | NullPointerError
       | MemoryReaderError
@@ -363,9 +363,7 @@ export class HackmudMemoryReader {
 
   private async _readShell(
     context: InitedHackmudReader
-  ): Promise<
-    ResultAsync<HackmudShellState, MemoryReaderError | UnsupportedError | FieldNotFoundError>
-  > {
+  ): Promise<Result<HackmudShellState, MemoryReaderError | UnsupportedError | FieldNotFoundError>> {
     // log.debug({ O: this.queueObj.klass.fields.map(a => a.name) })
 
     const _head = await context.queueObj.getFieldValueByName("_head");
@@ -449,9 +447,7 @@ export class HackmudMemoryReader {
 
   private async _readGameState(
     context: InitedHackmudReader
-  ): Promise<
-    ResultAsync<HackmudGameState, MemoryReaderError | FieldNotFoundError | UnsupportedError>
-  > {
+  ): Promise<Result<HackmudGameState, MemoryReaderError | FieldNotFoundError | UnsupportedError>> {
     const hardlineState = await context.hardline.getFieldValueByName(
       context.hardlineStateFieldName
     );

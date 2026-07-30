@@ -1,13 +1,13 @@
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { exec } from "child_process";
-import { err, ok, ResultAsync } from "neverthrow";
+import { err, ok, Result, ResultAsync } from "neverthrow";
 import type { ModuleInfo } from "./procParser.types";
 
 export function getProcMaps(pid: number): ResultAsync<ModuleInfo[], ExecError> {
   return toResultAsync(_getProcMaps(pid));
 }
 
-async function _getProcMaps(pid: number): Promise<ResultAsync<ModuleInfo[], ExecError>> {
+async function _getProcMaps(pid: number): Promise<Result<ModuleInfo[], ExecError>> {
   const cmd = `cat /proc/${pid}/maps`;
   let stdout;
   try {
