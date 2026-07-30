@@ -6,10 +6,10 @@ import { socketServerService } from "./socketServer.service";
 
 export const socketServerHandler = new Elysia().use(loggerConfigPlugin).ws("ws", {
   response: HackmudUpdateEventT,
-  async open(ws) {
+  open(ws) {
     log.debug("WS open {id}", { id: ws.id });
     socketServerService.connections.set(ws.id, ws);
-    await socketServerService.sendClientList(ws);
+    socketServerService.sendClientList(ws);
   },
   close(ws) {
     log.debug("WS close {id}", { id: ws.id });

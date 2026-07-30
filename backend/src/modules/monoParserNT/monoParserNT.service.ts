@@ -103,23 +103,20 @@ export class MonoParser {
       // 	gpointer data;
       // 	GSList *next;
       // };
-      const read = await this.mr
-        .readBytes(ptr, GSListL.layout.size)
-        .andThen(rawList => {
-          const list = GSListL.parse(rawList);
-          // pointer to the assembly
-          assemblyPointers.push(list.data);
-          // pointer to the next list element
-          return this.mr.readPtr(list.next);
-        })
-        .andThen(next => {
-          ptr = next;
-          return ok(next);
-        });
+
+      const read = await this.mr.readBytes(ptr, GSListL.layout.size).andThen(rawList => {
+        const list = GSListL.parse(rawList);
+        // pointer to the assembly
+        assemblyPointers.push(list.data);
+        // pointer to the next list element
+        ptr = list.next;
+        return ok(ptr);
+      });
 
       if (read.isErr()) return err(read.error);
       if (read.value == 0n) break;
     }
+
     return ok(assemblyPointers);
   }
 

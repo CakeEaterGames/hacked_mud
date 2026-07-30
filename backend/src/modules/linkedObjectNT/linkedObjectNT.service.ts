@@ -47,7 +47,8 @@ export class LinkedObject {
     MemoryReaderError | FieldNotFoundError | UnsupportedError | NullPointerError
   > {
     return this.getFieldValueByName(name).andThen(fieldValue => {
-      if (fieldValue.type != "CLASS") {
+      if (fieldValue.type != "CLASS" && fieldValue.type != "GENERICINST") {
+        log.debug(fieldValue);
         return err({
           type: "UNSUPPORTED",
           message: "This function can only accept fields that are class objects",

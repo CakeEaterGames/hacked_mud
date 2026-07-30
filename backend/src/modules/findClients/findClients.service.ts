@@ -5,7 +5,8 @@ import { getProcMaps } from "../procParser/procParser.service";
 import { err, ok, Result, ResultAsync } from "neverthrow";
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { socketServerService } from "../socketServer/socketServer.service";
-import { HackmudClient } from "../hackmudClient/hackmudClient.service";
+import { HackmudClient } from "../hackmudClientNT/hackmudClientNT.service";
+// import { HackmudClient } from "../hackmudClient/hackmudClient.service";
 
 const execAsync = ResultAsync.fromThrowable(
   async (a: string) => promisify(exec)(a),

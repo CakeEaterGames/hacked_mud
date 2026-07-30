@@ -3,7 +3,7 @@
     <div class="row items-center q-gutter-sm">
       <div>hacked mud</div>
       <div>
-        {{ selectedClient?.gameState }}
+        <!-- {{ selectedClient?.gameState }} -->
       </div>
       <q-badge v-if="selectedClient"> {{ selectedClient.pid }} </q-badge>
       <q-btn dense icon="settings" v-on:click="toggleSettings" />

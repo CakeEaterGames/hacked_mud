@@ -16,13 +16,15 @@ export abstract class socketServerService {
     }
   }
 
-  static async sendClientList(ws: wsConnection) {
+  static sendClientList(ws: wsConnection) {
     const clients = [];
     for (const reader of HackmudClients.entries()) {
+      if (!reader[1].gameState) continue;
+      if (!reader[1].shellState) continue;
       clients.push({
         pid: reader[0],
-        gameState: await reader[1].memoryReader.readGameState(),
-        shellState: await reader[1].memoryReader.readShell(),
+        gameState: reader[1].gameState,
+        shellState: reader[1].shellState,
       });
     }
 

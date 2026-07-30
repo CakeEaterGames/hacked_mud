@@ -29,7 +29,7 @@ export class HackmudMemoryReader {
   public shell?: string;
   private cacheDir: string;
   private mr: MemoryReader;
-  private initedHackmudReader?: InitedHackmudReader;
+  public initedHackmudReader?: InitedHackmudReader;
 
   public shellData = {
     head: 0,
@@ -213,9 +213,6 @@ export class HackmudMemoryReader {
       })
       .andThen(_shellParsing => {
         shellParsing = _shellParsing;
-        return ok();
-      })
-      .andThen(_ => {
         return ok();
       });
 
