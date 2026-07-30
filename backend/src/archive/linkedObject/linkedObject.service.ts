@@ -2,7 +2,7 @@ import { log } from "@backend/plugins/logger/logger";
 import type { MonoClass, MonoClassField } from "../monoParser/monoParser.types";
 import { MemoryReader } from "../memoryReader/memoryReader.service";
 import type { MonoParser } from "../monoParser/monoParser.service";
-import type { ModuleInfo } from "../procParser/procParser.types";
+import type { ModuleInfo } from "../../modules/procParser/procParser.types";
 import { type ClassField, TypeCode, type ReadAnyObjectResponse } from "./linkedObject.types";
 
 export class LinkedObject {

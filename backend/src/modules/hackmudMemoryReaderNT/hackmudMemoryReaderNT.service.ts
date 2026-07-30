@@ -9,9 +9,7 @@ import { log } from "@backend/plugins/logger/logger";
 import { getProcMaps } from "../procParser/procParser.service";
 import { mkdirRecursiveAsync } from "@backend/utils/fs";
 import type { HackmudGameState, HackmudShellState } from "@shared/types/HackmudUpdateEvent.model";
-import type { MonoClass } from "../monoParser/monoParser.types";
 import type { cache, cacheStr, InitedHackmudReader } from "./hackmudMemoryReaderNT.types";
-import { TypeCode } from "../linkedObject/linkedObject.types";
 import { MonoParser } from "../monoParserNT/monoParserNT.service";
 import { MemoryReader } from "../memoryReaderNT/memoryReader.service";
 import { err, ok, okAsync, Result, ResultAsync } from "neverthrow";
@@ -21,9 +19,9 @@ import {
   type NullPointerError,
   type UnsupportedError,
 } from "@backend/utils/neverthrow";
-import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
-import type { AssemblyNotFoundError } from "../monoParserNT/monoParserNT.types";
-import type { FieldNotFoundError } from "../linkedObjectNT/linkedObjectNT.types";
+import type { AssemblyNotFoundError, MonoClass } from "../monoParserNT/monoParserNT.types";
+import { TypeCode, type FieldNotFoundError } from "../linkedObjectNT/linkedObjectNT.types";
+import type { MemoryReaderError } from "../memoryReaderNT/memoryReader.models";
 
 export class HackmudMemoryReader {
   public shell?: string;

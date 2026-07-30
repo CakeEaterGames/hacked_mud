@@ -1,4 +1,4 @@
-import { ElfParser } from "../ElfParser/ElfParser.service";
+import { ElfParser } from "../../modules/ElfParser/ElfParser.service";
 
 import * as fs from "fs";
 
@@ -6,7 +6,7 @@ import { LinkedObject } from "../linkedObject/linkedObject.service";
 import { shellToTerminalColors } from "../../utils/shellToTerminalColors";
 import { bigIntReplacer } from "../../utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";
-import { getProcMaps } from "../procParser/procParser.service";
+import { getProcMaps } from "../../modules/procParser/procParser.service";
 import { mkdirRecursiveAsync } from "@backend/utils/fs";
 import type { HackmudGameState, HackmudShellState } from "@shared/types/HackmudUpdateEvent.model";
 import { MonoParser } from "../monoParser/monoParser.service";

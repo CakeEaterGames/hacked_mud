@@ -1,4 +1,4 @@
-import { MemoryReader } from "../memoryReader/memoryReader.service";
+import { MemoryReader } from "../../archive/memoryReader/memoryReader.service";
 import type { ModuleInfo } from "../procParser/procParser.types";
 import {
   SectionTypeMap,

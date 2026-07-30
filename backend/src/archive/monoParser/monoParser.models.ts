@@ -1,4 +1,4 @@
-import type { StructDefinition } from "../structLayoutGenerator/structLayoutGenerator.types";
+import type { StructDefinition } from "../../modules/structLayoutGenerator/structLayoutGenerator.types";
 
 function defineStruct<const T extends StructDefinition>(def: T): T {
   return def;

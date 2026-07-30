@@ -20,8 +20,8 @@ import type {
 } from "./monoParserNT.types";
 import { MemoryReader } from "../memoryReaderNT/memoryReader.service";
 import { err, errAsync, ok, okAsync, Result, ResultAsync } from "neverthrow";
-import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 import { toResultAsync } from "@backend/utils/neverthrow";
+import type { MemoryReaderError } from "../memoryReaderNT/memoryReader.models";
 
 export class MonoParser {
   constructor(

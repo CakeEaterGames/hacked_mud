@@ -4,8 +4,8 @@ import type {
   HackmudUpdateEvent,
 } from "@shared/types/HackmudUpdateEvent.model";
 import { HackmudMemoryReader } from "../hackmudMemoryReader/hackmudMemoryReader.service";
-import { type HackmudValidPid } from "../findClients/findClients.service";
-import { virtualKeyboard } from "../virtualKeyboard/virtualKeyboard.service";
+import { type HackmudValidPid } from "../../modules/findClients/findClients.service";
+import { virtualKeyboard } from "../../modules/virtualKeyboard/virtualKeyboard.service";
 import { sleep } from "bun";
 import { log } from "@backend/plugins/logger/logger";
 

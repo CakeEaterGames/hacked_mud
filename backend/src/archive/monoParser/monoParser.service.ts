@@ -1,6 +1,6 @@
 import { log } from "@backend/plugins/logger/logger";
 import { MemoryReader } from "../memoryReader/memoryReader.service";
-import { StructLayoutGenerator } from "../structLayoutGenerator/structLayoutGenerator.service";
+import { StructLayoutGenerator } from "../../modules/structLayoutGenerator/structLayoutGenerator.service";
 import {
   _MonoDomainD,
   _MonoAssemblyD,

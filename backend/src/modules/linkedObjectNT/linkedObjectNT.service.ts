@@ -1,6 +1,4 @@
 import { log } from "@backend/plugins/logger/logger";
-import type { MonoClass, MonoClassField } from "../monoParser/monoParser.types";
-
 import type { ModuleInfo } from "../procParser/procParser.types";
 import {
   TypeCode,
@@ -10,13 +8,14 @@ import {
 } from "./linkedObjectNT.types";
 import type { MemoryReader } from "../memoryReaderNT/memoryReader.service";
 import { err, errAsync, ok, okAsync, Result, ResultAsync } from "neverthrow";
-import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 import { MonoParser } from "../monoParserNT/monoParserNT.service";
 import {
   toResultAsync,
   type NullPointerError,
   type UnsupportedError,
 } from "@backend/utils/neverthrow";
+import type { MemoryReaderError } from "../memoryReaderNT/memoryReader.models";
+import type { MonoClass, MonoClassField } from "../monoParserNT/monoParserNT.types";
 
 export class LinkedObject {
   constructor(

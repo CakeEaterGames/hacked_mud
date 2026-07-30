@@ -1,4 +1,4 @@
-import type { TypeCode } from "../linkedObject/linkedObject.types";
+import type { TypeCode } from "../linkedObjectNT/linkedObjectNT.types";
 
 export type AssemblyNotFoundError = {
   type: "ASSEMBLY_NOT_FOUND_ERROR";
