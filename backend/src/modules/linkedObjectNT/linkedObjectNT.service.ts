@@ -1,45 +1,83 @@
 import { log } from "@backend/plugins/logger/logger";
 import type { MonoClass, MonoClassField } from "../monoParser/monoParser.types";
-import { MemoryReader } from "../memoryReader/memoryReader.service";
-import type { MonoParser } from "../monoParser/monoParser.service";
+
 import type { ModuleInfo } from "../procParser/procParser.types";
-import { type ClassField, TypeCode, type ReadAnyObjectResponse } from "./linkedObjectNT.types";
+import {
+  TypeCode,
+  type ReadAnyObjectResponse,
+  type FieldNotFoundError,
+  type ReadFieldResponse,
+} from "./linkedObjectNT.types";
+import type { MemoryReader } from "../memoryReaderNT/memoryReader.service";
+import { err, errAsync, ok, okAsync, ResultAsync } from "neverthrow";
+import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
+import { MonoParser } from "../monoParserNT/monoParserNT.service";
+import {
+  toResultAsync,
+  type NullPointerError,
+  type UnsupportedError,
+} from "@backend/utils/neverthrow";
 
 export class LinkedObject {
   constructor(
     public pid: number,
     public mono: MonoParser,
     public klass: MonoClass,
-    public objectAddr: bigint
+    public objectAddr: bigint,
+    private mr: MemoryReader
   ) {}
 
-  public async getFieldValueByName(name: string) {
+  public getFieldValueByName(
+    name: string
+  ): ResultAsync<ReadFieldResponse, MemoryReaderError | FieldNotFoundError | UnsupportedError> {
     const field = this.klass.fields.find(a => a.name == name);
     if (!field) {
-      throw new Error("Field not found: " + name);
+      return errAsync({
+        type: "FIELD_NOT_FOUND_ERROR",
+        name,
+      } satisfies FieldNotFoundError);
     }
 
-    const data = await this.readField(field, this.objectAddr);
-    return data;
+    return this.readField(field, this.objectAddr);
   }
-  public async getFieldValueByNameToObj(name: string) {
-    const field = (await this.getFieldValueByName(name)) as ClassField;
+  public getFieldValueByNameToObj(
+    name: string
+  ): ResultAsync<
+    LinkedObject,
+    MemoryReaderError | FieldNotFoundError | UnsupportedError | NullPointerError
+  > {
+    return this.getFieldValueByName(name).andThen(fieldValue => {
+      if (fieldValue.type != "CLASS") {
+        return err({
+          type: "UNSUPPORTED",
+          message: "This function can only accept fields that are class objects",
+        } satisfies UnsupportedError);
+      }
 
-    if (!field.value) {
-      throw new Error("Failed to turn field into an object: " + name);
-    }
-    const outp2 = field.value;
-    const outputLinkedObj = new LinkedObject(
-      this.pid,
-      this.mono,
-      outp2.class_type!,
-      outp2.objectPtr
-    );
+      const field = fieldValue.value;
+      if (!field.class_type) {
+        return err({
+          type: "NULL_POINTER_ERROR",
+        } satisfies NullPointerError);
+      }
 
-    return outputLinkedObj;
+      const outputLinkedObj = new LinkedObject(
+        this.pid,
+        this.mono,
+        field.class_type,
+        field.objectPtr,
+        this.mr
+      );
+
+      return ok(outputLinkedObj);
+    });
   }
 
-  static async findAllObjects(klass: MonoClass, allModules: ModuleInfo[], pid: number) {
+  static async findAllObjects(
+    klass: MonoClass,
+    allModules: ModuleInfo[],
+    mr: MemoryReader
+  ): Promise<ResultAsync<bigint[], MemoryReaderError>> {
     const results = [];
     const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
@@ -51,15 +89,10 @@ export class LinkedObject {
       // Process in chunks to avoid holding entire buffer
       for (let offset = 0; offset < module.size; offset += CHUNK_SIZE) {
         const chunkSize = Math.min(CHUNK_SIZE, Number(module.size) - offset);
-        let chunk;
 
-        try {
-          const mr = new MemoryReader(pid, module.start + BigInt(offset));
-          chunk = await mr.readBytes(chunkSize);
-        } catch (error) {
-          log.error({ error, offset });
-          break;
-        }
+        const chunkRes = await mr.readBytes(module.start + BigInt(offset), chunkSize);
+        if (chunkRes.isErr()) return err(chunkRes.error);
+        const chunk = chunkRes.value;
 
         for (let pos = 0; pos < chunk.length - 8; pos += 8) {
           const value = chunk.readBigUint64LE(pos);
@@ -67,11 +100,9 @@ export class LinkedObject {
             results.push(module.start + BigInt(offset + pos));
           }
         }
-
-        // chunk will be GC'd on next iteration
       }
     }
-    return results;
+    return ok(results);
   }
 
   async readAllFields() {
@@ -83,221 +114,198 @@ export class LinkedObject {
     return fields;
   }
 
-  async readField(field: MonoClassField, objAddr: bigint) {
+  readField(
+    field: MonoClassField,
+    objAddr: bigint
+  ): ResultAsync<ReadFieldResponse, MemoryReaderError | UnsupportedError> {
     //TODO
     // const offset = this.class_type.is_value_type && field.type.is_static ? field.offset - 0x10 : field.offset
-    if (field.type.isStatic) return;
+    if (field.type.isStatic)
+      return errAsync({
+        type: "UNSUPPORTED",
+        message: "Static fields are not supported yet",
+      } satisfies UnsupportedError);
 
     const offset = BigInt(field.offset);
     const address = objAddr + offset;
 
-    const data = await this.readAnyObject(field.type.typeCode, address);
-    const res = {
+    return this.readAnyObject(field.type.typeCode, address).map(data => ({
       name: field.name,
       ...data,
-    };
-
-    return res;
+    }));
   }
 
-  async readAnyObject(type: TypeCode, addr: bigint): Promise<ReadAnyObjectResponse> {
+  readAnyObject(
+    type: TypeCode,
+    addr: bigint
+  ): ResultAsync<ReadAnyObjectResponse, MemoryReaderError> {
     switch (type) {
       case TypeCode.U1:
-        return { type: "number", value: await mr.readUInt8() };
+        return this.mr.readUInt8(addr).map(value => ({ type: "number", value }));
       case TypeCode.U2:
-        return { type: "number", value: await mr.readUInt16() };
+        return this.mr.readUInt16(addr).map(value => ({ type: "number", value }));
       case TypeCode.U4:
-        return { type: "number", value: await mr.readUInt32() };
+        return this.mr.readUInt32(addr).map(value => ({ type: "number", value }));
       case TypeCode.U8:
-        return { type: "bigint", value: await mr.readUInt64() };
+        return this.mr.readUInt64(addr).map(value => ({ type: "bigint", value }));
 
       case TypeCode.I1:
-        return { type: "number", value: await mr.readInt8() };
+        return this.mr.readInt8(addr).map(value => ({ type: "number", value }));
       case TypeCode.I2:
-        return { type: "number", value: await mr.readInt16() };
+        return this.mr.readInt16(addr).map(value => ({ type: "number", value }));
       case TypeCode.I4:
-        return { type: "number", value: await mr.readInt32() };
+        return this.mr.readInt32(addr).map(value => ({ type: "number", value }));
       case TypeCode.I8:
-        return { type: "bigint", value: await mr.readInt64() };
+        return this.mr.readInt64(addr).map(value => ({ type: "bigint", value }));
 
       case TypeCode.R4:
-        return {
-          type: "number",
-          value: bigintToFloat32(BigInt(await mr.readUInt32())),
-        };
+        return this.mr
+          .readUInt32(addr)
+          .map(value => ({ type: "number", value: bigintToFloat32(BigInt(value)) }));
+
       case TypeCode.R8:
-        return {
-          type: "number",
-          value: bigintToFloat64(await mr.readUInt64()),
-        };
+        return this.mr
+          .readUInt64(addr)
+          .map(value => ({ type: "number", value: bigintToFloat64(value) }));
 
       case TypeCode.BOOLEAN:
-        return {
-          type: "boolean",
-          value: (await mr.readUInt8()) != 0,
-        };
+        return this.mr.readUInt8(addr).map(value => ({ type: "boolean", value: value != 0 }));
 
       case TypeCode.CHAR:
-        return {
-          type: "string",
-          value: String.fromCharCode(await mr.readUInt16()),
-        };
+        return this.mr
+          .readUInt16(addr)
+          .map(value => ({ type: "string", value: String.fromCharCode(value) }));
 
       case TypeCode.STRING:
-        return {
-          type: "string",
-          value: await this.readStringField(addr),
-        };
+        return this.readStringField(addr).map(value => ({ type: "string", value }));
 
       case TypeCode.SZARRAY:
-        return {
-          type: "array",
-          value: await this.readArrayField(addr),
-        };
+        return this.readArrayField(addr).map(value => ({ type: "array", value }));
 
       case TypeCode.VALUETYPE:
-        return {
-          type: "VALUETYPE",
-          value: await mr.readInt32(),
-        };
+        return this.mr.readInt16(addr).map(value => ({ type: "VALUETYPE", value }));
 
       case TypeCode.CLASS:
-        return {
-          type: "CLASS",
-          value: await this.readObjField(addr),
-        };
+        return this.readObjField(addr).map(value => ({ type: "CLASS", value }));
 
       case TypeCode.GENERICINST:
-        return {
-          type: "GENERICINST",
-          value: await this.readGenericField(addr),
-          // value: await this.readGenericField(type, addr)
-        };
+        return this.readGenericField(addr).map(value => ({ type: "GENERICINST", value }));
 
       default:
-        return {
+        return okAsync({
           type: "unknown",
           value: "UNKNOWN! CODE: " + type,
-        };
+        });
     }
   }
 
-  async readStringField(addr: bigint) {
-    const mr = new MemoryReader(this.pid, addr);
-    try {
-      const ptr = await mr.readPtr();
+  readStringField(addr: bigint): ResultAsync<string | null, MemoryReaderError> {
+    return this.mr.readPtr(addr).andThen(ptr => {
       if (ptr == 0n) {
-        return null;
+        return ok(null);
       }
-      mr.seek(ptr);
-
-      // if (addr == 0n) return ""
-      // await mr.seek(addr)
-
-      //there are 2 pointers to something... let's ignore them and skip to the length
-      mr.skip(16n);
-      // await mr.skip(8n)
-
-      const len = await mr.readInt32();
-
-      // log("Str len", len)
-
-      // let str = ""
-      // for (let i = 0; i < len; i++) {
-      //     str+= (await mr.readBytes(2)).toString('utf16le')
-      // }
-      const str = await mr.readBytes(len * 2);
-
-      return str.toString("utf16le");
-    } catch (e) {
-      return (e as Error).message;
-    }
+      //there are 2 pointers to something... let's ignore them and skip to the string length
+      const offset = ptr + 16n;
+      return this.mr
+        .readInt32(offset)
+        .andThen(len => {
+          const stringStart = offset + 4n;
+          return this.mr.readBytes(stringStart, len * 2);
+        })
+        .map(str => {
+          return str.toString("utf16le");
+        });
+    });
   }
 
-  async readArrayField(
+  readArrayField(
     addr: bigint,
-    startIdx?: number,
-    endIdx?: number
-  ): Promise<ReadAnyObjectResponse[] | undefined> {
-    const mr = new MemoryReader(this.pid, addr);
-    try {
-      const objectPtr = await mr.readPtr();
-      if (objectPtr == 0n) return [];
+    startIndex?: number,
+    endIndex?: number
+  ): ResultAsync<ReadAnyObjectResponse[] | null, MemoryReaderError> {
+    return this.mr.readPtr(addr).andThen(objectPtr => {
+      if (objectPtr == 0n) ok(null);
 
-      mr.seek(objectPtr);
-      const vtable = await mr.readPtr();
+      return this.mr
+        .readPtr(objectPtr)
+        .andThen(vtable => this.mr.readPtr(vtable))
+        .andThen(arrayDefinitionPtr =>
+          this.mono
+            .getClassByAddr(arrayDefinitionPtr)
+            .map(arrayDefinition => ({ arrayDefinition, arrayDefinitionPtr }))
+        )
+        .andThen(ctx =>
+          this.mr
+            .readPtr(ctx.arrayDefinitionPtr)
+            .map(elementDefinitionPtr => ({ ...ctx, elementDefinitionPtr }))
+        )
+        .andThen(ctx =>
+          this.mono
+            .getClassByAddr(ctx.elementDefinitionPtr)
+            .map(elementDefinition => ({ ...ctx, elementDefinition }))
+        )
+        .andThen(ctx =>
+          //skipping over objectPtr and 2 other pointers??
+          this.mr.readInt32(objectPtr + 8n + 8n + 8n).map(count => ({ ...ctx, count }))
+        )
+        .andThen(ctx => {
+          const start = this.mr.alignForPtr(objectPtr + 8n + 8n + 8n + 4n);
 
-      mr.seek(vtable);
-      const arrayDefinitionPtr = await mr.readPtr();
-      const arrayDefinition = await this.mono.getClassByAddr(arrayDefinitionPtr);
+          const st = startIndex !== undefined ? startIndex : 0;
+          let ed = endIndex !== undefined ? endIndex : ctx.count;
 
-      mr.seek(arrayDefinitionPtr);
-      const elementDefinitionPtr = await mr.readPtr();
-      const elementDefinition = await this.mono.getClassByAddr(elementDefinitionPtr);
+          if (ed > ctx.count) ed = ctx.count;
 
-      // log(elementDefinition)
-
-      mr.seek(objectPtr);
-      mr.skip(8n + 8n + 8n); //skipping over objectPtr and 2 other pointers??
-      const count = await mr.readInt32();
-
-      mr.alignForPtr();
-      const start = mr.pos;
-      // log("Count ", count)
-      // log("Size ", BigInt(arrayDefinition.size))
-      const elements = [];
-
-      const st = startIdx !== undefined ? BigInt(startIdx) : 0n;
-      let ed = endIdx !== undefined ? BigInt(endIdx) : count;
-
-      if (ed > count) ed = count;
-
-      // const st = 0n;
-      // const ed = count;
-
-      for (let i = st; i < ed; i++) {
-        const elementPtrAddr = start + i * BigInt(arrayDefinition.size);
-        elements.push(await this.readAnyObject(elementDefinition.type.typeCode, elementPtrAddr));
-      }
-      return elements;
-    } catch (e) {
-      console.error("Failed to parse array");
-      console.error(e);
-      return;
-    }
+          return toResultAsync(
+            this._readArrayData(ctx.arrayDefinition, ctx.elementDefinition, start, st, ed)
+          );
+        });
+    });
   }
 
-  async readObjField(addr: bigint) {
-    try {
-      const objectPtr = await mr.readPtr();
-      if (objectPtr == 0n) return;
+  async _readArrayData(
+    arrayDefinition: MonoClass,
+    elementDefinition: MonoClass,
+    origin: bigint,
+    startIndex: number,
+    endIndex: number
+  ): Promise<ResultAsync<ReadAnyObjectResponse[], MemoryReaderError>> {
+    const elements = [];
 
-      mr.seek(objectPtr);
-      const vtable = await mr.readPtr();
-
-      mr.seek(vtable);
-      const definitionPtr = await mr.readPtr();
-
-      let class_type: MonoClass | undefined;
-      try {
-        class_type = await this.mono.getClassByAddr(definitionPtr);
-      } catch (e) {
-        console.error("failed to get class type " + (e as Error).message);
-      }
-
-      return {
-        objectPtr,
-        class_type,
-      };
-    } catch (e) {
-      console.error("failed to readObjField " + (e as Error).message);
-      // return (e as Error).message
-      return;
+    for (let i = startIndex; i < endIndex; i++) {
+      const elementPtrAddr = origin + BigInt(i * arrayDefinition.size);
+      const obj = await this.readAnyObject(elementDefinition.type.typeCode, elementPtrAddr);
+      if (obj.isErr()) return err(obj.error);
+      elements.push(obj.value);
     }
+
+    return ok(elements);
+  }
+
+  //TODO add type
+  readObjField(
+    addr: bigint
+  ): ResultAsync<{ objectPtr: bigint; class_type: MonoClass | null }, MemoryReaderError> {
+    return this.mr.readPtr(addr).andThen(objectPtr => {
+      if (objectPtr == 0n)
+        return okAsync({
+          objectPtr,
+          class_type: null,
+        });
+
+      return this.mr
+        .readPtr(objectPtr)
+        .andThen(vtable => this.mr.readPtr(vtable))
+        .andThen(definitionPtr => this.mono.getClassByAddr(definitionPtr))
+        .map(class_type => ({
+          objectPtr,
+          class_type,
+        }));
+    });
   }
 
   // private async readGenericField(type: MonoFieldType, addr: bigint) {
-  private async readGenericField(addr: bigint) {
+  private readGenericField(addr: bigint) {
     // const mr = new MemoryReader(this.pid, type.ptr)
     // const typeDefPtr = await mr.readPtr() // name possible doesn't make sense
 

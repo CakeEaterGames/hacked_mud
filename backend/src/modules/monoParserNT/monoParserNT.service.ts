@@ -243,9 +243,9 @@ export class MonoParser {
     return ok(classes);
   }
 
-  public getClassByAddr(addr: bigint) {
+  public getClassByAddr(addr: bigint): ResultAsync<MonoClass, MemoryReaderError> {
     const klass = this.monoClasses.find(a => a.addr === addr);
-    if (klass) return klass;
+    if (klass) return okAsync(klass);
 
     return this.parseMonoClass(addr).andThen(klass => {
       this.monoClasses.push(klass);

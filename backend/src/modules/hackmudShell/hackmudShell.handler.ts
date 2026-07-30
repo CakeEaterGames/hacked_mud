@@ -8,7 +8,7 @@ export const hackmudShellHandler = new Elysia()
   .use(loggerConfigPlugin)
   .post(
     "getShellContents",
-    async ({ body }) => {
+    ({ body }) => {
       return { data: hackmudShellService.getContents(body.pid) }; //satisfies getShellContentsResponse;
     },
     {
@@ -28,7 +28,7 @@ export const hackmudShellHandler = new Elysia()
   )
   .post(
     "getGameState",
-    async ({ body }) => {
+    ({ body }) => {
       return { data: hackmudShellService.getGameState(body.pid) };
     },
     {

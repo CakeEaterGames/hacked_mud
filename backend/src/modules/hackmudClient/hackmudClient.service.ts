@@ -4,11 +4,10 @@ import type {
   HackmudUpdateEvent,
 } from "@shared/types/HackmudUpdateEvent.model";
 import { HackmudMemoryReader } from "../hackmudMemoryReader/hackmudMemoryReader.service";
-import { HackmudClients, type HackmudValidPid } from "../findClients/findClients.service";
+import { type HackmudValidPid } from "../findClients/findClients.service";
 import { virtualKeyboard } from "../virtualKeyboard/virtualKeyboard.service";
 import { sleep } from "bun";
 import { log } from "@backend/plugins/logger/logger";
-import { shellToTerminalColors } from "../../utils/shellToTerminalColors";
 
 export class HackmudClient {
   public readonly memoryReader: HackmudMemoryReader;
@@ -159,17 +158,3 @@ export class HackmudClient {
     }
   }
 }
-
-async function test() {
-  await sleep(8000);
-  while (true) {
-    await sleep(100);
-    const c = HackmudClients.entries().toArray()[0]?.[1];
-    if (!c) continue;
-
-    const res = await c.cmd("sys.specs");
-
-    console.log(shellToTerminalColors(res.response.join("\n")));
-  }
-}
-// void test();

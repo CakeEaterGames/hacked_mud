@@ -3,7 +3,7 @@ export type MemoryReaderError = {
   cause: Error;
 };
 
-// export type ReadMemoryResult<T> = {
-//   value: T;
-//   next: bigint;
-// };
+export type ReadMemoryResult<T> = {
+  value: T;
+  next: bigint;
+};

@@ -126,11 +126,10 @@ export class MemoryReader {
 
   readString(addr: bigint, maxLength: number = 512): ResultAsync<string, MemoryReaderError> {
     return this.readMemory(addr, maxLength).andThen(buffer => {
-      const origin = addr;
       let end = 0;
       // TODO can this read an incomplete string?
       while (end < maxLength && buffer[end] !== 0) end++;
-      // const next = origin + BigInt(end) + 1n;
+      // const next = addr + BigInt(end) + 1n;
       return ok(buffer.toString("utf8", 0, end));
     });
   }

@@ -2,6 +2,9 @@ import type { MonoClass } from "../monoParser/monoParser.types";
 
 export type GetFieldValueByNameResponse = ReadAnyObjectResponse & { name: string };
 
+export type ReadFieldResponse = ReadAnyObjectResponse & {
+  name: string;
+};
 export type ReadAnyObjectResponse =
   | NumberField
   | BigIntField
@@ -27,7 +30,7 @@ export type StringField = {
 };
 export type ArrayField = {
   type: "array";
-  value: ReadAnyObjectResponse[] | undefined;
+  value: ReadAnyObjectResponse[] | null;
 };
 export type BooleanField = {
   type: "boolean";
@@ -39,11 +42,11 @@ export type ValueTypeField = {
 };
 export type ClassField = {
   type: "CLASS";
-  value: ClassFieldValue | undefined;
+  value: ClassFieldValue;
 };
 export type GenericInstField = {
   type: "GENERICINST";
-  value: ClassFieldValue | undefined;
+  value: ClassFieldValue;
 };
 export type UnknownField = {
   type: "unknown";
@@ -52,7 +55,7 @@ export type UnknownField = {
 
 export type ClassFieldValue = {
   objectPtr: bigint;
-  class_type: MonoClass | undefined;
+  class_type: MonoClass | null;
 };
 
 //https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/data/lldb/mono.py#L40
@@ -94,3 +97,8 @@ export enum TypeCode {
   PINNED = 0x45,
   ENUM = 0x55,
 }
+
+export type FieldNotFoundError = {
+  type: "FIELD_NOT_FOUND_ERROR";
+  name: string;
+};

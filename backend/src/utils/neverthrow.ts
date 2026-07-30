@@ -17,6 +17,15 @@ export function untypedError(e: unknown) {
   return { type: "UNTYPED_ERROR", cause: e as Error } satisfies UntypedError;
 }
 
+export type UnsupportedError = {
+  type: "UNSUPPORTED";
+  message: string;
+};
+
+export type NullPointerError = {
+  type: "NULL_POINTER_ERROR";
+};
+
 export type ExecError = {
   type: "EXEC_ERROR";
   cause: Error;
