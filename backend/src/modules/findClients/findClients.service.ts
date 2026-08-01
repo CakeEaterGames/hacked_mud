@@ -190,4 +190,4 @@ setInterval(() => {
   } catch (e) {
     log.error({ e });
   }
-}, 1000 * 10);
+}, 1000 * 60);

@@ -8,6 +8,9 @@
       <q-badge v-if="selectedClient"> {{ selectedClient.pid }} </q-badge>
       <q-btn dense icon="settings" v-on:click="toggleSettings" />
     </div>
+    <div v-if="gameClients.length==0">
+      No clients found. Please launch hackmud from Steam 
+    </div>
     <div v-if="selectedClient">
       <div class="overlay">
         <div
@@ -55,6 +58,12 @@
                 @click="selectedClient = client"
               />
               <q-btn dense color="secondary" label="Refresh" />
+            </div>
+          </div>
+          <div class="q-mt-lg">
+            <div class="q-mb-sm">Settings:</div>
+            <div>
+              <q-checkbox v-model="toScrollChat" label="Scroll down when new lines are added" />
             </div>
           </div>
           <div class="q-mt-lg">
@@ -125,6 +134,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { backend } from "src/utils/eden";
 import { EdenWS } from "@elysia/eden/treaty";
 
+const toScrollChat = ref(true)
 const toShowSettings = ref(false);
 function toggleSettings() {
   toShowSettings.value = !toShowSettings.value;
@@ -183,6 +193,7 @@ function chatToHTML(str: string) {
 }
 
 function scrollToBottom() {
+  if(!toScrollChat.value) return;
   const divElement = document.getElementById("shell");
   if (divElement) divElement.scrollTop = divElement.scrollHeight + 100;
 }
