@@ -571,13 +571,12 @@ export class HackmudMemoryReader {
     return true;
   }
 
-
   public close() {
-    this.isClosed = true
+    this.isClosed = true;
     return this.mr.close().orElse(e => {
       //this should not really happen but still
-      log.error({ e })
-      return ok()
-    })
+      log.error({ e });
+      return ok();
+    });
   }
 }

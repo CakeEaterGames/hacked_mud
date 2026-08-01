@@ -78,7 +78,7 @@ export class HackmudClient {
     this.interval = null;
     this._isRunning = false;
     this.isUpdating = false;
-    return this.memoryReader.close()
+    return this.memoryReader.close();
   }
 
   public async update() {
@@ -88,7 +88,7 @@ export class HackmudClient {
     const nextGameStateRes = await this.memoryReader.readGameState();
     if (nextGameStateRes.isErr()) {
       log.error(nextGameStateRes.error);
-      findClientsService.deleteClient(this.pid)
+      findClientsService.deleteClient(this.pid);
       return;
     }
     const nextGameState = nextGameStateRes.value;
@@ -118,7 +118,7 @@ export class HackmudClient {
     const shellRes = await this.memoryReader.readShell();
     if (shellRes.isErr()) {
       log.error(shellRes.error);
-      findClientsService.deleteClient(this.pid)
+      findClientsService.deleteClient(this.pid);
       return;
     }
     const shell = shellRes.value;
@@ -195,6 +195,4 @@ export class HackmudClient {
       }
     }
   }
-
-
 }

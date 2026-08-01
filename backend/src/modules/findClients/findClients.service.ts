@@ -28,7 +28,7 @@ export type HackmudValidPid = { pid: number; windowId: number; display: number }
 export const HackmudClients = new Map<number, HackmudClient>();
 
 export abstract class findClientsService {
-  static isRepopulating: boolean = false
+  static isRepopulating: boolean = false;
   static findClients(): ResultAsync<HackmudValidPid[], ExecError> {
     return execAsync("pgrep -f hackmud").andThen(resp => {
       const t = resp.stdout.trim();
@@ -104,9 +104,9 @@ export abstract class findClientsService {
   }
 
   static repopulateMemReaders() {
-    if (this.isRepopulating) return
-    this.isRepopulating = true
-    log.info("Starting to look for clients")
+    if (this.isRepopulating) return;
+    this.isRepopulating = true;
+    log.info("Starting to look for clients");
 
     return findClientsService
       .findClients()
@@ -118,14 +118,14 @@ export abstract class findClientsService {
           expired[1].stop();
           HackmudClients.delete(expired[0]);
         }
-        if(toRemove.length>0){
-          socketServerService.broadcastClientList()
+        if (toRemove.length > 0) {
+          socketServerService.broadcastClientList();
         }
         return ok(clients);
       })
       .andThen(clients => {
         async function temp(): Promise<Result<HackmudClient[], never>> {
-          const res:HackmudClient[] = []
+          const res: HackmudClient[] = [];
           for (const c of clients) {
             if (HackmudClients.keys().find(a => a == c.pid)) continue;
 
@@ -140,7 +140,7 @@ export abstract class findClientsService {
             }
 
             HackmudClients.set(c.pid, listener.value);
-            res.push(listener.value)
+            res.push(listener.value);
           }
           return ok(res);
         }
@@ -148,13 +148,13 @@ export abstract class findClientsService {
         return toResultAsync(temp());
       })
       .andTee(clients => {
-        log.info("Finished looking for clients")
-        log.info({ pids: HackmudClients.keys().toArray() })
-        if(clients.length>0){
-          socketServerService.broadcastClientList()
+        log.info("Finished looking for clients");
+        log.info({ pids: HackmudClients.keys().toArray() });
+        if (clients.length > 0) {
+          socketServerService.broadcastClientList();
         }
-        this.isRepopulating = false
-      })
+        this.isRepopulating = false;
+      });
   }
 
   static getClient(pid: number): ResultAsync<HackmudClient, ClientNotFoundError> {
@@ -170,10 +170,10 @@ export abstract class findClientsService {
 
   static deleteClient(pid: number) {
     if (HackmudClients.has(pid)) {
-      HackmudClients.get(pid)!.stop()
-      HackmudClients.delete(pid)
-      socketServerService.broadcastClientList()
-      log.info(`Deleting client ${pid}`)
+      HackmudClients.get(pid)!.stop();
+      HackmudClients.delete(pid);
+      socketServerService.broadcastClientList();
+      log.info(`Deleting client ${pid}`);
     }
   }
 }
@@ -185,11 +185,9 @@ try {
 }
 
 setInterval(() => {
-
   try {
     void findClientsService.repopulateMemReaders();
   } catch (e) {
     log.error({ e });
   }
-
 }, 1000 * 10);
