@@ -1,9 +1,8 @@
 export type SectionHeader = {
-  name: string;
-  type: string;
+  name?: string; // this field is set later
   sh_name: number;
   sh_type: number;
-  sh_flags: string;
+  sh_flags: bigint;
   sh_addr: bigint;
   sh_offset: bigint;
   sh_size: bigint;
@@ -24,14 +23,15 @@ export type ProgramHeader = {
 };
 
 export type SymbolHeader = {
-  name: string;
+  name?: string; // this field is set later
   st_name: number;
-  st_info: string;
-  st_other: string;
+  st_info: number;
+  st_other: number;
   st_shndx: number;
   st_value: bigint;
   st_size: bigint;
 };
+// Symbol size
 
 export const SectionTypeMap: Record<number, string> = {
   0x0: "SHT_NULL - Section header table entry unused",
@@ -56,3 +56,7 @@ export const SectionTypeMap: Record<number, string> = {
 };
 export const SYMBOL_SH_TYPE = 0x0b;
 export const STRINGS_SH_TYPE = 3;
+
+export type ElfParseResult = {
+  symbols: SymbolHeader[];
+};

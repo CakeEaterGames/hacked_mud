@@ -1,8 +1,4 @@
-import type { StructDefinition } from "../../modules/structLayoutGenerator/structLayoutGenerator.types";
-
-function defineStruct<const T extends StructDefinition>(def: T): T {
-  return def;
-}
+import { defineStruct } from "@backend/modules/structLayoutGenerator/structLayoutGenerator.service";
 
 // struct _MonoType {
 // 	union {
@@ -18,6 +14,7 @@ function defineStruct<const T extends StructDefinition>(def: T): T {
 // 	unsigned int has_cmods : 1;
 // 	unsigned int byref    : 1;
 // 	unsigned int pinned   : 1;  /* valid when included in a local var signature */
+
 // };
 export const _MonoTypeD = defineStruct({
   name: "MonoType",

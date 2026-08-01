@@ -10,7 +10,7 @@ export abstract class socketServerService {
   static connections = new Map<string, wsConnection>();
 
   static onHackmudEvent(event: HackmudUpdateEvent) {
-    log.debug("Updated " + event.type);
+    // log.debug("Updated " + event.type);
     for (const con of this.connections.values()) {
       con.send(event);
     }

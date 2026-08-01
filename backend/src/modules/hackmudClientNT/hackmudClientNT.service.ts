@@ -171,8 +171,6 @@ export class HackmudClient {
       dif += 2048;
     }
 
-    log.debug({ dif });
-
     const res = this.shellState.normalizedText.slice(-dif);
     return {
       response: res,

@@ -337,8 +337,8 @@ export class MonoParser {
       // There's something I fundamentally don't understand about the fields structure
       // First fields are parsed ok, but last fields are corrupted?
       if (r.isErr()) {
-        log.error("Error while parsing fields");
-        log.error({ error: r.error });
+        log.warn("Error while parsing fields");
+        log.warn({ error: r.error });
         break;
       }
       fields.push(r.value);

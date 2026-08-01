@@ -1,7 +1,4 @@
-import { ElfParser } from "../ElfParser/ElfParser.service";
-
 import * as fs from "fs";
-
 import { LinkedObject } from "../linkedObjectNT/linkedObjectNT.service";
 import { shellToTerminalColors } from "../../utils/shellToTerminalColors";
 import { bigIntReplacer } from "../../utils/bigIntReplacer";
@@ -22,6 +19,8 @@ import {
 import type { AssemblyNotFoundError, MonoClass } from "../monoParserNT/monoParserNT.types";
 import { TypeCode, type FieldNotFoundError } from "../linkedObjectNT/linkedObjectNT.types";
 import type { MemoryReaderError } from "../memoryReaderNT/memoryReader.models";
+import type { ProcNotFoundError } from "../procParser/procParser.types";
+import { ELFParser } from "../ElfParserNT/ElfParserNT.service";
 
 export class HackmudMemoryReader {
   public shell?: string;
@@ -51,6 +50,7 @@ export class HackmudMemoryReader {
     | UnsupportedError
     | AssemblyNotFoundError
     | FieldNotFoundError
+    | ProcNotFoundError
   > {
     if (this.initedHackmudReader) return okAsync(this.initedHackmudReader);
     return toResultAsync(this._initialize()).andThen(a => {
@@ -68,6 +68,7 @@ export class HackmudMemoryReader {
       | UnsupportedError
       | AssemblyNotFoundError
       | FieldNotFoundError
+      | ProcNotFoundError
     >
   > {
     let queueObj = undefined as LinkedObject | undefined;
@@ -93,10 +94,11 @@ export class HackmudMemoryReader {
     if (!monoModule)
       return err({ type: "NULL_POINTER_ERROR", var: "monoModule" } satisfies NullPointerError);
 
-    const p = new ElfParser(this.pid, monoModule);
-    await p.init();
+    const p = new ELFParser(this.mr, monoModule);
+    const elf = await p.parseElf();
+    if (elf.isErr()) return err(elf.error);
 
-    const monoDomain = p.symbols.find(a => a.name == "mono_get_root_domain");
+    const monoDomain = elf.value.symbols.find(a => a.name == "mono_get_root_domain");
     if (!monoDomain)
       return err({ type: "NULL_POINTER_ERROR", var: "monoDomain" } satisfies NullPointerError);
 

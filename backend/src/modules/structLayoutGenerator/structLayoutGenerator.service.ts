@@ -140,7 +140,7 @@ export class StructLayoutGenerator<T extends StructDefinition> {
    * Parses a Buffer according to the struct layout
    * All numeric values are read as Little Endian
    */
-  public parse(buffer: Buffer): StructParsedType<T> {
+  public parse(buffer: Buffer, offset = 0): StructParsedType<T> {
     if (buffer.length < this.layout.size) {
       throw new Error(
         `Buffer too small. Expected at least ${this.layout.size} bytes, got ${buffer.length} bytes`
@@ -159,20 +159,27 @@ export class StructLayoutGenerator<T extends StructDefinition> {
 
       // Handle basic types
       if (fieldObj.type in FieldSizes) {
-        result[field.name] = this.parseBasicField(buffer, field.offset, fieldObj as BasicField);
+        result[field.name] = this.parseBasicField(
+          buffer,
+          field.offset + offset,
+          fieldObj as BasicField
+        );
       }
       // Handle struct fields
       else if (fieldObj.type === "struct") {
         const structField = fieldObj;
         // const structLayout = this.getLayout(structField);
-        const structBuffer = buffer.subarray(field.offset, field.offset + field.size);
+        const structBuffer = buffer.subarray(
+          field.offset + offset,
+          field.offset + offset + field.size
+        );
         const structParser = new StructLayoutGenerator(structField.definition as StructDefinition);
         result[field.name] = structParser.parse(structBuffer);
       }
       // Handle array fields
       else if (fieldObj.type === "array") {
         const arrayField = fieldObj;
-        result[field.name] = this.parseArrayField(buffer, field.offset, arrayField);
+        result[field.name] = this.parseArrayField(buffer, field.offset + offset, arrayField);
       }
     }
 
@@ -299,4 +306,8 @@ export class StructLayoutGenerator<T extends StructDefinition> {
 
     return result.join("\n");
   }
+}
+
+export function defineStruct<const T extends StructDefinition>(def: T): T {
+  return def;
 }

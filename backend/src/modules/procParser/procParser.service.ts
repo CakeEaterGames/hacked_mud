@@ -1,14 +1,30 @@
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { exec } from "child_process";
 import { err, ok, Result, ResultAsync } from "neverthrow";
-import type { ModuleInfo } from "./procParser.types";
+import type { ModuleInfo, ProcNotFoundError } from "./procParser.types";
+import { access } from "fs/promises";
+import fs from "fs";
 
-export function getProcMaps(pid: number): ResultAsync<ModuleInfo[], ExecError> {
+export function getProcMaps(pid: number): ResultAsync<ModuleInfo[], ExecError | ProcNotFoundError> {
   return toResultAsync(_getProcMaps(pid));
 }
 
-async function _getProcMaps(pid: number): Promise<Result<ModuleInfo[], ExecError>> {
-  const cmd = `cat /proc/${pid}/maps`;
+async function _getProcMaps(
+  pid: number
+): Promise<Result<ModuleInfo[], ExecError | ProcNotFoundError>> {
+  const procMapsPath = `/proc/${pid}/maps`;
+
+  // Check if the file exists first
+  try {
+    await access(procMapsPath, fs.constants.R_OK);
+  } catch (_) {
+    return err({
+      type: "PROC_NOT_FOUND_ERROR",
+      pid,
+    } satisfies ProcNotFoundError);
+  }
+
+  const cmd = `cat ${procMapsPath}`;
   let stdout;
   try {
     stdout = (await execWithTimeout(cmd, 1000)).stdout;

@@ -91,8 +91,13 @@ export abstract class findClientsService {
         return ok(!!mono);
       })
       .orElse(e => {
-        log.warn(e);
-        return ok(false);
+        switch (e.type) {
+          case "EXEC_ERROR":
+            log.warn(e);
+            return ok(false);
+          case "PROC_NOT_FOUND_ERROR":
+            return ok(false);
+        }
       });
   }
 
