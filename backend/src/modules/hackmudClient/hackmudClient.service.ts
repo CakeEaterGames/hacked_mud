@@ -7,7 +7,7 @@ import { type HackmudValidPid } from "../findClients/findClients.service";
 import { virtualKeyboard } from "../virtualKeyboard/virtualKeyboard.service";
 import { sleep } from "bun";
 import { log } from "@backend/plugins/logger/logger";
-import { HackmudMemoryReader } from "../hackmudMemoryReaderNT/hackmudMemoryReaderNT.service";
+import { HackmudMemoryReader } from "../hackmudMemoryReader/hackmudMemoryReader.service";
 import { ok } from "neverthrow";
 
 export class HackmudClient {

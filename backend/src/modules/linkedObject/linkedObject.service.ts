@@ -5,17 +5,17 @@ import {
   type ReadAnyObjectResponse,
   type FieldNotFoundError,
   type ReadFieldResponse,
-} from "./linkedObjectNT.types";
-import type { MemoryReader } from "../memoryReaderNT/memoryReader.service";
+} from "./linkedObject.types";
+import type { MemoryReader } from "../memoryReader/memoryReader.service";
 import { err, errAsync, ok, okAsync, Result, ResultAsync } from "neverthrow";
-import { MonoParser } from "../monoParserNT/monoParserNT.service";
+import { MonoParser } from "../monoParser/monoParser.service";
 import {
   toResultAsync,
   type NullPointerError,
   type UnsupportedError,
 } from "@backend/utils/neverthrow";
-import type { MemoryReaderError } from "../memoryReaderNT/memoryReader.models";
-import type { MonoClass, MonoClassField } from "../monoParserNT/monoParserNT.types";
+import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
+import type { MonoClass, MonoClassField } from "../monoParser/monoParser.types";
 
 export class LinkedObject {
   constructor(

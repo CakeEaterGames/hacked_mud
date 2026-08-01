@@ -1,6 +1,6 @@
-import type { LinkedObject } from "../linkedObjectNT/linkedObjectNT.service";
-import type { MonoParser } from "../monoParserNT/monoParserNT.service";
-import type { MonoClass } from "../monoParserNT/monoParserNT.types";
+import type { LinkedObject } from "../linkedObject/linkedObject.service";
+import type { MonoParser } from "../monoParser/monoParser.service";
+import type { MonoClass } from "../monoParser/monoParser.types";
 
 export type cache = {
   chatWindowPtr?: bigint;

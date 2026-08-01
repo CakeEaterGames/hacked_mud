@@ -1,14 +1,14 @@
 import * as fs from "fs";
-import { LinkedObject } from "../linkedObjectNT/linkedObjectNT.service";
+import { LinkedObject } from "../linkedObject/linkedObject.service";
 import { shellToTerminalColors } from "../../utils/shellToTerminalColors";
 import { bigIntReplacer } from "../../utils/bigIntReplacer";
 import { log } from "@backend/plugins/logger/logger";
 import { getProcMaps } from "../procParser/procParser.service";
 import { mkdirRecursiveAsync } from "@backend/utils/fs";
 import type { HackmudGameState, HackmudShellState } from "@shared/types/HackmudUpdateEvent.model";
-import type { cache, cacheStr, InitedHackmudReader } from "./hackmudMemoryReaderNT.types";
-import { MonoParser } from "../monoParserNT/monoParserNT.service";
-import { MemoryReader } from "../memoryReaderNT/memoryReader.service";
+import type { cache, cacheStr, InitedHackmudReader } from "./hackmudMemoryReader.types";
+import { MonoParser } from "../monoParser/monoParser.service";
+import { MemoryReader } from "../memoryReader/memoryReader.service";
 import { err, ok, okAsync, Result, ResultAsync } from "neverthrow";
 import {
   toResultAsync,
@@ -16,11 +16,11 @@ import {
   type NullPointerError,
   type UnsupportedError,
 } from "@backend/utils/neverthrow";
-import type { AssemblyNotFoundError, MonoClass } from "../monoParserNT/monoParserNT.types";
-import { TypeCode, type FieldNotFoundError } from "../linkedObjectNT/linkedObjectNT.types";
-import type { MemoryReaderError } from "../memoryReaderNT/memoryReader.models";
+import type { AssemblyNotFoundError, MonoClass } from "../monoParser/monoParser.types";
+import { TypeCode, type FieldNotFoundError } from "../linkedObject/linkedObject.types";
+import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 import type { ProcNotFoundError } from "../procParser/procParser.types";
-import { ELFParser } from "../ElfParserNT/ElfParserNT.service";
+import { ELFParser } from "../ElfParser/ElfParser.service";
 
 export class HackmudMemoryReader {
   public shell?: string;

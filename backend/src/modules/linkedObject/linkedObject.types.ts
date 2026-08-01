@@ -1,4 +1,4 @@
-import type { MonoClass } from "../monoParserNT/monoParserNT.types";
+import type { MonoClass } from "../monoParser/monoParser.types";
 
 export type GetFieldValueByNameResponse = ReadAnyObjectResponse & { name: string };
 

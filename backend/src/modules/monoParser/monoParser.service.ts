@@ -9,7 +9,7 @@ import {
   _MonoClassFieldD,
   _MonoTypeD,
   _GSList,
-} from "./monoParserNT.models";
+} from "./monoParser.models";
 import type {
   MonoClass,
   MonoAssembly,
@@ -17,11 +17,11 @@ import type {
   MonoFieldType,
   MonoAssemblyIndexEntry,
   AssemblyNotFoundError,
-} from "./monoParserNT.types";
-import { MemoryReader } from "../memoryReaderNT/memoryReader.service";
+} from "./monoParser.types";
+import { MemoryReader } from "../memoryReader/memoryReader.service";
 import { err, errAsync, ok, okAsync, Result, ResultAsync } from "neverthrow";
 import { toResultAsync } from "@backend/utils/neverthrow";
-import type { MemoryReaderError } from "../memoryReaderNT/memoryReader.models";
+import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 
 export class MonoParser {
   constructor(
