@@ -10,7 +10,10 @@
     </div>
     <div v-if="selectedClient">
       <div class="overlay">
-        <div class="overlay-text text-h2 text-red" v-if="[7, 8, 9].includes(selectedClient.gameState.gameState)">
+        <div
+          class="overlay-text text-h2 text-red"
+          v-if="[7, 8, 9].includes(selectedClient.gameState.gameState)"
+        >
           {{ selectedClient.gameState.instructionsText }}
         </div>
       </div>
@@ -78,7 +81,6 @@
 </template>
 
 <style scoped>
- 
 .overlay {
   position: absolute;
   top: 50%;
@@ -119,8 +121,9 @@
 <script setup lang="ts">
 import { env } from "src/config";
 import { removeSlashes } from "src/utils/url.utils";
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { backend } from "src/utils/eden";
+import { EdenWS } from "@elysia/eden/treaty";
 
 const toShowSettings = ref(false);
 function toggleSettings() {
@@ -196,7 +199,7 @@ async function inputCmd() {
 }
 
 async function handleKeydown(event: KeyboardEvent) {
-  console.log(event);
+  // console.log(event);
 
   if (event.key === "Escape") {
     toggleSettings();
@@ -233,14 +236,15 @@ async function handleKeydown(event: KeyboardEvent) {
 const commandHistory = ref<string[]>([]);
 const historyIndex = ref(-1);
 
-onMounted(() => {
-  document.addEventListener("keyup", (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      toggleSettings();
-    }
+let ws: ReturnType<typeof backend.ws.subscribe>;
+
+function reconnectWs() {
+  ws = backend.ws.subscribe();
+
+  ws.on("open", (e) => {
+    console.log("WS Connected");
   });
 
-  const ws = backend.ws.subscribe();
   ws.subscribe((message) => {
     const data = message.data;
     // console.log("got", data);
@@ -258,13 +262,24 @@ onMounted(() => {
         c.shell = data.shellState.normalizedText.join("\n");
         // c.shellHTML = c.shell
         c.shellHTML = chatToHTML(c.shell);
-        console.log(selectedClient.value?.pid == data.pid)
         if (selectedClient.value?.pid == data.pid) {
           setTimeout(scrollToBottom, 200);
         }
         break;
       }
       case "FullClientListUpdate": {
+        const toRemove = [];
+        for (const c of gameClients.value) {
+          if (!data.clients.find((c2) => c2.pid == c.pid)) {
+            toRemove.push(c.pid);
+            console.log("Hackmud client got closed " + c.pid);
+          }
+        }
+        if (toRemove.length > 0) {
+          gameClients.value = gameClients.value.filter((c) =>
+            data.clients.find((c2) => c2.pid == c.pid)
+          );
+        }
         for (const c of data.clients) {
           const sh = c.shellState.normalizedText.join("\n");
           if (!findClient(c.pid)) {
@@ -285,5 +300,24 @@ onMounted(() => {
       }
     }
   });
+  ws.on("close", (e: CloseEvent) => {
+    console.warn("WS connection closed. Reconnecting");
+    reconnectWs();
+  });
+}
+
+onMounted(() => {
+  document.addEventListener("keyup", (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      toggleSettings();
+    }
+  });
+  reconnectWs();
+});
+
+onUnmounted(() => {
+  if (ws) {
+    ws.close();
+  }
 });
 </script>

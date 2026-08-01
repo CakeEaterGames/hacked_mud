@@ -2,7 +2,7 @@ import Elysia, { status } from "elysia";
 import { loggerConfigPlugin } from "@backend/plugins/logger/logger.plugin";
 import { log } from "@backend/plugins/logger/logger";
 import { findClientsService } from "./findClients.service";
-import { findClientsRequestT, findClientsResponseT } from "./findClients.module";
+import { findClientsRequestT, findClientsResponseT } from "./findClients.models";
 
 export const findClientsHandler = new Elysia().use(loggerConfigPlugin).post(
   "findClients",

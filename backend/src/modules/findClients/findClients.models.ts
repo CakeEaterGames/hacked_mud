@@ -10,3 +10,8 @@ export const findClientsRequestT = t.Object({});
 export const findClientsResponseT = t.Object({
   clients: t.Array(HackmudValidPidT),
 });
+
+export type ClientNotFoundError = {
+  type: "CLIENT_NOT_FOUND";
+  pid: number;
+};

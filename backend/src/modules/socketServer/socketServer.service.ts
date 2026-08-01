@@ -33,4 +33,12 @@ export abstract class socketServerService {
       clients,
     } satisfies FullClientListUpdate);
   }
+
+  static broadcastClientList(){
+    for (const connection of this.connections) {
+      this.sendClientList(connection[1])
+    }
+  }
+
+  
 }

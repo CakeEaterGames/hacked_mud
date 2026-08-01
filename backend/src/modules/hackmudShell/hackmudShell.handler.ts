@@ -1,15 +1,29 @@
-import Elysia from "elysia";
-
+import Elysia, { status } from "elysia";
 import { loggerConfigPlugin } from "@backend/plugins/logger/logger.plugin";
 import { getShellContentsRequestT, SendCmdRequestT, SendCmdResponseT } from "./hackmudShell.model";
-import { hackmudShellService } from "./hackmudShell.service";
+import { findClientsService } from "../findClients/findClients.service";
+import { ok } from "neverthrow";
+import { log } from "@backend/plugins/logger/logger";
+import { shellToTerminalColors } from "@backend/utils/shellToTerminalColors";
 
 export const hackmudShellHandler = new Elysia()
   .use(loggerConfigPlugin)
   .post(
     "getShellContents",
-    ({ body }) => {
-      return { data: hackmudShellService.getContents(body.pid) }; //satisfies getShellContentsResponse;
+    async ({ body }) => {
+      const data = await findClientsService
+        .getClient(body.pid)
+        .map(client => client.shellState)
+        .match(
+          a => a,
+          e => {
+            switch (e.type) {
+              case "CLIENT_NOT_FOUND":
+                throw status(400, e);
+            }
+          }
+        );
+      return { data };
     },
     {
       body: getShellContentsRequestT,
@@ -28,8 +42,20 @@ export const hackmudShellHandler = new Elysia()
   )
   .post(
     "getGameState",
-    ({ body }) => {
-      return { data: hackmudShellService.getGameState(body.pid) };
+    async ({ body }) => {
+      const data = await findClientsService
+        .getClient(body.pid)
+        .map(client => client.gameState)
+        .match(
+          a => a,
+          e => {
+            switch (e.type) {
+              case "CLIENT_NOT_FOUND":
+                throw status(400, e);
+            }
+          }
+        );
+      return { data };
     },
     {
       body: getShellContentsRequestT,
@@ -49,8 +75,24 @@ export const hackmudShellHandler = new Elysia()
   .post(
     "sendCmd",
     async ({ body }) => {
-      const res = await hackmudShellService.sendCmd(body.pid, body.cmd);
-      return res;
+      const data = await findClientsService
+        .getClient(body.pid)
+        .andThen(client => client.cmd(body.cmd))
+        .andThen(res => {
+          log.info(shellToTerminalColors(res.response.join("\n").trim()));
+          return ok(res);
+        })
+        .match(
+          a => a,
+          e => {
+            switch (e.type) {
+              case "CLIENT_NOT_FOUND":
+              case "EXEC_ERROR":
+                throw status(400, e);
+            }
+          }
+        );
+      return { ...data };
     },
     {
       body: SendCmdRequestT,

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import type { FileHandle, FileReadResult } from "fs/promises";
-import { err, ok, okAsync, Result, ResultAsync } from "neverthrow";
+import { err, ok, Result, ResultAsync } from "neverthrow";
 import type { MemoryReaderError } from "./memoryReader.models";
 
 const alloc = Result.fromThrowable(
@@ -9,13 +9,13 @@ const alloc = Result.fromThrowable(
 );
 
 export class MemoryReader {
-  file?: FileHandle;
+  private constructor(
+    public pid: number,
+    private file: FileHandle
+  ) {}
 
-  constructor(public pid: number) {}
-
-  private open(): ResultAsync<FileHandle, MemoryReaderError> {
-    if (this.file) return okAsync(this.file);
-    const memPath = `/proc/${this.pid}/mem`;
+  public static create(pid: number): ResultAsync<MemoryReader, MemoryReaderError> {
+    const memPath = `/proc/${pid}/mem`;
     return ResultAsync.fromPromise(
       fs.promises.open(memPath, "r"),
       e =>
@@ -23,14 +23,12 @@ export class MemoryReader {
           type: "MEMORY_READER_ERROR",
           cause: e as Error,
         }) satisfies MemoryReaderError
-    ).map(fileHandle => {
-      this.file = fileHandle;
-      return fileHandle;
+    ).map(file => {
+      return new MemoryReader(pid, file);
     });
   }
 
   close(): ResultAsync<void, MemoryReaderError> {
-    if (!this.file) return okAsync();
     return ResultAsync.fromPromise(
       this.file.close(),
       e =>
@@ -38,9 +36,11 @@ export class MemoryReader {
           type: "MEMORY_READER_ERROR",
           cause: e as Error,
         }) satisfies MemoryReaderError
-    ).map(_ => {
-      this.file = undefined;
-    });
+    );
+
+    // .map(_ => {
+    //   this.file = undefined;
+    // });
   }
 
   fileRead(
@@ -60,10 +60,10 @@ export class MemoryReader {
   }
 
   readMemory(address: bigint, size: number): ResultAsync<Buffer, MemoryReaderError> {
-    return this.open()
-      .andThen(file => alloc(size).map(buffer => ({ file, buffer })))
-      .andThen(ctx =>
-        this.fileRead(ctx.file, ctx.buffer, size, address).map(data => ({ ...ctx, data }))
+    return alloc(size)
+      .map(buffer => ({ buffer }))
+      .asyncAndThen(ctx =>
+        this.fileRead(this.file, ctx.buffer, size, address).map(data => ({ ...ctx, data }))
       )
       .andThen(ctx => {
         if (ctx.data.bytesRead != size) {

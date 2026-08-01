@@ -9,7 +9,7 @@ import type { HackmudGameState, HackmudShellState } from "@shared/types/HackmudU
 import type { cache, cacheStr, InitedHackmudReader } from "./hackmudMemoryReader.types";
 import { MonoParser } from "../monoParser/monoParser.service";
 import { MemoryReader } from "../memoryReader/memoryReader.service";
-import { err, ok, okAsync, Result, ResultAsync } from "neverthrow";
+import { err, ok, Result, ResultAsync } from "neverthrow";
 import {
   toResultAsync,
   type ExecError,
@@ -23,10 +23,8 @@ import type { ProcNotFoundError } from "../procParser/procParser.types";
 import { ELFParser } from "../ElfParser/ElfParser.service";
 
 export class HackmudMemoryReader {
-  public shell?: string;
+  public shell: string = "";
   private cacheDir: string;
-  private mr: MemoryReader;
-  public initedHackmudReader?: InitedHackmudReader;
 
   public shellData = {
     head: 0,
@@ -36,14 +34,20 @@ export class HackmudMemoryReader {
     data: new Array(2048).fill(null) as (string | null)[],
     normalizedData: [] as string[],
   };
+  public isClosed: boolean = false;
 
-  constructor(public pid: number) {
+  private constructor(
+    public pid: number,
+    public initedHackmudReader: InitedHackmudReader,
+    private mr: MemoryReader
+  ) {
     this.cacheDir = "/app/backend/cache/" + this.pid;
-    this.mr = new MemoryReader(this.pid);
   }
 
-  public initialize(): ResultAsync<
-    InitedHackmudReader,
+  public static create(
+    pid: number
+  ): ResultAsync<
+    HackmudMemoryReader,
     | NullPointerError
     | MemoryReaderError
     | ExecError
@@ -52,16 +56,14 @@ export class HackmudMemoryReader {
     | FieldNotFoundError
     | ProcNotFoundError
   > {
-    if (this.initedHackmudReader) return okAsync(this.initedHackmudReader);
-    return toResultAsync(this._initialize()).andThen(a => {
-      this.initedHackmudReader = a;
-      return ok(a);
-    });
+    return toResultAsync(this._create(pid));
   }
 
-  private async _initialize(): Promise<
+  private static async _create(
+    pid: number
+  ): Promise<
     Result<
-      InitedHackmudReader,
+      HackmudMemoryReader,
       | NullPointerError
       | MemoryReaderError
       | ExecError
@@ -71,6 +73,12 @@ export class HackmudMemoryReader {
       | ProcNotFoundError
     >
   > {
+    const cacheDir = "/app/backend/cache/" + pid;
+    const mrRes = await MemoryReader.create(pid);
+    if (mrRes.isErr()) return err(mrRes.error);
+
+    const mr = mrRes.value;
+
     let queueObj = undefined as LinkedObject | undefined;
     let kernel = undefined as LinkedObject | undefined;
     let instructions = undefined as LinkedObject | undefined;
@@ -84,9 +92,9 @@ export class HackmudMemoryReader {
     let hardlineStates = undefined as string[] | undefined;
     let gameStates = undefined as string[] | undefined;
 
-    await mkdirRecursiveAsync(this.cacheDir);
+    await mkdirRecursiveAsync(cacheDir);
 
-    const procMapsRes = await getProcMaps(this.pid);
+    const procMapsRes = await getProcMaps(pid);
     if (procMapsRes.isErr()) return err(procMapsRes.error);
     const procMaps = procMapsRes.value;
 
@@ -94,7 +102,7 @@ export class HackmudMemoryReader {
     if (!monoModule)
       return err({ type: "NULL_POINTER_ERROR", var: "monoModule" } satisfies NullPointerError);
 
-    const p = new ELFParser(this.mr, monoModule);
+    const p = new ELFParser(mr, monoModule);
     const elf = await p.parseElf();
     if (elf.isErr()) return err(elf.error);
 
@@ -102,7 +110,7 @@ export class HackmudMemoryReader {
     if (!monoDomain)
       return err({ type: "NULL_POINTER_ERROR", var: "monoDomain" } satisfies NullPointerError);
 
-    const monoParser = new MonoParser(this.pid, monoModule.start, monoDomain.st_value, this.mr);
+    const monoParser = new MonoParser(pid, monoModule.start, monoDomain.st_value, mr);
 
     const gameAssemblyRes = await monoParser.parseAssemblyByName("Core");
     if (gameAssemblyRes.isErr()) return err(gameAssemblyRes.error);
@@ -116,33 +124,21 @@ export class HackmudMemoryReader {
 
     // log(this.windowClass)
 
-    const cache = this.loadCache();
-    const isValidCache = await this.validateCache(monoParser, windowClass, cache);
+    const cache = this.loadCache(cacheDir);
+    const isValidCache = await this.validateCache(monoParser, windowClass, cache, pid, mr);
 
     if (isValidCache) {
-      shellLinkedObject = new LinkedObject(
-        this.pid,
-        monoParser,
-        windowClass,
-        cache.shellWindowPtr!,
-        this.mr
-      );
-      chatLinkedObject = new LinkedObject(
-        this.pid,
-        monoParser,
-        windowClass,
-        cache.chatWindowPtr!,
-        this.mr
-      );
+      shellLinkedObject = new LinkedObject(pid, monoParser, windowClass, cache.shellWindowPtr!, mr);
+      chatLinkedObject = new LinkedObject(pid, monoParser, windowClass, cache.chatWindowPtr!, mr);
     } else {
       log.debug("Looking for window objects... this may take a while...");
 
-      const t = await LinkedObject.findAllObjects(windowClass, procMaps, this.mr);
+      const t = await LinkedObject.findAllObjects(windowClass, procMaps, mr);
       if (t.isErr()) return err(t.error);
       const potentialWindowObjectPointers = t.value;
 
       for (const addr of potentialWindowObjectPointers) {
-        const windowLinkedObj = new LinkedObject(this.pid, monoParser, windowClass, addr, this.mr);
+        const windowLinkedObj = new LinkedObject(pid, monoParser, windowClass, addr, mr);
 
         const labelNameRes = await windowLinkedObj.getFieldValueByName("labelName");
         if (labelNameRes.isErr()) {
@@ -161,7 +157,7 @@ export class HackmudMemoryReader {
           cache.chatWindowPtr = addr;
         }
       }
-      this.saveCache(cache);
+      this.saveCache(cacheDir, cache);
     }
 
     if (!shellLinkedObject)
@@ -292,15 +288,16 @@ export class HackmudMemoryReader {
       hardlineStates,
       gameStates,
     } satisfies InitedHackmudReader;
-    return ok(initialized);
+
+    return ok(new HackmudMemoryReader(pid, initialized, mr));
   }
 
-  async update(context: InitedHackmudReader) {
-    return this.readShell(context).andThen(shellState => {
+  async update() {
+    return this.readShell().andThen(shellState => {
       this.shell = shellState.text.join("\n");
       const terminal = shellToTerminalColors(this.shell);
       log.info(terminal);
-      return this.readGameState(context).map(gameState => ({ gameState, shellState }));
+      return this.readGameState().map(gameState => ({ gameState, shellState }));
     });
   }
 
@@ -352,27 +349,28 @@ export class HackmudMemoryReader {
     };
   }
 
-  public readShell(
-    context: InitedHackmudReader
-  ): ResultAsync<HackmudShellState, MemoryReaderError | UnsupportedError | FieldNotFoundError> {
-    return toResultAsync(this._readShell(context));
+  public readShell(): ResultAsync<
+    HackmudShellState,
+    MemoryReaderError | UnsupportedError | FieldNotFoundError
+  > {
+    return toResultAsync(this._readShell());
   }
 
-  private async _readShell(
-    context: InitedHackmudReader
-  ): Promise<Result<HackmudShellState, MemoryReaderError | UnsupportedError | FieldNotFoundError>> {
+  private async _readShell(): Promise<
+    Result<HackmudShellState, MemoryReaderError | UnsupportedError | FieldNotFoundError>
+  > {
     // log.debug({ O: this.queueObj.klass.fields.map(a => a.name) })
 
-    const _head = await context.queueObj.getFieldValueByName("_head");
+    const _head = await this.initedHackmudReader.queueObj.getFieldValueByName("_head");
     if (_head.isErr()) return err(_head.error);
 
-    const _tail = await context.queueObj.getFieldValueByName("_tail");
+    const _tail = await this.initedHackmudReader.queueObj.getFieldValueByName("_tail");
     if (_tail.isErr()) return err(_tail.error);
 
-    const _size = await context.queueObj.getFieldValueByName("_size");
+    const _size = await this.initedHackmudReader.queueObj.getFieldValueByName("_size");
     if (_size.isErr()) return err(_size.error);
 
-    const _version = await context.queueObj.getFieldValueByName("_version");
+    const _version = await this.initedHackmudReader.queueObj.getFieldValueByName("_version");
     if (_version.isErr()) return err(_version.error);
 
     const head = _head.value.value as number;
@@ -382,7 +380,9 @@ export class HackmudMemoryReader {
 
     if (this.shellData.version != version) {
       this.shellData.version = version;
-      const arrField = context.queueObj.klass.fields.find(a => a.name == "_array")!;
+      const arrField = this.initedHackmudReader.queueObj.klass.fields.find(
+        a => a.name == "_array"
+      )!;
 
       const tasks = this.getReadQueueTask(
         { head: this.shellData.head, tail: this.shellData.tail },
@@ -393,8 +393,8 @@ export class HackmudMemoryReader {
         this.shellData.data.fill(null, clr.st, clr.ed);
       }
       for (const read of tasks.read) {
-        const partArrayRes = await context.queueObj.readArrayField(
-          context.queueObj.objectAddr + BigInt(arrField.offset),
+        const partArrayRes = await this.initedHackmudReader.queueObj.readArrayField(
+          this.initedHackmudReader.queueObj.objectAddr + BigInt(arrField.offset),
           read.st,
           read.ed
         );
@@ -436,32 +436,38 @@ export class HackmudMemoryReader {
     return data.slice(head).concat(data.slice(0, tail));
   }
 
-  public readGameState(
-    context: InitedHackmudReader
-  ): ResultAsync<HackmudGameState, MemoryReaderError | FieldNotFoundError | UnsupportedError> {
-    return toResultAsync(this._readGameState(context));
+  public readGameState(): ResultAsync<
+    HackmudGameState,
+    MemoryReaderError | FieldNotFoundError | UnsupportedError
+  > {
+    return toResultAsync(this._readGameState());
   }
 
-  private async _readGameState(
-    context: InitedHackmudReader
-  ): Promise<Result<HackmudGameState, MemoryReaderError | FieldNotFoundError | UnsupportedError>> {
-    const hardlineState = await context.hardline.getFieldValueByName(
-      context.hardlineStateFieldName
+  private async _readGameState(): Promise<
+    Result<HackmudGameState, MemoryReaderError | FieldNotFoundError | UnsupportedError>
+  > {
+    const hardlineState = await this.initedHackmudReader.hardline.getFieldValueByName(
+      this.initedHackmudReader.hardlineStateFieldName
     );
     if (hardlineState.isErr()) return err(hardlineState.error);
 
-    const hardlineStateStr = context.hardlineStates[hardlineState.value.value as number];
+    const hardlineStateStr =
+      this.initedHackmudReader.hardlineStates[hardlineState.value.value as number];
 
-    const gameState = await context.kernel.getFieldValueByName(context.gameStateFieldName);
+    const gameState = await this.initedHackmudReader.kernel.getFieldValueByName(
+      this.initedHackmudReader.gameStateFieldName
+    );
     if (gameState.isErr()) return err(gameState.error);
 
-    const instructionsText = await context.instructions.getFieldValueByName("m_Text");
+    const instructionsText =
+      await this.initedHackmudReader.instructions.getFieldValueByName("m_Text");
     if (instructionsText.isErr()) return err(instructionsText.error);
 
-    const timerCurrent = await context.timer.getFieldValueByName("current");
+    const timerCurrent = await this.initedHackmudReader.timer.getFieldValueByName("current");
     if (timerCurrent.isErr()) return err(timerCurrent.error);
 
-    const isProcessing = await context.shellParsing.getFieldValueByName("is_processing");
+    const isProcessing =
+      await this.initedHackmudReader.shellParsing.getFieldValueByName("is_processing");
     if (isProcessing.isErr()) return err(isProcessing.error);
 
     return ok({
@@ -474,13 +480,15 @@ export class HackmudMemoryReader {
     } satisfies HackmudGameState);
   }
 
-  async validateWindowPtr(
+  static async validateWindowPtr(
     monoParser: MonoParser,
     windowClass: MonoClass,
     addr: bigint,
-    name: string
+    name: string,
+    pid: number,
+    mr: MemoryReader
   ) {
-    const windowLinkedObj = new LinkedObject(this.pid, monoParser, windowClass, addr, this.mr);
+    const windowLinkedObj = new LinkedObject(pid, monoParser, windowClass, addr, mr);
     return windowLinkedObj.getFieldValueByName("labelName").match(
       a => {
         return a.value == name;
@@ -503,21 +511,21 @@ export class HackmudMemoryReader {
     }
   }
 
-  saveCache(c: cache) {
+  static saveCache(cacheDir: string, c: cache) {
     try {
-      fs.writeFileSync(this.cacheDir + "/cache.json", JSON.stringify(c, bigIntReplacer, 2));
-      console.log(this.cacheDir + "/cache.json", "File data written successfully");
+      fs.writeFileSync(cacheDir + "/cache.json", JSON.stringify(c, bigIntReplacer, 2));
+      console.log(cacheDir + "/cache.json", "File data written successfully");
     } catch (error) {
       console.error("Error writing file:", error);
     }
   }
-  loadCache(): cache {
+  static loadCache(cacheDir: string): cache {
     try {
-      if (!fs.existsSync(this.cacheDir + "/cache.json")) {
+      if (!fs.existsSync(cacheDir + "/cache.json")) {
         return { chatWindowPtr: undefined, shellWindowPtr: undefined };
       }
       const data: cacheStr = JSON.parse(
-        fs.readFileSync(this.cacheDir + "/cache.json").toString()
+        fs.readFileSync(cacheDir + "/cache.json").toString()
       ) as cacheStr;
       // log(data)
       const res: cache = {
@@ -533,19 +541,43 @@ export class HackmudMemoryReader {
     }
   }
 
-  async validateCache(monoParser: MonoParser, windowClass: MonoClass, cache: cache) {
+  static async validateCache(
+    monoParser: MonoParser,
+    windowClass: MonoClass,
+    cache: cache,
+    pid: number,
+    mr: MemoryReader
+  ) {
     if (!cache.chatWindowPtr) return false;
     if (!cache.shellWindowPtr) return false;
-    let v = await this.validateWindowPtr(monoParser, windowClass, cache.chatWindowPtr, "chat");
+    let v = await this.validateWindowPtr(
+      monoParser,
+      windowClass,
+      cache.chatWindowPtr,
+      "chat",
+      pid,
+      mr
+    );
     if (!v) return false;
-    v = await this.validateWindowPtr(monoParser, windowClass, cache.shellWindowPtr, "shell");
+    v = await this.validateWindowPtr(
+      monoParser,
+      windowClass,
+      cache.shellWindowPtr,
+      "shell",
+      pid,
+      mr
+    );
     if (!v) return false;
     return true;
   }
 
-  notNull<T>(name: string, obj: T): asserts obj is NonNullable<T> {
-    if (!obj) {
-      throw new Error(`Value of ${name} is ${JSON.stringify(obj)}`);
-    }
+
+  public close() {
+    this.isClosed = true
+    return this.mr.close().orElse(e => {
+      //this should not really happen but still
+      log.error({ e })
+      return ok()
+    })
   }
 }

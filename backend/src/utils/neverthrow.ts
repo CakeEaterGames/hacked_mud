@@ -38,7 +38,6 @@ export type FSError = {
   cause: Error;
 };
 
-// TODO вынести куда-нибудь
 function errorToObject(err: Error) {
   return { message: err.message, cause: err.cause, name: err.name, stack: err.stack };
 }

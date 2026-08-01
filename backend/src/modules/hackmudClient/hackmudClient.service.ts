@@ -3,54 +3,62 @@ import type {
   HackmudShellState,
   HackmudUpdateEvent,
 } from "@shared/types/HackmudUpdateEvent.model";
-import { type HackmudValidPid } from "../findClients/findClients.service";
+import { findClientsService, type HackmudValidPid } from "../findClients/findClients.service";
 import { virtualKeyboard } from "../virtualKeyboard/virtualKeyboard.service";
 import { sleep } from "bun";
 import { log } from "@backend/plugins/logger/logger";
 import { HackmudMemoryReader } from "../hackmudMemoryReader/hackmudMemoryReader.service";
-import { ok } from "neverthrow";
+import { ok, Result, ResultAsync } from "neverthrow";
+import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
+import type { ClientCmdResponse } from "./hackmudClient.types";
 
 export class HackmudClient {
-  public readonly memoryReader: HackmudMemoryReader;
   public readonly pid: number;
   public readonly display: number;
   public readonly windowId: number;
-  public gameState?: HackmudGameState;
-  public shellState?: HackmudShellState;
+
   private isUpdating = false;
 
-  constructor(
+  private constructor(
     validPid: HackmudValidPid,
+    public memoryReader: HackmudMemoryReader,
+    public gameState: HackmudGameState,
+    public shellState: HackmudShellState,
     private onUpdate: (event: HackmudUpdateEvent) => void
   ) {
     this.pid = validPid.pid;
     this.display = validPid.display;
     this.windowId = validPid.windowId;
-    this.memoryReader = new HackmudMemoryReader(validPid.pid);
   }
 
-  public async initialize() {
-    await this.memoryReader
-      .initialize()
-      .andThen(_ => {
-        this.start();
-        return ok();
+  public static create(validPid: HackmudValidPid, onUpdate: (event: HackmudUpdateEvent) => void) {
+    return toResultAsync(this._create(validPid, onUpdate));
+  }
+
+  private static async _create(
+    validPid: HackmudValidPid,
+    onUpdate: (event: HackmudUpdateEvent) => void
+  ): Promise<Result<HackmudClient, unknown>> {
+    let reader: HackmudMemoryReader;
+    let gameState: HackmudGameState;
+    let shellState: HackmudShellState;
+
+    return HackmudMemoryReader.create(validPid.pid)
+      .andThen(a => {
+        reader = a;
+        return reader.readGameState();
+        // return new HackmudClient(validPid, memoryReader,)
       })
-      .match(
-        a => a,
-        e => {
-          log.error({ e });
-          switch (e.type) {
-            case "NULL_POINTER_ERROR":
-            case "MEMORY_READER_ERROR":
-            case "EXEC_ERROR":
-            case "UNSUPPORTED":
-            case "ASSEMBLY_NOT_FOUND_ERROR":
-            case "FIELD_NOT_FOUND_ERROR":
-              break;
-          }
-        }
-      );
+      .andThen(state => {
+        gameState = state;
+        return reader.readShell();
+      })
+      .andThen(state => {
+        shellState = state;
+        const client = new HackmudClient(validPid, reader, gameState, shellState, onUpdate);
+        client.start();
+        return ok(client);
+      });
   }
 
   private _isRunning = false;
@@ -66,31 +74,21 @@ export class HackmudClient {
     this._isRunning = true;
   }
   public stop() {
-    if (!this.isRunning()) return;
-    clearInterval(this.interval!);
+    if (this.interval) clearInterval(this.interval);
     this.interval = null;
     this._isRunning = false;
     this.isUpdating = false;
+    return this.memoryReader.close()
   }
 
   public async update() {
     if (this.isUpdating) return;
     this.isUpdating = true;
 
-    const contextRes = await this.memoryReader.initialize();
-    if (contextRes.isErr()) {
-      //TODO idk
-      log.error(contextRes.error);
-      this.stop();
-      return;
-    }
-    const context = contextRes.value;
-
-    // log.debug("updating...")
-    const nextGameStateRes = await this.memoryReader.readGameState(context);
+    const nextGameStateRes = await this.memoryReader.readGameState();
     if (nextGameStateRes.isErr()) {
       log.error(nextGameStateRes.error);
-      this.stop();
+      findClientsService.deleteClient(this.pid)
       return;
     }
     const nextGameState = nextGameStateRes.value;
@@ -117,10 +115,10 @@ export class HackmudClient {
     }
     this.gameState = nextGameState;
 
-    const shellRes = await this.memoryReader.readShell(context);
+    const shellRes = await this.memoryReader.readShell();
     if (shellRes.isErr()) {
       log.error(shellRes.error);
-      this.stop();
+      findClientsService.deleteClient(this.pid)
       return;
     }
     const shell = shellRes.value;
@@ -136,7 +134,11 @@ export class HackmudClient {
     this.isUpdating = false; // Release lock even if an error occurs
   }
 
-  public async cmd(text: string) {
+  public cmd(text: string): ResultAsync<ClientCmdResponse, ExecError> {
+    return toResultAsync(this._cmd(text));
+  }
+
+  private async _cmd(text: string): Promise<Result<ClientCmdResponse, ExecError>> {
     if (!this.shellState) throw Error("fuck");
     if (!this.gameState) throw Error("fuck");
 
@@ -172,26 +174,27 @@ export class HackmudClient {
     }
 
     const res = this.shellState.normalizedText.slice(-dif);
-    return {
+    return ok({
       response: res,
       fullShell: this.shellState.normalizedText,
-    };
+    });
   }
 
   async spamHardlineNumbers() {
     //  "hardlineState": 3, "hardlineStateStr": "Patching",
     if (this.gameState?.hardlineState == 3) {
       try {
-        await sleep(1000);
-        log.debug("CALL");
         await virtualKeyboard.sendTextToWindow(
           this.windowId,
           this.display,
           "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
         );
+        await sleep(100);
       } catch (e) {
         log.warn({ e });
       }
     }
   }
+
+
 }
