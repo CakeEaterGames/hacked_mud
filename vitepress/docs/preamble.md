@@ -43,7 +43,17 @@ I am not an expert in reverse engineering, nor I am an expert in C/C++. I am fig
 
 ## Legality
 
-Everything that is written in this guide complies with hackmud's rules. TODO ADD LINK. It is explicitly stated that reading the memory of hackmud is allowed, but memory writing is not allowed.
+Everything that is written in this guide complies with [hackmud's rules](https://www.hackmud.com/forums/general_discussion/rules). It is explicitly stated that reading the memory of hackmud is allowed, but memory writing is not allowed.
+
+> Automation on top of the existing game client is currently permitted.
+
+and
+
+> Modifying the game client in any way is not permitted, this includes memory modification, code injection, client file modification, etc, and is considered a 'custom client.'
+
+I will not post hackmud source code here. But I will post variable names and class names that you should read. I don't know how strict it is so I'll assume it's very strict.
+
+> Our client code is not open source. Please be mindful of copyright law.
 
 ## Software stack
 

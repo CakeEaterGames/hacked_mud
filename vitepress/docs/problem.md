@@ -11,14 +11,35 @@ There are 3 ways to execute actions in the game
 
    ```hackmud
    >>accts.balance
-   1M130KGC
+   131B947M886K515GC
+   
    ```
 
 2. You make scripts that execute multiple commands for you
 
    ```hackmud
-   >>your_name.your_script
-   TODO
+   >>cake.inv
+
+    ╔════════════════════════════════════╗    
+    ║  cake.inv - specs                  ║    
+    ╠════════════════════════════════════╣    
+    ║                                    ║    
+    ║  hardline_count: 12                ║    
+    ║  slots: 116/256                    ║    
+    ║  loaded: 60/64                     ║    
+    ║  user: cake                        ║    
+    ║  balance: 131B947M886K515GC        ║    
+    ║                                    ║    
+    ╚════════════════════════════════════╝    
+
+    ╔════════════════════════════════════════════════════════════════════
+    ║  cake.inv - All my good stuff                                      
+    ╠════════════════════════════════════════════════════════════════════
+    ║                                                                    
+    ║  000 chars      [1836]                064 k3y_v2     nyi5u2        
+    ║  001 chars      [2551]                065 k3y_v2     nyi5u2        
+    ║  002 chars      [2440]                066 k3y_v2     nyi5u2        
+    ║  003 chars      [2400]                067 k3y_v2     nyi5u2        
    ```
 
 3. You put your script on a cron bot.

@@ -699,7 +699,7 @@ export const _MonoImageD = defineStruct({
 // 	 * This must be a GHashTable, since these objects can't be finalized
 // 	 * if the hashtable contains a GC visible reference to them.
 // 	 */
-// 	GHashTable         *finalizable_objects_hash; // TODO: this needs to be moved for unloadability with non-sgen gc
+// 	GHashTable         *finalizable_objects_hash;
 
 // 	/* Protects the three hashes above */
 // 	mono_mutex_t   finalizable_objects_hash_lock;
@@ -736,7 +736,7 @@ export const _MonoImageD = defineStruct({
 
 // 	/* Cache function pointers for architectures  */
 // 	/* that require wrappers */
-// 	GHashTable *ftnptrs_hash; // TODO: need to move?
+// 	GHashTable *ftnptrs_hash;
 
 // 	/* Maps MonoMethod* to weak links to DynamicMethod objects */
 // 	GHashTable *method_to_dyn_method;

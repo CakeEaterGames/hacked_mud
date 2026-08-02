@@ -52,21 +52,20 @@ export class ELFParser {
   }
 
   parseELF64(): ResultAsync<ElfParseResult, MemoryReaderError> {
-    const ctx = {
-      e_shstrndx: undefined as number | undefined,
-    };
+    let e_shstrndx: number;
+
     return this.mr
       .readBytes(this.module.start, Elf64HeaderL.layout.size)
       .andThen(buffer => {
         const header = Elf64HeaderL.parse(buffer);
-        ctx.e_shstrndx = header.e_shstrndx;
+        e_shstrndx = header.e_shstrndx;
         return toResultAsync(
           this._readSectionHeaders(header.e_shoff, header.e_shentsize, header.e_shnum)
         );
       })
       .andThen(sectionHeaders => {
         this.sectionHeaders = sectionHeaders;
-        return toResultAsync(this._readSectionNames(ctx.e_shstrndx!));
+        return toResultAsync(this._readSectionNames(e_shstrndx));
       })
       .andThen(_ => toResultAsync(this._readSymbols()))
       .andThen(symbols => {

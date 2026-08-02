@@ -111,59 +111,51 @@ username@hostname:~$ cat /proc/7738/maps | grep libmonobdwgc
 
 [Executable and Linkable Format](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format) (ELF) is a very well documented format. You can read about it on a linked page. To keep the guide short I will only explain the basics.
 
-To get the ELF file:
+You can either follow the Wikipedia article to write your own parser or you can install something like elfy js or any other library. However I couldn't get it to work the way I wanted so I wrote my own parser. I recommend you to do the same.
+
+Here's what we need to do:
 
 1. Open this file `/proc/${pid}/mem`
 2. Skip to the start of the map (0x7c2586600000 from an example above)
-3. Read bytes from from start to the end of the map (0x7c2586600000-0x7c25869a1000)
+3. Start by reading bytes at the start. That is our ELF file header. The ELF header is 52 or 64 bytes long for 32-bit and 64-bit binaries, respectively.
+4. Jump to e_shoff (section header offset) and read e_shnum (number of entries in the section header table) sections headers. Each has a size of e_shentsize (size of a section header table entry)
+5. Use e_shstrndx (section header string index. Basically sections[e_shstrndx]) to read section header names form strings section
+6. Find a symbol section and read all symbols
+7. Read the name for each symbol form strings section
 
-This binary data is our ELF file
+Elf file contains a lot of information be we are only interested in symbols.
 
-Now you can either follow the Wikipedia article to write your own parser, or you can install something like elfy
 
-::: info AI
 
-```bash
-npm install elfy
+```mermaid
+erDiagram
+    Elf64Header ||--o{ Elf64SectionHeader : "e_shoff locates section headers"
+    Elf64Header ||--o{ Elf64Symbol : "via section header lookup"
+    Elf64SectionHeader ||--o{ Elf64Symbol : "SYMBOL_SH_TYPE section contains symbols"
+
+    Elf64Header {
+        uint64 e_shoff "Section header table offset"
+        uint16 e_shnum "Number of section headers"
+        uint16 e_shentsize "Section header entry size"
+        uint16 e_shstrndx "Section name string table index"
+        NA NA "..."
+    }
+
+    Elf64SectionHeader {
+        uint32 sh_name "Index into name string table"
+        uint32 sh_type "Section type (SYMBOL_SH_TYPE for symbols)"
+        uint64 sh_offset "File offset to section data"
+        uint64 sh_size "Section size in bytes"
+        NA NA "..."
+    }
+
+    Elf64Symbol {
+        uint32 st_name "Index into string table"
+        uint8 st_info "Symbol type and binding"
+        uint16 st_shndx "Associated section index"
+        NA NA "..."
+    }
 ```
-
----
-
-```ts
-import { ELF } from "elfy";
-import fs from "fs";
-
-interface Symbol {
-  name: string;
-  value: number;
-}
-
-// Read the ELF from process memory
-const fd: number = fs.openSync(`/proc/${pid}/mem`, "r");
-const buffer: Buffer = Buffer.alloc(endAddr - startAddr);
-fs.readSync(fd, buffer, 0, buffer.length, startAddr);
-fs.closeSync(fd);
-
-// Parse and find the symbol
-const elf = ELF.parse(buffer);
-const symtab = elf.sectionHeaders.find((s: { name: string }) => s.name === ".symtab");
-const strtab = elf.sectionHeaders.find((s: { name: string }) => s.name === ".strtab");
-
-if (!symtab || !strtab) throw new Error("Symbol table not found");
-
-const symData: Buffer = elf.readSection(symtab);
-const strData: Buffer = elf.readSection(strtab);
-const symbols: Symbol[] = elf.parseSymbolTable(symData, strData);
-
-const target: Symbol | undefined = symbols.find((s: Symbol) => s.name === "mono_get_root_domain");
-const offset: number = target!.value - startAddr;
-
-console.log(`mono_get_root_domain at offset: 0x${offset.toString(16)}`);
-```
-
-:::
-
-TODO Verify that this actually works
 
 ## Conclusion
 

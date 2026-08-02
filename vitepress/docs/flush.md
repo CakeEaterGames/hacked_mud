@@ -7,7 +7,9 @@ This page explains how you can implement an OOG without reading the memory. You 
 The `flush` command dumps the contents of the terminal into `shell.txt`. It is a reserved keyword and it executes instantly.
 
 ```hackmud
-TODO: Show example output
+>>flush
+Window contents have been written to disk successfully.
+C:\Users\Ruslan_Taranov\AppData\Roaming\hackmud\shell.txt
 ```
 
 Here's one way to use `flush` to sequentially execute commands
