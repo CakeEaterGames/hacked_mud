@@ -13,7 +13,7 @@ username@hostname:~$ cat /proc/7738/maps
 00200000-00201000 r--p 00000000 08:02 36342038 /home/username/.steam/debian-installation/steamapps/common/hackmud/hackmud_lin.x86_64
 ```
 
-But I will not provide code for parsing the result. 
+But I will not provide code for parsing the result.
 
 ```js
 const range = res.split(' ')[0].split('-') 
@@ -31,13 +31,15 @@ Hi my name is Deepseek and I wrote this piece of text
 
 I hate when articles are written with AI but you can't quite tell if they are. So I would like to be explicit here.
 
+I also hate AI. But I also use AI... Most of the code was written by hand and I understand what each line does. I only used it for tedious work. Like converting C structs to TS types.
+
 ## Language
 
 English is not my native language. There are may be typos and grammatical errors. Please open a pull request if you would like to correct something. You can do it on github with a couple of clicks
 
 ## Expertise
 
-I am not an expert in reverse engineering, nor I am an expert in C/C++. I am figuring this out as I go. I've done quite a lot of research, consulted with LLMs, and spoken with people who know more than I do and made this guide and software. Once again, feel free to correct me.
+I am not an expert in reverse engineering, nor I am an expert in C/C++. I am figuring this out as I go. I've done quite a lot of research and spoken with people who know more than I do and made this guide and software. Once again, feel free to correct me.
 
 ## Legality
 
@@ -53,6 +55,65 @@ hacked mud uses quite a set of tools! You are not required to know how any of th
 - Logging: [Logtape](https://logtape.org/)
 - Documentation: [Vitepress](https://vitepress.dev/) - You are looking at it right now
 - Containerization: [Docker](https://www.docker.com/)
+
+## Neverthrow
+
+I am sorry for using [neverthrow](https://github.com/supermacro/neverthrow)...
+
+Why? Because it makes the code harder to read.
+
+Why did I use it? It turns your exceptions into types that you can handle. Which makes function calls very deterministic and safe. That way a lot of errors are discovered during compile time.
+
+here's an example of regular TS code
+
+```ts
+function chain(v:number){
+  let a = prepare(v)
+  let b = refine(a)
+  let c = process(b)
+  return c
+}
+
+let res;
+try {
+  res = chain(v)
+} catch(e) {
+  console.error("Something somewhere went wrong. e is of type unknown")
+  console.error(e)
+  res = "BAD"
+}
+```
+
+Here's the same code in neverthrow
+
+```ts
+function chain(v:number) {
+  return prepare(v)
+    .andThen(prepared => refine(prepared))
+    .andThen(refined => process(refined))
+}
+
+const res = chain()
+  .map(
+    good => good,
+    e => {
+      switch(e.type) {
+        // We have access to all errors in a type safe way
+        case "ERROR_A": return "BAD_A";
+        case "ERROR_B": return "BAD_B";
+        case "ERROR_C": return "BAD_C";
+        case "ERROR_D": return "BAD_D";
+      }
+    }
+  )
+
+```
+
+Looks weird, right? But `e` is now statically typed, and that is a sacrifice that I am willing to make.
+
+## TypeScript
+
+Why would use TypeScript for something so low level as reading memory? Because I am not only reading memory, I am also providing a backend, frontend and API in this project. Basically there's an ecosystem around a memory reader. And it's so much more satisfying to write all of that in a scripting language than in a low level language.
 
 ## Glossary
 
