@@ -8,6 +8,7 @@ export type BasicField = {
 
 export type UnknownField = {
   type: "padding";
+  ctype?: string;
   name: string;
   size: number;
 };

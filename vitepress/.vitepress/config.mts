@@ -26,12 +26,13 @@ export default //withMermaid(
             { text: 'Preamble', link: '/docs/preamble' },
             { text: 'Problem and Solution', link: '/docs/problem' },
             { text: 'Flushing the terminal', link: '/docs/flush' },
-            { text: 'Finding mono root domain (Linux)', link: '/docs/finding-mono-root-domain' },
             { text: 'Sending virtual inputs (Linux)', link: '/docs/sending-virtual-Inputs' },
+            { text: 'Memory Layout', link: '/docs/memory-layout' },
+            { text: 'Finding mono root domain (Linux)', link: '/docs/finding-mono-root-domain' },
             { text: 'Parsing mono', link: '/docs/parsing-mono' },
           ]
         },
- 
+
       ],
 
       socialLinks: [

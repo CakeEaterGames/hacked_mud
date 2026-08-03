@@ -286,7 +286,8 @@ export class StructLayoutGenerator<T extends StructDefinition> {
       // Format field line
       const namePart = isPadding ? "[padding]" : field.name;
       const sizePart = `${field.size} byte${field.size !== 1 ? "s" : ""}`;
-      const content = `${range} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart}`;
+      // const content = `${range} │ ${field.fieldObj.ctype?.padEnd(10,' ')} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart}`;
+      const content = `${range} │ ${field.fieldObj.type.padEnd(10,' ')} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart}`;
 
       // Draw field with appropriate styling
       if (isPadding) {
