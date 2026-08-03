@@ -154,6 +154,11 @@ export abstract class findClientsService {
           socketServerService.broadcastClientList();
         }
         this.isRepopulating = false;
+      })
+      .orTee(e => {
+        log.error("Error while looking for clients", { e });
+        log.info({ pids: HackmudClients.keys().toArray() });
+        this.isRepopulating = false;
       });
   }
 
