@@ -2,7 +2,7 @@ import { log } from "@backend/plugins/logger/logger";
 import { Elf64HeaderL, Elf64SectionHeaderL, Elf64SymbolL, ElfIdentL } from "./ElfParser.models";
 import type { MemoryReader } from "../memoryReader/memoryReader.service";
 import type { ModuleInfo } from "../procParser/procParser.types";
-import { err, errAsync, ok, Result, ResultAsync } from "neverthrow";
+import { err, errAsync, ok, okAsync, Result, ResultAsync } from "neverthrow";
 import { toResultAsync, type UnsupportedError } from "@backend/utils/neverthrow";
 import type { MemoryReaderError } from "../memoryReader/memoryReader.models";
 import {
@@ -65,7 +65,9 @@ export class ELFParser {
       })
       .andThen(sectionHeaders => {
         this.sectionHeaders = sectionHeaders;
-        return toResultAsync(this._readSectionNames(e_shstrndx));
+        // Don't need this actually
+        // return toResultAsync(this._readSectionNames(e_shstrndx));
+        return okAsync()
       })
       .andThen(_ => toResultAsync(this._readSymbols()))
       .andThen(symbols => {
