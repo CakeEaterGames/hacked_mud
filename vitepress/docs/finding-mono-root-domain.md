@@ -132,7 +132,7 @@ Go to the `Start of map`
 
 You are looking at the `ELF header`. Arrow are pointing at relevant fields
 
-<pre style="font-family:monospace;line-height:1.1;font-size:14px">
+<pre class='ascii'>
  ┌──────────────────────────────────────────────────────────┐
  │ Elf64Ehdr                                                │
  │ Size: 16 bytes, Alignment: 4 bytes                       │
@@ -168,7 +168,7 @@ Read `ei_class`. This byte is set to either 1 or 2 to signify little or big endi
 
 Read `e_shoff`. Section header offset relative to `Start of map`
 
-Read `e_shnum`. Number is section headers in the elf file
+Read `e_shnum`. Number of section headers in the elf file
 
 Read `e_shentsize`. Size of each section header
 
@@ -178,7 +178,7 @@ Go to `Start of map`+`e_shoff`
 
 You are looking at an `ELF section header`. Specifically, you are looking at `e_shnum` section headers in a row
 
-<pre style="font-family:monospace;line-height:1.1;font-size:14px">
+<pre class='ascii'>
  ┌──────────────────────────────────────────────────────────┐
  │ Elf64Shdr                                                │
  │ Size: 64 bytes, Alignment: 8 bytes                       │
@@ -218,9 +218,7 @@ For each `section`
 
 Go to `Start of map` + `StringSection.sh_offset` + `section.sh_name`
 
-You are now looking at a zero terminated string. Read it. It is a name of the current section.
-
-Now that you have all the sections, their names
+Read `ZT string`. It is a name of the current section.
 
 ## Reading symbols
 
@@ -234,9 +232,9 @@ You are looking at a `Symbol Sections`.
 
 Based on a table below, each symbol is `24` bytes. 
 
-There are `section.sh_size` / `24` sections
+There are `section.sh_size` / `24` symbols
 
-<pre style="font-family:monospace;line-height:1.1;font-size:14px">
+<pre class='ascii'>
  ┌──────────────────────────────────────────────────────────┐
  │ Elf64Sym                                                 │
  │ Size: 24 bytes, Alignment: 8 bytes                       │
@@ -256,15 +254,13 @@ Read `st_name`. An offset to a string in the string section that represents the 
 
 Go to `Start of map` + `StringSection.sh_offset` + `st_name`
 
-You are now looking at a zero terminated string. Read it. It is a name of the current symbol.
+Read `ZT string`. It is a name of the current symbol.
 
 Repeat for each symbol.
 
 And FINALLY find a symbol with a name `mono_get_root_domain` and get its `st_value`
 
 ## Conclusion
-
-This was the easy part (:
 
 Go to `st_value`
 
@@ -277,11 +273,6 @@ mono_get_root_domain (void)
 }
 ```
 
-When reading the next 8 bytes and disassembling them we get this:
-
-```hex
-# 0: 48 8b 05 fc 11 44 00   mov rax, qword ptr [rip + 0x4411fc]
-# 7: c3                     ret
-```
+This was the warmup (:
 
 In the next part of the guide we will dive into the madness that is parsing mono structures!

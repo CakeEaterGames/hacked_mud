@@ -1,14 +1,13 @@
 import { log } from "@backend/plugins/logger/logger";
 
-import { StructLayoutGenerator } from "../structLayoutGenerator/structLayoutGenerator.service";
 import {
-  _MonoDomainD,
-  _MonoAssemblyD,
-  _MonoImageD,
-  _MonoClassDefD,
-  _MonoClassFieldD,
-  _MonoTypeD,
-  _GSList,
+  _MonoDomainL,
+  _MonoAssemblyL,
+  _MonoImageL,
+  _MonoClassDefL,
+  _MonoClassFieldL,
+  _MonoTypeL,
+  _GSListL,
 } from "./monoParser.models";
 import type {
   MonoClass,
@@ -62,8 +61,6 @@ export class MonoParser {
 
     if (this.assemblyIndexes) return okAsync(this.assemblyIndexes);
 
-    const MonoDomainL = new StructLayoutGenerator(_MonoDomainD);
-
     // 48 8b 05 fc 11 44 00      # 0: 48 8b 05 fc 11 44 00   mov rax, qword ptr [rip + 0x4411fc]
     // c3                        # 7: c3                     ret
 
@@ -74,10 +71,10 @@ export class MonoParser {
         return this.mr.readPtr(this.root + 7n + BigInt(relativeOffset));
       })
       .andThen(appDomainPtr => {
-        return this.mr.readBytes(appDomainPtr, MonoDomainL.layout.size);
+        return this.mr.readBytes(appDomainPtr, _MonoDomainL.layout.size);
       })
       .andThen(rawData => {
-        const domain = MonoDomainL.parse(rawData);
+        const domain = _MonoDomainL.parse(rawData);
         const domain_assemblies = domain.domain_assemblies; /// points to an linked list of pointers
         return toResultAsync(this._collectAssemblyPointers(domain_assemblies));
       })
@@ -95,7 +92,6 @@ export class MonoParser {
   ): Promise<Result<bigint[], MemoryReaderError>> {
     const assemblyPointers: bigint[] = [];
     let ptr = start;
-    const GSListL = new StructLayoutGenerator(_GSList);
 
     while (true) {
       // typedef struct _GSList GSList;
@@ -104,8 +100,8 @@ export class MonoParser {
       // 	GSList *next;
       // };
 
-      const read = await this.mr.readBytes(ptr, GSListL.layout.size).andThen(rawList => {
-        const list = GSListL.parse(rawList);
+      const read = await this.mr.readBytes(ptr, _GSListL.layout.size).andThen(rawList => {
+        const list = _GSListL.parse(rawList);
         // pointer to the assembly
         assemblyPointers.push(list.data);
         // pointer to the next list element
@@ -165,13 +161,10 @@ export class MonoParser {
     // 	MonoBoolean without_public_key_token;
     // };
 
-    const MonoAssemblyL = new StructLayoutGenerator(_MonoAssemblyD);
-    const MonoImageL = new StructLayoutGenerator(_MonoImageD);
-
     return this.mr
-      .readBytes(assemblyEntry.addr, MonoAssemblyL.layout.size)
+      .readBytes(assemblyEntry.addr, _MonoAssemblyL.layout.size)
       .andThen(raw => {
-        const assembly = MonoAssemblyL.parse(raw);
+        const assembly = _MonoAssemblyL.parse(raw);
 
         return this.mr.readString(assembly.aname.name).map(nameStr => ({ assembly, nameStr }));
       })
@@ -179,7 +172,7 @@ export class MonoParser {
         // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L355
 
         return this.mr
-          .readBytes(ctx.assembly.image, MonoImageL.layout.size)
+          .readBytes(ctx.assembly.image, _MonoImageL.layout.size)
           .map(rawImage => ({ ...ctx, rawImage }));
       })
       .andThen(ctx => {
@@ -210,9 +203,7 @@ export class MonoParser {
     // 	gpointer *table;
     // };
 
-    const MonoImageL = new StructLayoutGenerator(_MonoImageD);
-
-    const image = MonoImageL.parse(rawImage);
+    const image = _MonoImageL.parse(rawImage);
     const classCacheSize = image.class_cache.size;
     const _num_entries = image.class_cache.num_entries;
     const gpointer = image.class_cache.table;
@@ -262,12 +253,10 @@ export class MonoParser {
     // 	MonoClass *next_class_cache;
     // };
 
-    const layout = new StructLayoutGenerator(_MonoClassDefD);
-
     return this.mr
-      .readBytes(addr, layout.layout.size)
+      .readBytes(addr, _MonoClassDefL.layout.size)
       .andThen(raw => {
-        const classDefinition = layout.parse(raw);
+        const classDefinition = _MonoClassDefL.parse(raw);
         const klass = classDefinition.klass;
 
         const flags1 = klass.bitfields1; // inited, size_inited, valuetype, enumtype, blittable, unicode, wastypebuilder, is_array_special_interface, is_byreflike
@@ -326,13 +315,11 @@ export class MonoParser {
   ): Promise<Result<MonoClassField[], MemoryReaderError>> {
     if (addr == 0n) return ok([]);
 
-    const classFieldL = new StructLayoutGenerator(_MonoClassFieldD);
-
     const fields: MonoClassField[] = [];
     //field count is crazy high when dealing with generics. Something is wrong
     for (let i = 0; i < count; i++) {
       // log("field " + i + " / " + count)
-      const r = await this.parseClassField(addr + BigInt(i * classFieldL.layout.size));
+      const r = await this.parseClassField(addr + BigInt(i * _MonoClassFieldL.layout.size));
       // TODO this is ASS
       // There's something I fundamentally don't understand about the fields structure
       // First fields are parsed ok, but last fields are corrupted?
@@ -365,22 +352,19 @@ export class MonoParser {
     // 	int              offset;
     // };
 
-    const classFieldL = new StructLayoutGenerator(_MonoClassFieldD);
-    const monoTypeL = new StructLayoutGenerator(_MonoTypeD);
-
     return this.mr
-      .readBytes(addr, classFieldL.layout.size)
+      .readBytes(addr, _MonoClassFieldL.layout.size)
       .andThen(raw => {
-        const classField = classFieldL.parse(raw);
+        const classField = _MonoClassFieldL.parse(raw);
         return this.mr.readString(classField.name).map(name => ({ name, classField }));
       })
       .andThen(ctx => {
         return this.mr
-          .readBytes(ctx.classField.type, monoTypeL.layout.size)
+          .readBytes(ctx.classField.type, _MonoTypeL.layout.size)
           .map(rawType => ({ ...ctx, rawType }));
       })
       .andThen(ctx => {
-        const monoType = monoTypeL.parse(ctx.rawType);
+        const monoType = _MonoTypeL.parse(ctx.rawType);
         const type = this.parseFieldType(monoType);
         const data: MonoClassField = {
           name: ctx.name,

@@ -1,8 +1,7 @@
-import type { StructDefinition } from "../structLayoutGenerator/structLayoutGenerator.types";
-
-function defineStruct<const T extends StructDefinition>(def: T): T {
-  return def;
-}
+import {
+  defineStruct,
+  StructLayoutGenerator,
+} from "../structLayoutGenerator/structLayoutGenerator.service";
 
 // struct _MonoType {
 // 	union {
@@ -22,10 +21,11 @@ function defineStruct<const T extends StructDefinition>(def: T): T {
 export const _MonoTypeD = defineStruct({
   name: "MonoType",
   fields: [
-    { ctype: "Union MonoClass", name: "klass", type: "ptr" },
+    { ctype: "Union MonoClass*", name: "klass", type: "ptr" },
     { ctype: "unsigned int", name: "bitfields", type: "int32" },
   ],
 } as const);
+export const _MonoTypeL = new StructLayoutGenerator(_MonoTypeD);
 
 // struct _MonoClass {
 // 	MonoClass *element_class;
@@ -102,9 +102,9 @@ export const _MonoTypeD = defineStruct({
 export const _MonoClassD = defineStruct({
   name: "_MonoClass",
   fields: [
-    { ctype: "MonoClass", name: "element_class", type: "ptr" },
-    { ctype: "MonoClass", name: "cast_class", type: "ptr" },
-    { ctype: "MonoClass", name: "supertypes", type: "ptr" },
+    { ctype: "MonoClass*", name: "element_class", type: "ptr" },
+    { ctype: "MonoClass*", name: "cast_class", type: "ptr" },
+    { ctype: "MonoClass*", name: "supertypes", type: "ptr" },
     { ctype: "guint16", name: "idepth", type: "uint16" },
     { ctype: "guint8", name: "rank", type: "uint8" },
     { ctype: "guint8", name: "class_kind", type: "uint8" },
@@ -117,9 +117,9 @@ export const _MonoClassD = defineStruct({
     { type: "uint8", name: "bitfields3" }, // Bitfields from 'delegate' through 'nested_classes_inited'
     { type: "uint8", name: "bitfields4" }, // Bitfields from 'interfaces_inited' through 'has_dim_conflicts'
 
-    { ctype: "MonoClass", name: "parent", type: "ptr" },
-    { ctype: "MonoClass", name: "nested_in", type: "ptr" },
-    { ctype: "MonoImage", name: "image", type: "ptr" },
+    { ctype: "MonoClass*", name: "parent", type: "ptr" },
+    { ctype: "MonoClass*", name: "nested_in", type: "ptr" },
+    { ctype: "MonoImage*", name: "image", type: "ptr" },
     { ctype: "const char*", name: "name", type: "ptr" },
     { ctype: "const char*", name: "name_space", type: "ptr" },
     { ctype: "guint32", name: "type_token", type: "uint32" },
@@ -129,10 +129,10 @@ export const _MonoClassD = defineStruct({
     { ctype: "guint32", name: "interface_id", type: "uint32" },
     { ctype: "guint32", name: "max_interface_id", type: "uint32" },
     { ctype: "guint16", name: "interface_offsets_count", type: "uint16" },
-    { ctype: "MonoClass", name: "interfaces_packed", type: "ptr" },
-    { ctype: "guint16", name: "interface_offsets_packed", type: "ptr" },
-    { ctype: "guint8", name: "interface_bitmap", type: "ptr" },
-    { ctype: "MonoClass", name: "interfaces", type: "ptr" },
+    { ctype: "MonoClass*", name: "interfaces_packed", type: "ptr" },
+    { ctype: "guint16*", name: "interface_offsets_packed", type: "ptr" },
+    { ctype: "guint8*", name: "interface_bitmap", type: "ptr" },
+    { ctype: "MonoClass*", name: "interfaces", type: "ptr" },
 
     {
       ctype: "union _MonoClassSizes",
@@ -140,8 +140,8 @@ export const _MonoClassD = defineStruct({
       type: "int32",
     },
 
-    { ctype: "MonoClassField", name: "fields", type: "ptr" },
-    { ctype: "MonoMethod", name: "methods", type: "ptr" },
+    { ctype: "MonoClassField*", name: "fields", type: "ptr" },
+    { ctype: "MonoMethod*", name: "methods", type: "ptr" },
 
     {
       ctype: "MonoType",
@@ -157,19 +157,19 @@ export const _MonoClassD = defineStruct({
     },
 
     {
-      ctype: "MonoGCDescriptor", // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/sgen/sgen-conf.h#L32
+      ctype: "MonoGCDescriptor*", // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/sgen/sgen-conf.h#L32
       name: "gc_descr",
       type: "ptr",
     },
     {
-      ctype: "MonoClassRuntimeInfo",
+      ctype: "MonoClassRuntimeInfo*",
       name: "runtime_info",
       type: "ptr",
     },
 
-    { ctype: "MonoMethod", name: "vtable", type: "ptr" },
+    { ctype: "MonoMethod*", name: "vtable", type: "ptr" },
     {
-      ctype: "MonoPropertyBag", //https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/property-bag.h#L24
+      ctype: "MonoPropertyBag*", //https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/property-bag.h#L24
       name: "infrequent_data",
       type: "ptr",
     },
@@ -177,6 +177,7 @@ export const _MonoClassD = defineStruct({
     { ctype: "void*", name: "unity_user_data", type: "ptr" },
   ],
 } as const);
+export const _MonoClassL = new StructLayoutGenerator(_MonoClassD);
 
 // struct _MonoClassDef {
 // 	MonoClass klass;
@@ -199,9 +200,10 @@ export const _MonoClassDefD = defineStruct({
     { ctype: "guint32", name: "first_field_idx", type: "uint32" },
     { ctype: "guint32", name: "method_count", type: "uint32" },
     { ctype: "guint32", name: "field_count", type: "uint32" },
-    { ctype: "MonoClass", name: "next_class_cache", type: "ptr" },
+    { ctype: "MonoClass*", name: "next_class_cache", type: "ptr" },
   ],
 });
+export const _MonoClassDefL = new StructLayoutGenerator(_MonoClassDefD);
 
 // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/class-internals.h#L150
 // struct _MonoClassField {
@@ -228,6 +230,7 @@ export const _MonoClassFieldD = defineStruct({
     { ctype: "int", name: "offset", type: "int32" },
   ],
 });
+export const _MonoClassFieldL = new StructLayoutGenerator(_MonoClassFieldD);
 
 // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L214
 // struct _MonoAssemblyName {
@@ -284,6 +287,7 @@ export const _MonoAssemblyNameD = defineStruct({
     { ctype: "MonoBoolean", name: "without_public_key_token", type: "uint8" },
   ],
 });
+export const _MonoAssemblyNameL = new StructLayoutGenerator(_MonoAssemblyNameD);
 
 // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L214
 // struct _MonoAssembly {
@@ -336,6 +340,7 @@ export const _MonoAssemblyD = defineStruct({
     { ctype: "guint32", name: "flags", type: "uint32" },
   ],
 });
+export const _MonoAssemblyL = new StructLayoutGenerator(_MonoAssemblyD);
 
 // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L287
 // typedef struct {
@@ -349,6 +354,7 @@ export const MonoStreamHeaderD = defineStruct({
     { ctype: "guint32", name: "size", type: "uint32" },
   ],
 });
+export const MonoStreamHeaderL = new StructLayoutGenerator(MonoStreamHeaderD);
 
 // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L289
 // struct _MonoTableInfo {
@@ -376,6 +382,7 @@ export const _MonoTableInfoD = defineStruct({
     { ctype: "guint32", name: "size_bitfield", type: "uint32" },
   ],
 });
+export const _MonoTableInfoL = new StructLayoutGenerator(_MonoTableInfoD);
 
 // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/utils/mono-internal-hash.h#L36
 // struct _MonoInternalHashTable
@@ -390,14 +397,15 @@ export const _MonoTableInfoD = defineStruct({
 export const _MonoInternalHashTableD = defineStruct({
   name: "_MonoInternalHashTable",
   fields: [
-    { ctype: "GHashFunc", name: "hash_func", type: "ptr" },
-    { ctype: "MonoInternalHashKeyExtractFunc", name: "key_extract", type: "ptr" },
-    { ctype: "MonoInternalHashNextValueFunc", name: "next_value", type: "ptr" },
+    { ctype: "GHashFunc*", name: "hash_func", type: "ptr" },
+    { ctype: "MonoInternalHashKeyExtractFunc*", name: "key_extract", type: "ptr" },
+    { ctype: "MonoInternalHashNextValueFunc*", name: "next_value", type: "ptr" },
     { ctype: "gint", name: "size", type: "int32" },
     { ctype: "gint", name: "num_entries", type: "int32" },
-    { ctype: "gpointer", name: "table", type: "ptr" },
+    { ctype: "gpointer*", name: "table", type: "ptr" },
   ],
 });
+export const _MonoInternalHashTableL = new StructLayoutGenerator(_MonoInternalHashTableD);
 
 // https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L355
 // struct _MonoImage {
@@ -517,7 +525,7 @@ export const _MonoImageD = defineStruct({
   name: "_MonoImage",
   fields: [
     { ctype: "int", name: "ref_count", type: "int32" },
-    { ctype: "MonoImageStorage", name: "storage", type: "ptr" },
+    { ctype: "MonoImageStorage*", name: "storage", type: "ptr" },
     { ctype: "char*", name: "raw_data", type: "ptr" },
     { ctype: "guint32", name: "raw_data_len", type: "uint32" },
 
@@ -545,8 +553,8 @@ export const _MonoImageD = defineStruct({
     { ctype: "gint16", name: "md_version_minor", type: "int16" },
     { ctype: "char*", name: "guid", type: "ptr" },
 
-    { ctype: "MonoCLIImageInfo", name: "image_info", type: "ptr" },
-    { ctype: "MonoMemPool", name: "mempool", type: "ptr" },
+    { ctype: "MonoCLIImageInfo*", name: "image_info", type: "ptr" },
+    { ctype: "MonoMemPool*", name: "mempool", type: "ptr" },
     { ctype: "char*", name: "raw_metadata", type: "ptr" },
 
     {
@@ -592,7 +600,7 @@ export const _MonoImageD = defineStruct({
     { ctype: "MonoImage**", name: "files", type: "ptr" },
     { ctype: "guint32", name: "file_count", type: "uint32" },
 
-    { ctype: "MonoAotModule", name: "aot_module", type: "ptr" },
+    { ctype: "MonoAotModule*", name: "aot_module", type: "ptr" },
     {
       ctype: "guint8",
       name: "aotid",
@@ -601,9 +609,9 @@ export const _MonoImageD = defineStruct({
       count: 16,
     },
 
-    { ctype: "MonoAssembly", name: "assembly", type: "ptr" },
+    { ctype: "MonoAssembly*", name: "assembly", type: "ptr" },
 
-    { ctype: "MonoAssemblyLoadContext", name: "alc", type: "ptr" },
+    { ctype: "MonoAssemblyLoadContext*", name: "alc", type: "ptr" },
 
     { ctype: "GHashTable*", name: "method_cache", type: "ptr" },
     {
@@ -617,6 +625,7 @@ export const _MonoImageD = defineStruct({
     // Everything else is not relevant for the current project
   ],
 });
+export const _MonoImageL = new StructLayoutGenerator(_MonoImageD);
 
 // struct _MonoDomain {
 // 	/*
@@ -775,42 +784,44 @@ export const _MonoDomainD = defineStruct({
     // First object - depends on NETCORE define
     // { ctype: "MonoAppDomainSetup", name: "setup", type: "ptr" }, // !ENABLE_NETCORE
 
-    { ctype: "MonoAppDomain", name: "domain", type: "ptr" },
-    { ctype: "MonoAppContext", name: "default_context", type: "ptr" },
-    { ctype: "MonoException", name: "out_of_memory_ex", type: "ptr" },
-    { ctype: "MonoException", name: "null_reference_ex", type: "ptr" },
-    { ctype: "MonoException", name: "stack_overflow_ex", type: "ptr" },
-    { ctype: "MonoObject", name: "typeof_void", type: "ptr" },
-    { ctype: "MonoObject", name: "ephemeron_tombstone", type: "ptr" },
-    { ctype: "MonoArray", name: "empty_types", type: "ptr" },
-    { ctype: "MonoString", name: "empty_string", type: "ptr" },
+    { ctype: "MonoAppDomain*", name: "domain", type: "ptr" },
+    { ctype: "MonoAppContext*", name: "default_context", type: "ptr" },
+    { ctype: "MonoException*", name: "out_of_memory_ex", type: "ptr" },
+    { ctype: "MonoException*", name: "null_reference_ex", type: "ptr" },
+    { ctype: "MonoException*", name: "stack_overflow_ex", type: "ptr" },
+    { ctype: "MonoObject*", name: "typeof_void", type: "ptr" },
+    { ctype: "MonoObject*", name: "ephemeron_tombstone", type: "ptr" },
+    { ctype: "MonoArray*", name: "empty_types", type: "ptr" },
+    { ctype: "MonoString*", name: "empty_string", type: "ptr" },
 
     // GC tracked fields
-    { ctype: "MonoGHashTable", name: "env", type: "ptr" },
-    { ctype: "MonoGHashTable", name: "ldstr_table", type: "ptr" },
+    { ctype: "MonoGHashTable*", name: "env", type: "ptr" },
+    { ctype: "MonoGHashTable*", name: "ldstr_table", type: "ptr" },
 
     { ctype: "guint32", name: "state", type: "uint32" },
     { ctype: "gint32", name: "domain_id", type: "int32" },
     { ctype: "gint32", name: "shadow_serial", type: "int32" },
 
-    { ctype: "GSList", name: "domain_assemblies", type: "ptr" },
-    { ctype: "MonoAssembly", name: "entry_assembly", type: "ptr" },
+    { ctype: "GSList*", name: "domain_assemblies", type: "ptr" },
+    { ctype: "MonoAssembly*", name: "entry_assembly", type: "ptr" },
     { ctype: "char*", name: "friendly_name", type: "ptr" },
 
     // We only care about domain_assemblies
     // the rest of the struct remains unmapped
   ],
 });
+export const _MonoDomainL = new StructLayoutGenerator(_MonoDomainD);
 
 // struct _GSList {
 // 	gpointer data;
 // 	GSList *next;
 // };
 
-export const _GSList = defineStruct({
+export const _GSListD = defineStruct({
   name: "_GSList",
   fields: [
-    { ctype: "gpointer", name: "data", type: "ptr" },
-    { ctype: "GSList", name: "next", type: "ptr" },
+    { ctype: "gpointer*", name: "data", type: "ptr" },
+    { ctype: "GSList*", name: "next", type: "ptr" },
   ],
 });
+export const _GSListL = new StructLayoutGenerator(_GSListD);

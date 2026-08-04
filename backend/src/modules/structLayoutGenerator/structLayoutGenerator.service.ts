@@ -259,7 +259,7 @@ export class StructLayoutGenerator<T extends StructDefinition> {
 
     // Calculate the maximum width needed for the visualization
     const maxNameLength = Math.max(...fields.map(f => f.name.length), name.length);
-    const width = Math.max(60, maxNameLength + 30); // Minimum width of 60 chars
+    const width = Math.max(85, maxNameLength + 30); // Minimum width of 60 chars
 
     const topBorder = `┌${"─".repeat(width - 2)}┐`;
     const bottomBorder = `└${"─".repeat(width - 2)}┘`;
@@ -281,17 +281,18 @@ export class StructLayoutGenerator<T extends StructDefinition> {
       // Calculate field range
       const startOffset = field.offset;
       const endOffset = field.offset + field.size - 1;
-      const range = `${startOffset.toString().padStart(3)}-${endOffset.toString().padStart(3)}`;
+      const range = `${startOffset.toString().padStart(4)}-${endOffset.toString().padStart(4)}`;
 
       // Format field line
       const namePart = isPadding ? "[padding]" : field.name;
       const sizePart = `${field.size} byte${field.size !== 1 ? "s" : ""}`;
-      // const content = `${range} │ ${field.fieldObj.ctype?.padEnd(10,' ')} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart}`;
-      const content = `${range} │ ${field.fieldObj.type.padEnd(10,' ')} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart}`;
+      const content = `${range} │ ${(field.fieldObj.ctype ?? "")?.padEnd(25, " ")} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart.padEnd(9, " ")} │`;
+      // const content = `${range} │ ${field.fieldObj.type.padEnd(10,' ')} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart}`;
 
       // Draw field with appropriate styling
       if (isPadding) {
-        result.push(`│ ${content.padEnd(width - 4, "░")} │`);
+        result.push(`│ ${content.padEnd(width - 4)} │`);
+        // result.push(`│ ${content.padEnd(width - 4, "░")} │`);
       } else {
         result.push(`│ ${content.padEnd(width - 4)} │`);
       }
