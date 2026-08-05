@@ -54,7 +54,9 @@ Crons are very speed limited and fragile
 
 However you, as a player, can execute any number of commands and can perform task sequentially. You are only limited by server response time and script execution time.
 
-That means you can't really automate all actions of the game. You either have to wait for your crons and work around the 5s runtime constraints or sit and grind.
+That means that you either
+- Deal with slow crons and work around the 5s runtime constraints
+- Or sit and grind.
 
 ## Solution
 

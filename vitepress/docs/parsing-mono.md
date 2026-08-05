@@ -117,7 +117,7 @@ You are looking at [MonoAssembly](https://github.com/Unity-Technologies/mono/blo
 
 TODO What is `MonoAssembly`
 
-Assemblies can be quite large. So instead of parsing each assembly, let's first get the name of each one and only parse the one wee need.
+Assemblies can be quite large. So instead of parsing each assembly, let's first get the name of each one and only parse the one we need.
 
 <pre class='ascii'>
  ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -261,9 +261,9 @@ TODO What is a MonoImage
 
 We are interested in [MonoInternalHashTable](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/utils/mono-internal-hash.h#L36)
 
-It is a [hash table](https://en.wikipedia.org/wiki/Hash_table). 
+Unsurprisingly, it is a [hash table](https://en.wikipedia.org/wiki/Hash_table). 
 
-Read `gint size`. number of bytes that takes the array at `gpointer* table`.
+Read `gint size`. Number of bytes that takes the array at `gpointer* table`.
 
 `num_lines` is `gint size` / `8`. How many elements are in `gpointer* table`
 
@@ -271,9 +271,7 @@ Read `gint num_entries`. (optional) Number of elements in the entire hash table
 
 Read `gpointer* table`. Pointer to an array of pointers to `MonoClassDef`
 
-Go to `gpointer* table`.
-
-Read a pointer `num_lines` times.
+Go to `gpointer* table` and read `num_lines` pointers 
 
 You now have an array of pointers to `MonoClassDef`
 
@@ -283,7 +281,7 @@ Go to each pointer
 
 You are looking at [MonoClassDef](https://github.com/Unity-Technologies/mono/blob/fc8503b2fdeab87730c3f97f61854462298f66ab/mono/metadata/class-private-definition.h#L135)
 
-And also you are looking at [MonoClass](https://github.com/Unity-Technologies/mono/blob/fc8503b2fdeab87730c3f97f61854462298f66ab/mono/metadata/class-private-definition.h#L14)
+And also you are looking at [MonoClass](https://github.com/Unity-Technologies/mono/blob/fc8503b2fdeab87730c3f97f61854462298f66ab/mono/metadata/class-private-definition.h#L14), because it is right at the start of the struct
 
 <pre class='ascii'>
  ┌──────────────────────────────────────────────────────────────┐
@@ -311,7 +309,7 @@ Repeat until the end
 
 ## MonoClass
 
-And also you are looking at [MonoClass](https://github.com/Unity-Technologies/mono/blob/fc8503b2fdeab87730c3f97f61854462298f66ab/mono/metadata/class-private-definition.h#L14)
+You are looking at [MonoClass](https://github.com/Unity-Technologies/mono/blob/fc8503b2fdeab87730c3f97f61854462298f66ab/mono/metadata/class-private-definition.h#L14)
 
 
 <pre class='ascii'>

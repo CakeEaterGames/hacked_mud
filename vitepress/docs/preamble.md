@@ -51,7 +51,7 @@ and
 
 > Modifying the game client in any way is not permitted, this includes memory modification, code injection, client file modification, etc, and is considered a 'custom client.'
 
-I will not post hackmud source code here. But I will post variable names and class names that you should read. I don't know how strict it is so I'll assume it's very strict.
+I will not post hackmud source code here but I will post variable names and class names that you should read. I don't know how strict the rules are so I'll assume they are very strict.
 
 > Our client code is not open source. Please be mindful of copyright law.
 
@@ -72,7 +72,7 @@ I am sorry for using [neverthrow](https://github.com/supermacro/neverthrow)...
 
 Why? Because it makes the code harder to read.
 
-Why did I use it? It turns your exceptions into types that you can handle. Which makes function calls very deterministic and safe. That way a lot of errors are discovered during compile time.
+Why did I use it? It turns your exceptions into types that you can handle. Which makes function calls very deterministic and safe. That way a lot of errors are discovered during compilation.
 
 here's an example of regular TS code
 
@@ -94,7 +94,7 @@ try {
 }
 ```
 
-Here's the same code in neverthrow
+And here's the same code in neverthrow
 
 ```ts
 function chain(v:number) {

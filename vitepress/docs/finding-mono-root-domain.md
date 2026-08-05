@@ -114,7 +114,7 @@ username@hostname:~$ cat /proc/7738/maps | grep libmonobdwgc
 You can either write your own parser or you can install something like elfy js or any other library. However I couldn't get it to work the way I wanted so I wrote my own parser. I recommend you to do the same.
 
 ::: warning
-From now On I will be using the language from [this page](/docs/memory-layout.html#language)
+From now On I will be using the [memory layout jargon](/docs/memory-layout.html#language)
 :::
 ::: tip Note
 I will assume you're on a 64bit system so all types are for 64 bits
@@ -126,9 +126,9 @@ Here's what we need to do:
 
 Open this file `/proc/${pid}/mem`
 
-`Start of map` is `0x7c2586600000` (value is from the cmd output above)
+`origin` is `0x7c2586600000` (value is from the cmd output above)
 
-Go to the `Start of map`
+Go to `origin`
 
 You are looking at the `ELF header`. Arrow are pointing at relevant fields
 
@@ -166,7 +166,7 @@ Read `ei_data`. This byte is set to either 1 or 2 to signify 32- or 64-bit forma
 
 Read `ei_class`. This byte is set to either 1 or 2 to signify little or big endianness, respectively. This affects interpretation of multi-byte fields starting with offset 0x10.
 
-Read `e_shoff`. Section header offset relative to `Start of map`
+Read `e_shoff`. Section header offset relative to `origin`
 
 Read `e_shnum`. Number of section headers in the elf file
 
@@ -174,7 +174,7 @@ Read `e_shentsize`. Size of each section header
 
 Read `e_shstrndx`. Index of a string section. Will make sense in a bit.
 
-Go to `Start of map`+`e_shoff`
+Go to `origin`+`e_shoff`
 
 You are looking at an `ELF section header`. Specifically, you are looking at `e_shnum` section headers in a row
 
@@ -200,7 +200,7 @@ Read `sh_type`. Identifies the type of this header. We are only interested in `S
 
 Read `sh_name`. An offset to a string in the `.shstrtab` (String table) section that represents the name of this section.
 
-Read `sh_offset`. Offset of the section relative to `Start of map`
+Read `sh_offset`. Offset of the section relative to `origin`
 
 Read `sh_size`. Size of a section
 
@@ -216,7 +216,7 @@ We will now read the name for each section
 
 For each `section`
 
-Go to `Start of map` + `StringSection.sh_offset` + `section.sh_name`
+Go to `origin` + `StringSection.sh_offset` + `section.sh_name`
 
 Read `ZT string`. It is a name of the current section.
 
@@ -226,7 +226,7 @@ TODO what is a symbol
 
 In your `sections` find one with `sh_type` == `SHT_SYMTAB` or `2`
 
-Go to `Start of map` + `section.sh_offset`
+Go to `origin` + `section.sh_offset`
 
 You are looking at a `Symbol Sections`.
 
@@ -252,7 +252,7 @@ Read `st_value`. It is a pointer to the symbol
 
 Read `st_name`. An offset to a string in the string section that represents the name of this symbol
 
-Go to `Start of map` + `StringSection.sh_offset` + `st_name`
+Go to `origin` + `StringSection.sh_offset` + `st_name`
 
 Read `ZT string`. It is a name of the current symbol.
 
