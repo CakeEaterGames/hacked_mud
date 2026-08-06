@@ -222,7 +222,9 @@ Read `ZT string`. It is a name of the current section.
 
 ## Reading symbols
 
-TODO what is a symbol
+::: tip Note
+Symbol is just a location in memory with a name attached to it. It allows code to reference chunks of memory by name rather than by an address. Symbols reference functions and sometimes global variables.
+:::
 
 In your `sections` find one with `sh_type` == `SHT_SYMTAB` or `2`
 
@@ -230,7 +232,7 @@ Go to `origin` + `section.sh_offset`
 
 You are looking at a `Symbol Sections`.
 
-Based on a table below, each symbol is `24` bytes. 
+Based on a table below, each symbol is `24` bytes.
 
 There are `section.sh_size` / `24` symbols
 

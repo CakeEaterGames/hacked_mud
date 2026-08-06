@@ -77,11 +77,11 @@ To keep the text compact I will not copy paste C source code but I will paste my
 │ 152-159 │ GSList*         │ domain_assemblies   │ 8 bytes   │ <--  │
 │ 160-167 │ MonoAssembly*   │ entry_assembly      │ 8 bytes   │      │
 │ 168-175 │ char*           │ friendly_name       │ 8 bytes   │ <--  │
-│ ... and other fields                                               │  
+│ ... and other fields                                               │
 └────────────────────────────────────────────────────────────────────┘
 </pre>
 
-TODO What is MonoDomain
+Each Mono application has its own MonoDomain. It contains Mono assemblies, static variables and heap. 
 
 Go to `char* friendly_name`. Read `ZT string`. Strings are your best friends in this project. If you are reading a string and it comes out as readable text, it means that your offsets are correct and you're doing everything right
 
@@ -109,15 +109,17 @@ Goto `GSList* next`. If it is zero, you have reached the end of the list.
 
 Repeat until you reach the end.
 
-## MonoAssembly
-
 Goto each `gpointer* data`
+
+## MonoAssembly
 
 You are looking at [MonoAssembly](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L214)
 
-TODO What is `MonoAssembly`
+MonoAssembly is a in-memory representation of a .NET dll. If you open hackmud with dotPeek or any other deobfuscator you will see the following assemblies
 
-Assemblies can be quite large. So instead of parsing each assembly, let's first get the name of each one and only parse the one we need.
+TODO Provide image
+
+Assemblies can be quite large. So instead of parsing all of them, let's first get the name of each one and only parse the one we need.
 
 <pre class='ascii'>
  ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -180,7 +182,7 @@ Goto `MonoImage* image`
 
 You are looking at [MonoImage](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L355)
 
-TODO What is a MonoImage 
+Mono assembly is just a container for Mono image. It describes the structures of all classes and methods
 
 <pre class='ascii'>
  ┌───────────────────────────────────────────────────────────────────────────────────┐
@@ -293,7 +295,7 @@ And also you are looking at [MonoClass](https://github.com/Unity-Technologies/mo
  │  236- 239 │ guint32    │ first_method_idx │ 4 bytes   │      │
  │  240- 243 │ guint32    │ first_field_idx  │ 4 bytes   │      │
  │  244- 247 │ guint32    │ method_count     │ 4 bytes   │      │
- │  248- 251 │ guint32    │ field_count      │ 4 bytes   │      │
+ │  248- 251 │ guint32    │ field_count      │ 4 bytes   │ <--  │
  │  252- 255 │            │ [padding]        │ 4 bytes   │      │
  │  256- 263 │ MonoClass* │ next_class_cache │ 8 bytes   │ <--  │
  └──────────────────────────────────────────────────────────────┘
@@ -311,6 +313,7 @@ Repeat until the end
 
 You are looking at [MonoClass](https://github.com/Unity-Technologies/mono/blob/fc8503b2fdeab87730c3f97f61854462298f66ab/mono/metadata/class-private-definition.h#L14)
 
+Mono class is exactly what it sounds like. We have reached the actual class definition.
 
 <pre class='ascii'>
  ┌───────────────────────────────────────────────────────────────────────────────────┐
@@ -323,17 +326,17 @@ You are looking at [MonoClass](https://github.com/Unity-Technologies/mono/blob/f
  │   24-  25 │ guint16               │ idepth                   │ 2 bytes   │        │
  │   26-  26 │ guint8                │ rank                     │ 1 byte    │        │
  │   27-  27 │ guint8                │ class_kind               │ 1 byte    │        │
- │   28-  31 │ guint                 │ bitfields1               │ 4 bytes   │        │
+ │   28-  31 │ guint                 │ bitfields1               │ 4 bytes   │ <--    │
  │   32-  32 │ guint8                │ min_align                │ 1 byte    │        │
  │   33-  33 │                       │ bitfields2               │ 1 byte    │        │
  │   34-  34 │                       │ bitfields3               │ 1 byte    │        │
  │   35-  35 │                       │ bitfields4               │ 1 byte    │        │
  │   36-  39 │                       │ [padding]                │ 4 bytes   │        │
- │   40-  47 │ MonoClass*            │ parent                   │ 8 bytes   │        │
+ │   40-  47 │ MonoClass*            │ parent                   │ 8 bytes   │ <--    │
  │   48-  55 │ MonoClass*            │ nested_in                │ 8 bytes   │        │
  │   56-  63 │ MonoImage*            │ image                    │ 8 bytes   │        │
- │   64-  71 │ const char*           │ name                     │ 8 bytes   │        │
- │   72-  79 │ const char*           │ name_space               │ 8 bytes   │        │
+ │   64-  71 │ const char*           │ name                     │ 8 bytes   │ <--    │
+ │   72-  79 │ const char*           │ name_space               │ 8 bytes   │ <--    │
  │   80-  83 │ guint32               │ type_token               │ 4 bytes   │        │
  │   84-  87 │ int                   │ vtable_size              │ 4 bytes   │        │
  │   88-  89 │ guint16               │ interface_count          │ 2 bytes   │        │
@@ -346,14 +349,14 @@ You are looking at [MonoClass](https://github.com/Unity-Technologies/mono/blob/f
  │  112- 119 │ guint16*              │ interface_offsets_packed │ 8 bytes   │        │
  │  120- 127 │ guint8*               │ interface_bitmap         │ 8 bytes   │        │
  │  128- 135 │ MonoClass*            │ interfaces               │ 8 bytes   │        │
- │  136- 139 │ union _MonoClassSizes │ sizes                    │ 4 bytes   │        │
+ │  136- 139 │ union _MonoClassSizes │ sizes                    │ 4 bytes   │ <--    │
  │  140- 143 │                       │ [padding]                │ 4 bytes   │        │
- │  144- 151 │ MonoClassField*       │ fields                   │ 8 bytes   │        │
+ │  144- 151 │ MonoClassField*       │ fields                   │ 8 bytes   │ <--    │
  │  152- 159 │ MonoMethod*           │ methods                  │ 8 bytes   │        │
- │  160- 175 │ MonoType              │ this_arg                 │ 16 bytes  │        │
+ │  160- 175 │ MonoType              │ this_arg                 │ 16 bytes  │ <--    │
  │  176- 191 │ MonoType              │ _byval_arg               │ 16 bytes  │        │
  │  192- 199 │ MonoGCDescriptor*     │ gc_descr                 │ 8 bytes   │        │
- │  200- 207 │ MonoClassRuntimeInfo* │ runtime_info             │ 8 bytes   │        │
+ │  200- 207 │ MonoClassRuntimeInfo* │ runtime_info             │ 8 bytes   │ <--    │
  │  208- 215 │ MonoMethod*           │ vtable                   │ 8 bytes   │        │
  │  216- 223 │ MonoPropertyBag*      │ infrequent_data          │ 8 bytes   │        │
  │  224- 231 │ void*                 │ unity_user_data          │ 8 bytes   │        │
