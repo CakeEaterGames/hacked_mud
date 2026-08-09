@@ -12,7 +12,7 @@ It is a client for game automation. Everything that you can do in-game by hand, 
 
 ## 📸 Preview
 
-TODO
+![Demo](demo.gif)
 
 ## ✨ Features
 
