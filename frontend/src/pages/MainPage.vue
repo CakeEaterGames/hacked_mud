@@ -1,5 +1,5 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-md scan-lines">
     <div class="row items-center q-gutter-sm">
       <div>hacked mud</div>
       <div>
@@ -26,7 +26,7 @@
       <div
         ref="shell"
         id="shell"
-        class="q-mt-sm col text-primary console sps"
+        class="q-mt-sm col text-primary console glow-text"
         :innerHTML="selectedClient.shellHTML"
         :class="selectedClient.gameState.gameState == 10 ? 'red-border' : ''"
       />
@@ -138,12 +138,13 @@
   height: 4px;
 }
 
-.sps {
+.console {
   white-space-collapse: preserve-spaces;
   white-space: pre;
-  line-height: 15px !important;
-}
-.console {
+  line-height: 12px !important;
+  letter-spacing: 0.25px;
+  text-shadow: 0 0 12px rgba(100, 150, 255, 0.25);
+  font-weight: lighter;
   width: 100%;
   overflow-y: scroll;
   overflow-x: auto;
@@ -152,7 +153,23 @@
   border: 2px;
   border-style: solid;
   padding: 10px;
-  white-space: nowrap;
+}
+
+.glow-text {
+  text-shadow: 0 0 2px currentColor;
+  /* 0 0 2px currentColor; */
+  /* 0 0 4px currentColor; */
+  /* 0 0 8px currentColor; */
+}
+
+.scan-lines {
+  background: repeating-linear-gradient(
+    180deg,
+    #0e0e0e,
+    #0e0e0e 0.2em,
+    #101215 0.2em,
+    #101215 0.4em
+  );
 }
 </style>
 
@@ -162,6 +179,7 @@ import { removeSlashes } from "src/utils/url.utils";
 import { onMounted, onUnmounted, ref } from "vue";
 import { backend } from "src/utils/eden";
 import { Scenarios, type Scenario } from "@shared/types/scenario.types";
+import {shellToHTML} from "src/utils/shellToHTML.utils"
 
 const toScrollChat = ref(true);
 const toShowSettings = ref(false);
@@ -217,15 +235,6 @@ function findClient(pid: number) {
   return client;
 }
 
-function chatToHTML(str: string) {
-  return str
-    .replace(/\n/gm, "</br>")
-    .replace(/\s/gm, "&nbsp;")
-    .replace(
-      /<color=#([A-Fa-f0-9]{8})>(.*?)<\/color>/g,
-      '<span class="sps" style="color:#$1;">$2</span>'
-    );
-}
 
 function scrollToBottom() {
   if (!toScrollChat.value) return;
@@ -331,7 +340,7 @@ function reconnectWs() {
         if (!c) break;
         c.shell = data.shellState.normalizedText.join("\n");
         // c.shellHTML = c.shell
-        c.shellHTML = chatToHTML(c.shell);
+        c.shellHTML = shellToHTML(c.shell);
         if (selectedClient.value?.pid == data.pid) {
           setTimeout(scrollToBottom, 200);
         }
@@ -358,7 +367,7 @@ function reconnectWs() {
               gameState: c.gameState,
               gameStats: c.gameStats,
               shell: sh,
-              shellHTML: chatToHTML(sh),
+              shellHTML: shellToHTML(sh),
               // shellHTML: sh,
             });
           }
