@@ -6,6 +6,14 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+---
+
+### Warning!!!
+
+### Repo is unfinished!!! Come back later!!!
+
+---
+
 hacked mud is a legal custom client for an MMO game [hackmud](https://hackmud.com/)
 
 It is a client for game automation. Everything that you can do in-game by hand, you can automate with typescript in hacked mud!
@@ -35,6 +43,7 @@ This project is not just software. It is an effort to document the process of re
 ## 🚀 Getting started
 
 **Prerequisites:**
+
 - Linux OS
 - Docker 29+
 
