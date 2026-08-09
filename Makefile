@@ -6,7 +6,8 @@ COMPOSE = docker compose
 COMPOSE_FILE = -f deploy/dc-dev.yml
 _PROJECT_NAME = hacked_mud
 PROJECT_NAME = -p ${_PROJECT_NAME}
-BACKEND_SERVICE = $(_PROJECT_NAME)-backend  
+BACKEND_SERVICE = backend  
+X11_RIGHTS = export DISPLAY=":0" && xhost +local:docker
 
 help:
 	@echo 'Available commands:'
@@ -17,10 +18,10 @@ help:
 	@echo '  make icons       - Generates favicons'
 
 dev:
-	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build
+	$(X11_RIGHTS) && $(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build
 
 dev-d:
-	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build -d
+	$(X11_RIGHTS) && $(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build -d
 
 build:
 	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) build --no-cache
@@ -29,7 +30,7 @@ lint:
 	bun run lint:fix
 
 logs:
-	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) logs -f backend
+	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) logs -f $(BACKEND_SERVICE)
 
 icons:
 	cd ./frontend && icongenie generate -i public/icons/original.png
