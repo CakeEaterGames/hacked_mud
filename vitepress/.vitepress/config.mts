@@ -12,6 +12,7 @@ export default //withMermaid(
     title: "Hacked mud",
     description: "Guide",
 
+    base: "/hacked_mud/",
 
     themeConfig: {
       // https://vitepress.dev/reference/default-theme-config

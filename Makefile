@@ -7,6 +7,7 @@ COMPOSE_FILE = -f deploy/dc-dev.yml
 _PROJECT_NAME = hacked_mud
 PROJECT_NAME = -p ${_PROJECT_NAME}
 BACKEND_SERVICE = backend  
+DOCS_SERVICE = vitepress  
 X11_RIGHTS = export DISPLAY=":0" && xhost +local:docker
 
 help:
@@ -16,6 +17,7 @@ help:
 	@echo '  make lint        - Run linter'
 	@echo '  make logs        - View backend container logs'
 	@echo '  make icons       - Generates favicons'
+	@echo '  make pages       - Generates github pages'
 
 dev:
 	$(X11_RIGHTS) && $(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build
@@ -34,3 +36,6 @@ logs:
 
 icons:
 	cd ./frontend && icongenie generate -i public/icons/original.png
+
+pages:
+	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) exec $(DOCS_SERVICE) bun run build
