@@ -196,7 +196,7 @@ const links = [
   {
     icon: "book",
     label: "Documentation",
-    url: "https://github.com/CakeEaterGames/hacked_mud",
+    url: "https://cakeeatergames.github.io/hacked_mud/",
     // url: env.VITEPRESS_FULL_URL,
   },
   {

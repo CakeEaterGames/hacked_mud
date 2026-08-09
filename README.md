@@ -33,7 +33,7 @@ It is a client for game automation. Everything that you can do in-game by hand, 
 
 ## 📖 Learning opportunity
 
-This project is not just software. It is an effort to document the process of reading memory of mono applications. Every step is carefully explained in a [Vitepress documentation](https://github.com/CakeEaterGames/hacked_mud) so that you could make your own memory reading client if you wanted to. You can learn about:
+This project is not just software. It is an effort to document the process of reading memory of mono applications. Every step is carefully explained in a [Vitepress documentation](https://cakeeatergames.github.io/hacked_mud/) so that you could make your own memory reading client if you wanted to. You can learn about:
 
 - Parsing [proc maps](https://www.kernel.org/doc/html/latest/filesystems/proc.html) and [elf files](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
 - Getting C# classes from raw bytes
@@ -56,6 +56,6 @@ make dev-d
 make logs
 ```
 
-Everything that you need to know is in the [documentation](https://github.com/CakeEaterGames/hacked_mud)
+Everything that you need to know is in the [documentation](https://cakeeatergames.github.io/hacked_mud/)
 
 Happy automating, mudders 👍
