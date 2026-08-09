@@ -1,8 +1,9 @@
 import { log } from "@backend/plugins/logger/logger";
 import type { wsConnection } from "./socketServer.model";
-import type {
-  FullClientListUpdate,
-  HackmudUpdateEvent,
+import {
+  type FullClientListUpdate,
+  type HackmudUpdateEvent,
+  type FullClient,
 } from "@shared/types/HackmudUpdateEvent.model";
 import { HackmudClients } from "../findClients/findClients.service";
 
@@ -25,7 +26,8 @@ export abstract class socketServerService {
         pid: reader[0],
         gameState: reader[1].gameState,
         shellState: reader[1].shellState,
-      });
+        gameStats: reader[1].gameStats,
+      } satisfies FullClient);
     }
 
     ws.send({

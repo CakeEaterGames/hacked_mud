@@ -1,10 +1,19 @@
 import Elysia, { status } from "elysia";
 import { loggerConfigPlugin } from "@backend/plugins/logger/logger.plugin";
-import { getShellContentsRequestT, SendCmdRequestT, SendCmdResponseT } from "./hackmudShell.model";
+import {
+  getShellContentsRequestT,
+  SendCmdRequestT,
+  SendCmdResponseT,
+  SetScenarioRequestT,
+  SetScenarioResponseT,
+  type SendCmdResponse,
+  type SetScenarioResponse,
+} from "./hackmudShell.model";
 import { findClientsService } from "../findClients/findClients.service";
 import { ok } from "neverthrow";
 import { log } from "@backend/plugins/logger/logger";
 import { shellToTerminalColors } from "@backend/utils/shellToTerminalColors";
+import type { Scenario } from "@shared/types/scenario.types";
 
 export const hackmudShellHandler = new Elysia()
   .use(loggerConfigPlugin)
@@ -79,7 +88,7 @@ export const hackmudShellHandler = new Elysia()
         .getClient(body.pid)
         .andThen(client => client.cmd(body.cmd))
         .andThen(res => {
-          log.info(shellToTerminalColors(res.response.join("\n").trim()));
+          log.info(shellToTerminalColors(res.response));
           return ok(res);
         })
         .match(
@@ -92,7 +101,7 @@ export const hackmudShellHandler = new Elysia()
             }
           }
         );
-      return { ...data };
+      return { ...data } satisfies SendCmdResponse;
     },
     {
       body: SendCmdRequestT,
@@ -106,6 +115,40 @@ export const hackmudShellHandler = new Elysia()
       tags: ["Shell"],
       loggerConfig: {
         toLogBody: false,
+      },
+    }
+  )
+  .post(
+    "setScenario",
+    async ({ body }) => {
+      return await findClientsService
+        .getOOG(body.pid)
+        .andThen(oog => {
+          oog.setScenario(body.scenario as Scenario);
+          return ok();
+        })
+        .match(
+          () => ({ response: "OK" }) satisfies SetScenarioResponse,
+          e => {
+            switch (e.type) {
+              case "CLIENT_NOT_FOUND":
+                throw status(400, e);
+            }
+          }
+        );
+    },
+    {
+      body: SetScenarioRequestT,
+      response: {
+        200: SetScenarioResponseT,
+      },
+      detail: {
+        summary: "Set Scenario",
+        description: "Finds an OOG and sets a user defined scenario",
+      },
+      tags: ["Shell"],
+      loggerConfig: {
+        toLogBody: true,
       },
     }
   );

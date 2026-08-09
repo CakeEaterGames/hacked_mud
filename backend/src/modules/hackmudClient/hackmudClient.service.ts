@@ -1,6 +1,7 @@
 import type {
   HackmudGameState,
   HackmudShellState,
+  HackmudStats,
   HackmudUpdateEvent,
 } from "@shared/types/HackmudUpdateEvent.model";
 import { findClientsService, type HackmudValidPid } from "../findClients/findClients.service";
@@ -10,7 +11,7 @@ import { log } from "@backend/plugins/logger/logger";
 import { HackmudMemoryReader } from "../hackmudMemoryReader/hackmudMemoryReader.service";
 import { ok, Result, ResultAsync } from "neverthrow";
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
-import type { ClientCmdResponse } from "./hackmudClient.types";
+import type { ClientCmdResponse, CmdConfig } from "./hackmudClient.types";
 
 export class HackmudClient {
   public readonly pid: number;
@@ -24,6 +25,7 @@ export class HackmudClient {
     public memoryReader: HackmudMemoryReader,
     public gameState: HackmudGameState,
     public shellState: HackmudShellState,
+    public gameStats: HackmudStats,
     private onUpdate: (event: HackmudUpdateEvent) => void
   ) {
     this.pid = validPid.pid;
@@ -55,7 +57,7 @@ export class HackmudClient {
       })
       .andThen(state => {
         shellState = state;
-        const client = new HackmudClient(validPid, reader, gameState, shellState, onUpdate);
+        const client = new HackmudClient(validPid, reader, gameState, shellState, {}, onUpdate);
         client.start();
         return ok(client);
       });
@@ -134,13 +136,25 @@ export class HackmudClient {
     this.isUpdating = false; // Release lock even if an error occurs
   }
 
-  public cmd(text: string): ResultAsync<ClientCmdResponse, ExecError> {
-    return toResultAsync(this._cmd(text));
+  public cmd(text: string, config?: CmdConfig): ResultAsync<ClientCmdResponse, ExecError> {
+    return toResultAsync(this._cmd(text, config));
   }
 
-  private async _cmd(text: string): Promise<Result<ClientCmdResponse, ExecError>> {
-    if (!this.shellState) throw Error("fuck");
-    if (!this.gameState) throw Error("fuck");
+  private async _cmd(
+    text: string,
+    config?: CmdConfig
+  ): Promise<Result<ClientCmdResponse, ExecError>> {
+    if (!config) {
+      config = {
+        toIncludeShell: false,
+        toUncolorResponse: true,
+        toUncolorShell: true,
+      };
+    }
+
+    const toIncludeShell = config?.toIncludeShell ?? false;
+    const toUncolorResponse = config?.toUncolorResponse ?? true;
+    const toUncolorShell = config?.toUncolorShell ?? true;
 
     // await this.update();
 
@@ -164,7 +178,7 @@ export class HackmudClient {
       if (cnt >= 100 && !this.gameState.isProcessing) break;
     }
 
-    log.debug("DONE");
+    // log.debug("DONE");
     await sleep(50);
     await this.update();
 
@@ -173,11 +187,20 @@ export class HackmudClient {
       dif += 2048;
     }
 
-    const res = this.shellState.normalizedText.slice(-dif);
+    let res = this.shellState.normalizedText.slice(-dif).join("\n");
+    let shell = this.shellState.normalizedText.join("\n");
+
+    if (toUncolorResponse) res = this.uncolor(res);
+    if (toUncolorShell) shell = this.uncolor(shell);
+
     return ok({
       response: res,
-      fullShell: this.shellState.normalizedText,
+      fullShell: toIncludeShell ? shell : undefined,
     });
+  }
+
+  uncolor(shell: string): string {
+    return shell.replace(/<color=#\w+>/g, "").replace(/<\/color>/g, "");
   }
 
   async spamHardlineNumbers() {
@@ -194,5 +217,18 @@ export class HackmudClient {
         log.warn({ e });
       }
     }
+  }
+
+  giveName(name: string) {
+    this.gameStats.name = name;
+    this.sendStatsUpdate();
+  }
+
+  sendStatsUpdate() {
+    this.onUpdate({
+      type: "StatsUpdate",
+      pid: this.memoryReader.pid,
+      gameStats: this.gameStats,
+    });
   }
 }

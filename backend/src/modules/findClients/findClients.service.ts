@@ -7,6 +7,7 @@ import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import { socketServerService } from "../socketServer/socketServer.service";
 import { HackmudClient } from "../hackmudClient/hackmudClient.service";
 import type { ClientNotFoundError } from "./findClients.models";
+import { OOG } from "../OOG/oog.service";
 // import { HackmudClient } from "../hackmudClient/hackmudClient.service";
 
 const execAsync = ResultAsync.fromThrowable(
@@ -26,6 +27,7 @@ export type UselessPidError = {
 
 export type HackmudValidPid = { pid: number; windowId: number; display: number };
 export const HackmudClients = new Map<number, HackmudClient>();
+export const HackmudOOGs = new Map<number, OOG>();
 
 export abstract class findClientsService {
   static isRepopulating: boolean = false;
@@ -115,12 +117,9 @@ export abstract class findClientsService {
           .toArray()
           .filter(k => !clients.find(c => c.pid == k[0]));
         for (const expired of toRemove) {
-          expired[1].stop();
-          HackmudClients.delete(expired[0]);
+          this.deleteClient(expired[0]);
         }
-        if (toRemove.length > 0) {
-          socketServerService.broadcastClientList();
-        }
+
         return ok(clients);
       })
       .andThen(clients => {
@@ -138,6 +137,13 @@ export abstract class findClientsService {
               log.error({ error: listener.error });
               continue;
             }
+
+            const oog = await OOG.create(listener.value);
+            if (oog.isErr()) {
+              log.error({ error: oog.error });
+              continue;
+            }
+            HackmudOOGs.set(c.pid, oog.value);
 
             HackmudClients.set(c.pid, listener.value);
             res.push(listener.value);
@@ -173,12 +179,28 @@ export abstract class findClientsService {
     return okAsync(hm);
   }
 
+  static getOOG(pid: number): ResultAsync<OOG, ClientNotFoundError> {
+    const hm = HackmudOOGs.get(pid);
+    if (!hm) {
+      return errAsync({
+        type: "CLIENT_NOT_FOUND",
+        pid,
+      } satisfies ClientNotFoundError);
+    }
+    return okAsync(hm);
+  }
+
   static deleteClient(pid: number) {
     if (HackmudClients.has(pid)) {
       HackmudClients.get(pid)!.stop();
       HackmudClients.delete(pid);
       socketServerService.broadcastClientList();
       log.info(`Deleting client ${pid}`);
+    }
+    if (HackmudOOGs.has(pid)) {
+      HackmudOOGs.get(pid)!.stop();
+      HackmudOOGs.delete(pid);
+      log.info(`Deleting OOG ${pid}`);
     }
   }
 }

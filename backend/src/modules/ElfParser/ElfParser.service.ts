@@ -52,13 +52,13 @@ export class ELFParser {
   }
 
   parseELF64(): ResultAsync<ElfParseResult, MemoryReaderError> {
-    let e_shstrndx: number;
+    let _e_shstrndx: number;
 
     return this.mr
       .readBytes(this.module.start, Elf64HeaderL.layout.size)
       .andThen(buffer => {
         const header = Elf64HeaderL.parse(buffer);
-        e_shstrndx = header.e_shstrndx;
+        _e_shstrndx = header.e_shstrndx;
         return toResultAsync(
           this._readSectionHeaders(header.e_shoff, header.e_shentsize, header.e_shnum)
         );
@@ -66,8 +66,8 @@ export class ELFParser {
       .andThen(sectionHeaders => {
         this.sectionHeaders = sectionHeaders;
         // Don't need this actually
-        // return toResultAsync(this._readSectionNames(e_shstrndx));
-        return okAsync()
+        // return toResultAsync(this._readSectionNames(_e_shstrndx));
+        return okAsync();
       })
       .andThen(_ => toResultAsync(this._readSymbols()))
       .andThen(symbols => {

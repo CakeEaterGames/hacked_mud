@@ -1,9 +1,6 @@
 import { env } from "./config";
 import { log } from "./plugins/logger/logger";
 import { apiApp } from "./apiApp";
-import { StructLayoutGenerator } from "./modules/structLayoutGenerator/structLayoutGenerator.service";
-import { Elf32HeaderL } from "./modules/ElfParser/ElfParser.models";
-
 
 const PORT = 3000;
 
@@ -40,6 +37,7 @@ const start = () => {
 
 start();
 
+// import { StructLayoutGenerator } from "./modules/structLayoutGenerator/structLayoutGenerator.service";
 // import { Elf32HeaderL, Elf64HeaderL, Elf64SectionHeaderL, Elf64SymbolL, ElfIdentL } from "./modules/ElfParser/ElfParser.models";
 // import { log } from "./plugins/logger/logger";
 

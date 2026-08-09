@@ -17,7 +17,18 @@ export const SendCmdRequestT = t.Object({
 export type SendCmdRequest = typeof SendCmdRequestT.static;
 
 export const SendCmdResponseT = t.Object({
-  response: t.Array(t.String()),
-  fullShell: t.Array(t.String()),
+  response: t.String(),
+  fullShell: t.Optional(t.String()),
 });
 export type SendCmdResponse = typeof SendCmdResponseT.static;
+
+export const SetScenarioRequestT = t.Object({
+  pid: t.Number(),
+  scenario: t.String(),
+});
+export type SetScenarioRequest = typeof SetScenarioRequestT.static;
+
+export const SetScenarioResponseT = t.Object({
+  response: t.Literal("OK"),
+});
+export type SetScenarioResponse = typeof SetScenarioResponseT.static;

@@ -1,15 +1,18 @@
 <template>
-  <q-page class="q-pa-md" @keyup.escape="toggleSettings">
+  <q-page class="q-pa-md">
     <div class="row items-center q-gutter-sm">
       <div>hacked mud</div>
       <div>
         <!-- {{ selectedClient?.gameState }} -->
       </div>
-      <q-badge v-if="selectedClient"> {{ selectedClient.pid }} </q-badge>
+      <q-badge
+        v-if="selectedClient"
+        :label="selectedClient.gameStats.name as string || selectedClient.pid"
+      />
       <q-btn dense icon="settings" v-on:click="toggleSettings" />
     </div>
-    <div v-if="gameClients.length==0">
-      No clients found. Please launch hackmud from Steam 
+    <div v-if="gameClients.length == 0">
+      No clients found. Please launch hackmud from Steam
     </div>
     <div v-if="selectedClient">
       <div class="overlay">
@@ -27,7 +30,7 @@
         :innerHTML="selectedClient.shellHTML"
         :class="selectedClient.gameState.gameState == 10 ? 'red-border' : ''"
       />
-      <q-input v-model="input" dense @keyup="handleKeydown">
+      <q-input v-model="input" dense @keyup="handleCmdKeyEvents">
         <template v-slot:prepend>
           <q-spinner v-if="selectedClient.gameState.isProcessing"> </q-spinner>
           <q-icon v-else name="code" />
@@ -47,23 +50,49 @@
         </q-card-section>
         <q-card-section>
           <div class="">
-            <div class="q-mb-sm">Clients:</div>
+            <div class="q-mb-sm">
+              Clients: <span class="text-grey-7"> (Hotkey ALT + number)</span>
+            </div>
             <div class="q-gutter-sm">
               <q-btn
                 v-for="client in gameClients"
                 :key="'btn' + client.pid"
                 dense
                 color="primary"
-                :label="client.pid"
-                @click="selectedClient = client"
+                :no-caps="true"
+                :label="client.gameStats.name as string ?? client.pid"
+                @click="switchClient(client)"
               />
-              <q-btn dense color="secondary" label="Refresh" />
+              <!-- <q-btn dense color="secondary" label="Refresh" /> -->
+            </div>
+          </div>
+          <div class="q-mt-lg" v-if="selectedClient">
+            <div class="q-mb-sm">
+              Set Scenario:
+              <span class="text-grey-7">
+                Current: {{ selectedClient.gameStats.scenario }}</span
+              >
+            </div>
+
+            <div class="q-gutter-sm">
+              <q-btn
+                v-for="(v, k) in Scenarios"
+                :key="'sc' + k"
+                :label="v"
+                color="primary"
+                :no-caps="true"
+                dense
+                @click="setScenario(selectedClient, v)"
+              />
             </div>
           </div>
           <div class="q-mt-lg">
             <div class="q-mb-sm">Settings:</div>
             <div>
-              <q-checkbox v-model="toScrollChat" label="Scroll down when new lines are added" />
+              <q-checkbox
+                v-model="toScrollChat"
+                label="Scroll down when new lines are added"
+              />
             </div>
           </div>
           <div class="q-mt-lg">
@@ -132,9 +161,9 @@ import { env } from "src/config";
 import { removeSlashes } from "src/utils/url.utils";
 import { onMounted, onUnmounted, ref } from "vue";
 import { backend } from "src/utils/eden";
-import { EdenWS } from "@elysia/eden/treaty";
+import { Scenarios, type Scenario } from "@shared/types/scenario.types";
 
-const toScrollChat = ref(true)
+const toScrollChat = ref(true);
 const toShowSettings = ref(false);
 function toggleSettings() {
   toShowSettings.value = !toShowSettings.value;
@@ -170,12 +199,18 @@ type gameClient = {
     timerCurrent: number;
     gameState: number;
   };
+  gameStats: Record<string, unknown>;
   shell: string;
   shellHTML: string;
 };
 
 const gameClients = ref<gameClient[]>([]);
 const selectedClient = ref<gameClient | undefined>(undefined);
+
+function switchClient(client: gameClient) {
+  selectedClient.value = client;
+  setTimeout(scrollToBottom, 100);
+}
 
 function findClient(pid: number) {
   const client = gameClients.value.find((a) => a.pid == pid);
@@ -193,7 +228,7 @@ function chatToHTML(str: string) {
 }
 
 function scrollToBottom() {
-  if(!toScrollChat.value) return;
+  if (!toScrollChat.value) return;
   const divElement = document.getElementById("shell");
   if (divElement) divElement.scrollTop = divElement.scrollHeight + 100;
 }
@@ -209,13 +244,31 @@ async function inputCmd() {
   const res = await backend.sendCmd.post({ pid: selectedClient.value.pid, cmd });
 }
 
-async function handleKeydown(event: KeyboardEvent) {
-  // console.log(event);
+async function setScenario(client:gameClient, scenario: Scenario) {
+  const res = await backend.setScenario.post({ pid: client.pid, scenario });
+}
 
-  if (event.key === "Escape") {
-    toggleSettings();
-    return;
+function handleHotkeys(event: KeyboardEvent) {
+  // console.log("handleHotkeys", event);
+
+  if (event.altKey) {
+    if ("123456789".includes(event.key) && !event.repeat && event.type == "keydown") {
+      const num = Number(event.key);
+      const client = gameClients.value[num - 1];
+      if (client) {
+        switchClient(client);
+      }
+      console.log(event);
+    }
   }
+
+  if (event.key === "Escape" && !event.repeat && event.type == "keydown") {
+    toggleSettings();
+  }
+}
+
+async function handleCmdKeyEvents(event: KeyboardEvent) {
+  // console.log("handleCmdKeyEvents", event);
 
   if (event.key === "Enter") {
     await inputCmd();
@@ -261,6 +314,12 @@ function reconnectWs() {
     // console.log("got", data);
     // console.log("got", data.pid);
     switch (data.type) {
+      case "StatsUpdate": {
+        const c = findClient(data.pid);
+        if (!c) break;
+        c.gameStats = data.gameStats;
+        break;
+      }
       case "GameStateUpdate": {
         const c = findClient(data.pid);
         if (!c) break;
@@ -297,6 +356,7 @@ function reconnectWs() {
             gameClients.value.push({
               pid: c.pid,
               gameState: c.gameState,
+              gameStats: c.gameStats,
               shell: sh,
               shellHTML: chatToHTML(sh),
               // shellHTML: sh,
@@ -318,11 +378,9 @@ function reconnectWs() {
 }
 
 onMounted(() => {
-  document.addEventListener("keyup", (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      toggleSettings();
-    }
-  });
+  document.addEventListener("keydown", handleHotkeys);
+  document.addEventListener("keyup", handleHotkeys);
+
   reconnectWs();
 });
 
