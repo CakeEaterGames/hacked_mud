@@ -9,12 +9,13 @@ PROJECT_NAME = -p ${_PROJECT_NAME}
 BACKEND_SERVICE = $(_PROJECT_NAME)-backend  
 
 help:
-	@echo 'Доступные команды:'
-	@echo '  make dev-d       - Запустить проект в режиме разработки с -d'
-	@echo '  make dev         - Запустить проект в режиме разработки'
-	@echo '  make lint        - Запустить линтер'
-	@echo '  make pg-push     - Обновить схему БД'
-	@echo '  make logs        - Просмотр логов backend контейнера'
+	@echo 'Available commands:'
+	@echo '  make dev-d       - Run project in development mode with -d'
+	@echo '  make dev         - Run project in development mode'
+	@echo '  make lint        - Run linter'
+	@echo '  make logs        - View backend container logs'
+	@echo '  make icons       - Generates favicons'
+
 dev:
 	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build
 
@@ -27,8 +28,8 @@ build:
 lint:
 	bun run lint:fix
 
-db-push:
-	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) exec $(BACKEND_SERVICE) bun run pg-push
-
 logs:
 	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) logs -f backend
+
+icons:
+	cd ./frontend && icongenie generate -i public/icons/original.png
