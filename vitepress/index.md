@@ -27,19 +27,94 @@ features:
   - icon: 📦
     title: Hackmud in a box (coming soon)
     details: Launch hackmud in as many containers as you want
-
 ---
 
-
-## Introduction
+## 🕵️ Introduction
 
 hacked mud is a legal custom client for an MMO game [hackmud](https://hackmud.com/)
 
-It is a client for game automation. Everything that you can do in-game by hand, you can automate with typescript in hacked mud!
+It is a tool for game automation. Everything that you can do in-game by hand, you can automate with TypeScript in hacked mud!
 
 ## 📸 Preview
 
 ![Demo](/assets/demo.gif)
+
+## 🤔 Problem
+
+For those who don't know, [hackmud](https://hackmud.com/) is an MMO where you write scripts in JS to automate almost every aspect of the game and also hack NPCs and other players (it is amazing, go get it!).
+Some parts of the game are very easily to automated while others are next to impossible.
+
+There are 3 ways to execute actions in the game
+
+1. You run commands in the game terminal and get a response.
+
+   ```hackmud
+   >>accts.balance
+   131B947M886K515GC
+
+   ```
+
+2. You make scripts that execute multiple commands for you
+
+   ```hackmud
+   >>cake.inv
+
+    ╔════════════════════════════════════╗
+    ║  cake.inv - specs                  ║
+    ╠════════════════════════════════════╣
+    ║                                    ║
+    ║  hardline_count: 12                ║   
+    ║  slots: 116/256                    ║     <-- c001 ASCII window!  :)
+    ║  loaded: 60/64                     ║ 
+    ║  user: cake                        ║
+    ║  balance: 131B947M886K515GC        ║
+    ║                                    ║
+    ╚════════════════════════════════════╝
+   ```
+
+3. You put your script on a cron bot.
+
+Crons are very speed limited and fragile
+
+- An average cron bot can execute a script every 10 minutes and it runs for 5s.
+- if it runs more than 5s it will time out and unload itself.
+- You only get one cron per user.
+- You have to pay a fee every time a cron runs.
+- Crons can't automate some parts of the game.
+
+However you, as a player, can execute any number of commands and can perform task sequentially. You are only limited by server response time and script execution time.
+
+That means that you either
+
+- Deal with slow crons and work around the 5s runtime constraints
+- Or sit and grind.
+- Or...
+
+## 💡 Solution
+
+We can keep a hackmud window open and simulate keyboard key presses! We need to imitate a player.
+
+The loop is:
+
+![loop](/assets/loop2.png)
+
+::: tip Note
+This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have its limitations. If you don't want to implement memory reading consider [flushing the terminal](/docs/flush)
+:::
+
+This way we can achieve quite a lot of things in the game. We can automate:
+
+- corp scraping
+- hardline entering
+- NPC breaching
+- loot filtering
+- and anything else your heart desires
+
+If you know a thing or two about hacking you may say
+
+> But why do all of this when you can just decompile the game and find the networking logic and just talk to the game server directly?
+
+Nah-uh-uh! Not allowed by the game developer! People did get banned for doing this.
 
 ## ✨ Features
 
@@ -80,4 +155,6 @@ make prod
 
 Everything that you need to know is in the [documentation](/docs/installation)
 
-Happy automating, mudders 👍 
+Happy automating, mudders 👍
+
+Licensed under MIT.

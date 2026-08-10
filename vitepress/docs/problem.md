@@ -20,26 +20,17 @@ There are 3 ways to execute actions in the game
    ```hackmud
    >>cake.inv
 
-    ╔════════════════════════════════════╗    
-    ║  cake.inv - specs                  ║    
-    ╠════════════════════════════════════╣    
-    ║                                    ║    
-    ║  hardline_count: 12                ║    
-    ║  slots: 116/256                    ║    
-    ║  loaded: 60/64                     ║    
-    ║  user: cake                        ║    
-    ║  balance: 131B947M886K515GC        ║    
-    ║                                    ║    
-    ╚════════════════════════════════════╝    
-
-    ╔════════════════════════════════════════════════════════════════════
-    ║  cake.inv - All my good stuff                                      
-    ╠════════════════════════════════════════════════════════════════════
-    ║                                                                    
-    ║  000 chars      [1836]                064 k3y_v2     nyi5u2        
-    ║  001 chars      [2551]                065 k3y_v2     nyi5u2        
-    ║  002 chars      [2440]                066 k3y_v2     nyi5u2        
-    ║  003 chars      [2400]                067 k3y_v2     nyi5u2        
+    ╔════════════════════════════════════╗
+    ║  cake.inv - specs                  ║
+    ╠════════════════════════════════════╣
+    ║                                    ║
+    ║  hardline_count: 12                ║
+    ║  slots: 116/256                    ║     <-- c001 ASCII window!  :)
+    ║  loaded: 60/64                     ║
+    ║  user: cake                        ║
+    ║  balance: 131B947M886K515GC        ║
+    ║                                    ║
+    ╚════════════════════════════════════╝
    ```
 
 3. You put your script on a cron bot.
@@ -55,8 +46,10 @@ Crons are very speed limited and fragile
 However you, as a player, can execute any number of commands and can perform task sequentially. You are only limited by server response time and script execution time.
 
 That means that you either
+
 - Deal with slow crons and work around the 5s runtime constraints
 - Or sit and grind.
+- Or...
 
 ## Solution
 
@@ -64,20 +57,7 @@ We can keep a hackmud window open and simulate keyboard key presses! We need to 
 
 The loop is:
 
-```mermaid
-flowchart TD
-
-send[Send virtual key presses to enter commands]
--->read1[Read the memory of the game]
--->state1{Did the command finish executing?}
-
-state1-->|No|read1
-state1-->|Yes|read
-
-read[Read the memory of the game to see the result of the command]
--->analyze[Decide what to do]
--->send
-```
+![loop](/assets/loop2.png)
 
 ::: tip Note
 This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have its limitations. If you don't want to implement memory reading consider [flushing the terminal](flush)
