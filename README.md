@@ -29,7 +29,6 @@ There are 3 ways to execute actions in the game
    ```hackmud
    >>accts.balance
    131B947M886K515GC
-
    ```
 
 2. You make scripts that execute multiple commands for you
@@ -76,9 +75,7 @@ The loop is:
 
 ![loop](/vitepress/assets/loop2.png)
 
-::: tip Note
-This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have its limitations. If you don't want to implement memory reading consider [flushing the terminal](/docs/flush)
-:::
+> **Note:** This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have its limitations. If you don't want to implement memory reading consider [flushing the terminal](https://cakeeatergames.github.io/hacked_mud/docs/flush)
 
 This way we can achieve quite a lot of things in the game. We can automate:
 
