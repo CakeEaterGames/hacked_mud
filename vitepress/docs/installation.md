@@ -62,7 +62,7 @@ make install
 
 ## Launching
 
-Run `make prod` to launch an hacked mud. Press CTRL+C to close hacked mud.
+Run `make prod` to launch hacked mud. Press CTRL+C to close hacked mud.
 
 Alternatively, run `make prod-d` to launch in detached mode. Run `make prod-logs` to open the logs.
 
