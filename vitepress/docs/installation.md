@@ -54,9 +54,15 @@ After launching the application:
 - open http://10.40.0.126:4434/hacked_mud_api/docs in your browser to see the API documentation
 ```
 
+Next call `make install` to install all node_modules locally. This is mostly for frontend deployment but this will also give your editor ability to highlight errors and give suggestions.
+
+```shell
+make install
+```
+
 ## Launching
 
-Run `make prod` to launch an hacked mud. Press CTRL+C to to close hacked mud.
+Run `make prod` to launch an hacked mud. Press CTRL+C to close hacked mud.
 
 Alternatively, run `make prod-d` to launch in detached mode. Run `make prod-logs` to open the logs.
 
@@ -83,15 +89,22 @@ By default x11 access is not available to docker, so run `make x11`
 ```bash
 make x11
 ```
-::: warning 
+
+Output should look like this
+
+```shell
+export DISPLAY=":0" && xhost +local:docker
+non-network local connections being added to access control list
+```
+
+::: warning
 You'll have to run `make x11` once per OS restart
 :::
 
-Open the browser at http://localhost:4435/ (or on whatever port you set earlier)
+Open the browser at <http://localhost:4435/> (or on whatever port you set earlier)
 
 Open hackmud from steam or launch a hackmud-box container
 
 You will see something like this in your browser
 
 ![Demo](/assets/demo.gif)
-

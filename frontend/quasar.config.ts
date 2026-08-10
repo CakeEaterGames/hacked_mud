@@ -56,7 +56,7 @@ export default defineConfig((/* ctx */) => {
       // analyze: true,
 
       env: {
-        NODE_ENV:  process.env.NODE_ENV, 
+        NODE_ENV: process.env.NODE_ENV, 
         DASHBOARD_FRONTEND_BASE_URL: process.env.DASHBOARD_FRONTEND_BASE_URL, 
         DASHBOARD_FRONTEND_FULL_URL: process.env.DASHBOARD_FRONTEND_FULL_URL, 
         API_FULL_URL: process.env.API_FULL_URL,

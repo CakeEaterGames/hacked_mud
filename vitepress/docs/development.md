@@ -2,12 +2,6 @@
 
 This page is for user who want to modify the code of the hacked mud.
 
-At the start call `make install` to install all node_modules locally. This will give your editor ability to highlight errors and give suggestions.
-
-```shell
-make install
-```
-
 When running in development mode use these commands to run the project in `hot reload` mode. After saving any file the project will quickly reload
 
 ```shell
@@ -35,4 +29,3 @@ make icons # Generates favicons
 make docs  # Launch a local vitepress documentation
 make pages # Generates github pages
 ```
-

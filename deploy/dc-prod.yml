@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: ../.
+      dockerfile: ./backend/Dockerfile 
+      target: production
+    restart: unless-stopped
+    env_file: ".env"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      API_BASE_URL: ${API_BASE_URL}
+      DISPLAY: ${DISPLAY_TO_USE}
+    ports:
+      - ${API_PORT}:3000
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.Xauthority:/tmp/host.Xauthority:ro
+    privileged: true
+    pid: "host"              # Share host's PID namespace
+    ipc: "host"              # Share host's IPC namespace (optional, for shared memory)
+    cap_add:
+      - SYS_PTRACE           # Allow ptrace system call
+      - SYS_ADMIN            # May be needed for some memory operations
+    security_opt:
+      - apparmor:unconfined  # Disable AppArmor   restrictions
+
+
+  frontend:
+    build:
+      context: ../.
+      dockerfile: ./frontend/Dockerfile 
+      target: production
+      args:
+        NODE_ENV: production
+        DASHBOARD_FRONTEND_BASE_URL: ${DASHBOARD_FRONTEND_BASE_URL}
+        DASHBOARD_FRONTEND_FULL_URL: ${DASHBOARD_FRONTEND_FULL_URL}
+        API_BASE_URL: ${API_BASE_URL}
+        API_FULL_URL: ${API_FULL_URL}
+    restart: unless-stopped
+    env_file: ".env"
+    ports:
+      - "${DASHBOARD_FRONTEND_PORT}:80"
+    depends_on:
+      - backend

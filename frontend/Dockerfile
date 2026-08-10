@@ -28,8 +28,10 @@ CMD [ "bun", "dev" ]
 FROM oven/bun:1.3.9-alpine AS builder
 
 ARG DASHBOARD_FRONTEND_BASE_URL
-ARG DASHBOARD_BACKEND_FULL_URL
+ARG DASHBOARD_FRONTEND_FULL_URL
 ARG API_FULL_URL
+ARG API_BASE_URL
+ARG NODE_ENV
 
 WORKDIR /app
 COPY ./package.json ./
@@ -50,8 +52,10 @@ RUN bun run build
 FROM nginx:1.29.5-alpine AS production
 
 ARG DASHBOARD_FRONTEND_BASE_URL
-ARG DASHBOARD_BACKEND_FULL_URL
+ARG DASHBOARD_FRONTEND_FULL_URL
 ARG API_FULL_URL
+ARG API_BASE_URL
+ARG NODE_ENV
 
 COPY ./frontend/nginx.conf /etc/nginx/nginx.template.conf
 RUN apk add --no-cache gettext

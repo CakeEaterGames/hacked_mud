@@ -1,6 +1,6 @@
  
 function notNull<T>(name: string, a: T) {
-  if (a === null || a === undefined) throw new Error("Пустая переменная среды! " + name)
+  if (a === null || a === undefined) throw new Error("Empty env variable! " + name);
   return a as Exclude<T, null | undefined>
 }
 

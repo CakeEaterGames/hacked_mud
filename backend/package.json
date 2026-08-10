@@ -5,15 +5,11 @@
   "scripts": {
     "test": "bun test",
     "dev": "bun run --watch src/index.ts",
+    "prod": "bun run src/index.ts",
     "lint": "eslint . && tsc --noEmit",
     "lint:fix": "eslint . --fix && tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "build:linux": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile ./dist/server ./src/index.ts",
-    "build:windows": "bun build --compile --minify-whitespace --minify-syntax --target=bun-windows-x64 --outfile ./dist/server.exe ./src/index.ts",
-    "pg-push": "bun drizzle-kit push",
-    "pg-generate": "bun drizzle-kit generate",
-    "pg-migrate": "bun drizzle-kit migrate"
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@elysia/eden": "^1.4.10",

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Create deploy directory if it doesn't exist
-mkdir -p ./deploy
+# This is partially AI slop. Sorry... not sorry...
 
 # Default values
 DEFAULT_BACKEND_PORT=4434

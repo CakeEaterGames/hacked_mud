@@ -68,7 +68,7 @@ export class OOG {
 
 %% TODO Add another example with actual cmd output processing. %%
 
-You can add your own scenarios in this switch case. 
+You can add your own scenarios in this switch case.
 
 ::: tip Note
 If I were you, I'd declare each scenario in a separate module folder. But it is up to you now

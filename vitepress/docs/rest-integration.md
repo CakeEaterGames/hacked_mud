@@ -1,6 +1,6 @@
 # REST Integration
 
-After launching the app you will find the api docs there http://localhost:4434/hacked_mud_api/docs.
+After launching the app you will find the api docs there <http://localhost:4434/hacked_mud_api/docs>.
 
 It will contain an interactive dashboard where you can try each method and see the input/output models.
 To keep this page short I will only briefly talk about each method and you can read the rest when you launch the app.
@@ -8,7 +8,7 @@ To keep this page short I will only briefly talk about each method and you can r
 Here's the information organized into a table:
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
+| -------- | ---------- | ------------- |
 | POST | `/findClients` | Finds all active hackmud clients. Use retrieved PIDs from this method to call other methods. |
 | POST | `/getShellContents` | Returns the contents of the shell of a hackmud client. |
 | POST | `/getGameState` | Returns game state of a hackmud client. It can tell if the client is currently processing a command and can report a hardline state and timer. |
