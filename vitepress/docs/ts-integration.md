@@ -84,7 +84,7 @@ In the `OOG` class you can talk to a `client` object that represents a hackmud c
 
 `client.gameStats` - An object with unknown fields. Add the data that you want. In this sample is added a name property that is set to the name of the first user of the client. It is useful because it is being sent with a websocket and can be displayed on the frontend.
 
-`client.cmd()` is a function that returns a neverthrows `Result<T,E>`. If you don't want to deal with Result, you can unwrap it like this:
+`client.cmd()` is a function that returns a neverthrow `Result<T,E>`. If you don't want to deal with Result, you can unwrap it like this:
 
 ```ts
 async function cmd(text: string): Promise<string> {
