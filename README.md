@@ -3,16 +3,15 @@
 [![Bun](https://img.shields.io/badge/Bun-1.3.8-000000?logo=bun)](https://bun.sh)
 [![Docker](https://img.shields.io/badge/Docker-29.7.2-2496ED?logo=docker)](https://www.docker.com)
 [![Quasar](https://img.shields.io/badge/Quasar-2.16-1976D2?logo=quasar)](https://quasar.dev)
-
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
+## ⚠️ Warning
 
-### ⚠️ Warning ⚠️
+⚠️ This is a work in progress ⚠️
 
-### Repo is unfinished. Come back later
+Project is in active development.
 
----
+## 🕵️ Introduction
 
 hacked mud is a legal custom client for an MMO game [hackmud](https://hackmud.com/)
 
@@ -62,3 +61,5 @@ make prod
 Everything that you need to know is in the [documentation](https://cakeeatergames.github.io/hacked_mud/)
 
 Happy automating, mudders 👍
+
+Licensed under MIT.
