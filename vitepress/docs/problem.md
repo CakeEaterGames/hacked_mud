@@ -83,7 +83,7 @@ read[Read the memory of the game to see the result of the command]
 This is not the only way to do this. You can also use the `flush` command to dump the contents of the terminal into the shell.txt file instead of reading memory. It works and can actually be enough for most players but it does have its limitations. If you don't want to implement memory reading consider [flushing the terminal](flush)
 :::
 
-This way we will can achieve quite a lot of things in the game. We can automate:
+This way we can achieve quite a lot of things in the game. We can automate:
 
 - corp scraping
 - hardline entering
