@@ -77,4 +77,4 @@ make logs
 
 Everything that you need to know is in the [documentation](/docs/installation)
 
-Happy automating, mudders 👍
+Happy automating, mudders 👍 
