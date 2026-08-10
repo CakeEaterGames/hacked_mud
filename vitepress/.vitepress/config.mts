@@ -32,7 +32,7 @@ export default //withMermaid(
           ]
         },
         {
-          text: 'Guide',
+          text: 'Memory reading guide',
           items: [
             { text: 'Preamble', link: '/docs/preamble' },
             { text: 'Problem and Solution', link: '/docs/problem' },

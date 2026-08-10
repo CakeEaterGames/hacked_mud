@@ -1,6 +1,6 @@
 # Installation
 
-::: warning Disclamer
+::: warning Disclaimer
 Run this program at your own risk. Creators of hacked mud or hackmud don't bare any responsibility for issues caused by this software.
 [Official hackmud rules](https://www.hackmud.com/forums/general_discussion/rules) state that you should be mindful when running other peoples code on your machine.
 :::
