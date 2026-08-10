@@ -48,7 +48,7 @@ export class OOG {
    * @param text A shell command you want to execute
    * @returns Result of the command as a string
    */
-  async cmd(text: string) {
+  async cmd(text: string): Promise<string> {
     return await this.client.cmd(text).match(
       a => a.response,
       e => {

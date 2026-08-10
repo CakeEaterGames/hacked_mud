@@ -12,6 +12,7 @@ import { HackmudMemoryReader } from "../hackmudMemoryReader/hackmudMemoryReader.
 import { ok, Result, ResultAsync } from "neverthrow";
 import { toResultAsync, type ExecError } from "@backend/utils/neverthrow";
 import type { ClientCmdResponse, CmdConfig } from "./hackmudClient.types";
+import { uncolorShell } from "@backend/utils/uncolorShell";
 
 export class HackmudClient {
   public readonly pid: number;
@@ -190,17 +191,13 @@ export class HackmudClient {
     let res = this.shellState.normalizedText.slice(-dif).join("\n");
     let shell = this.shellState.normalizedText.join("\n");
 
-    if (toUncolorResponse) res = this.uncolor(res);
-    if (toUncolorShell) shell = this.uncolor(shell);
+    if (toUncolorResponse) res = uncolorShell(res);
+    if (toUncolorShell) shell = uncolorShell(shell);
 
     return ok({
       response: res,
       fullShell: toIncludeShell ? shell : undefined,
     });
-  }
-
-  uncolor(shell: string): string {
-    return shell.replace(/<color=#\w+>/g, "").replace(/<\/color>/g, "");
   }
 
   async spamHardlineNumbers() {

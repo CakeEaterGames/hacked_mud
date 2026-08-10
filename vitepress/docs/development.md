@@ -1,6 +1,6 @@
 # Development
 
-This page is for user who want to modify the code of the hacked mud. You don't need it if you'll choose the [REST integration](/docs/installation.html) approach
+This page is for user who want to modify the code of the hacked mud.
 
 At the start call `make install` to install all node_modules locally. This will give your editor ability to highlight errors and give suggestions.
 
