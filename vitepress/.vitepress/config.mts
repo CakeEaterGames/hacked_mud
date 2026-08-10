@@ -1,9 +1,6 @@
 import { defineConfig } from 'vitepress'
-import { withMermaid } from 'vitepress-plugin-mermaid'
 import { mermaidPlugin } from './theme/mermaid'
 
-
-// import mermaid from 'mermaid'
 
 // https://vitepress.dev/reference/site-config
 export default //withMermaid(
@@ -22,6 +19,14 @@ export default //withMermaid(
 
       sidebar: [
         {
+          text: 'Getting Started',
+          items: [
+            { text: 'Installation', link: '/docs/installation' },
+            { text: 'REST Integration', link: '/docs/rest-integration' },
+            { text: 'TS Integration', link: '/docs/ts-integration' },
+          ]
+        },
+        {
           text: 'Guide',
           items: [
             { text: 'Preamble', link: '/docs/preamble' },
@@ -37,7 +42,7 @@ export default //withMermaid(
       ],
 
       socialLinks: [
-        { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
+        { icon: 'github', link: 'https://github.com/CakeEaterGames/hacked_mud' }
       ]
     },
 

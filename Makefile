@@ -19,11 +19,14 @@ help:
 	@echo '  make icons       - Generates favicons'
 	@echo '  make pages       - Generates github pages'
 
+x11:
+	$(X11_RIGHTS)
+
 dev:
-	$(X11_RIGHTS) && $(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build
+	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build
 
 dev-d:
-	$(X11_RIGHTS) && $(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build -d
+	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) up --build -d
 
 build:
 	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) build --no-cache
@@ -39,3 +42,4 @@ icons:
 
 pages:
 	$(COMPOSE) $(COMPOSE_FILE) $(PROJECT_NAME) exec $(DOCS_SERVICE) bun run build
+
