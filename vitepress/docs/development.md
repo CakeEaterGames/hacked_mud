@@ -2,7 +2,7 @@
 
 This page is for user who want to modify the code of the hacked mud.
 
-When running in development mode use these commands to run the project in `hot reload` mode. After saving any file the project will quickly reload
+When running in development mode use these commands to run the project in `hot reload` mode.
 
 ```shell
 made dev
@@ -27,5 +27,4 @@ Also note that the project uses husky. Meaning that it runs the linter before co
 ```shell
 make icons # Generates favicons
 make docs  # Launch a local vitepress documentation
-make pages # Generates github pages
 ```

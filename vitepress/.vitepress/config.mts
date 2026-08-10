@@ -27,8 +27,8 @@ export default //withMermaid(
           items: [
             { text: 'Installation', link: '/docs/installation' },
             { text: 'Development', link: '/docs/development' },
-            { text: 'REST Integration', link: '/docs/rest-integration' },
-            { text: 'TS Integration', link: '/docs/ts-integration' },
+            { text: 'REST API', link: '/docs/rest-integration' },
+            { text: 'Writing scripts', link: '/docs/ts-integration' },
           ]
         },
         {

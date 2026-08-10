@@ -1,4 +1,4 @@
-# TS Integration
+# Writing scripts
 
 This section of the guide is for people who want to extend the code base of hacked mud.
 
@@ -66,7 +66,11 @@ export class OOG {
 
 `cmd` is an async function that sends keystrokes to hackmud and returns a cmd response once the command has finished executing.
 
-%% TODO Add another example with actual cmd output processing. %%
+```
+TODO Create sample scenario for scraping a t2 corp.
+TODO Include a gif
+TODO Repeat in root readme.md and in vitepress root index.md
+```
 
 You can add your own scenarios in this switch case.
 
