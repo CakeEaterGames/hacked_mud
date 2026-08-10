@@ -20,7 +20,7 @@ It is a client for game automation. Everything that you can do in-game by hand, 
 
 ## 📸 Preview
 
-![Demo](demo.gif)
+![Demo](/vitepress/assets/demo.gif)
 
 ## ✨ Features
 

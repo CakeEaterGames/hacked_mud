@@ -11,6 +11,10 @@ export default //withMermaid(
 
     base: "/hacked_mud/",
 
+    head: [
+      ['link', { rel: 'icon', href: 'favicon.ico' }]
+    ],
+
     themeConfig: {
       // https://vitepress.dev/reference/default-theme-config
       nav: [
@@ -22,6 +26,7 @@ export default //withMermaid(
           text: 'Getting Started',
           items: [
             { text: 'Installation', link: '/docs/installation' },
+            { text: 'Development', link: '/docs/development' },
             { text: 'REST Integration', link: '/docs/rest-integration' },
             { text: 'TS Integration', link: '/docs/ts-integration' },
           ]

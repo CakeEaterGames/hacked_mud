@@ -3,7 +3,7 @@
 It is annoying to write about pointers pointing to pointers pointing to pointers pointing to pointers...
 So let's clarify a few things.
 
-![Alt text](/docs/pointer-meme.png)
+![Alt text](/assets/pointer-meme.png)
 
 ## Jargon
 

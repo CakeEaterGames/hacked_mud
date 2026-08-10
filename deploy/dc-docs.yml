@@ -1,0 +1,18 @@
+services:
+  vitepress:
+    build:
+      context: ../.
+      dockerfile: ./vitepress/Dockerfile
+      target: development
+    restart: unless-stopped
+    env_file: ".env"
+    volumes:
+      - /app/node_modules
+      - /app/vitepress/node_modules
+      - /app/vitepress/.vitepress/cache
+      - ../vitepress/docs:/app/vitepress/docs:rw
+      - ../docs:/app/vitepress/.vitepress/dist:rw # this is to build the result and put it in /docs
+    ports:
+      - "4436:5173"
+    environment:
+      - BUN_FORCE_INSTALL=1
