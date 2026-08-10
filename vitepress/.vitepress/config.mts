@@ -55,6 +55,11 @@ export default //withMermaid(
       config: (md) => {
         mermaidPlugin(md)
       }
-    }
+    },
+
+    ignoreDeadLinks: [
+      // ignore all localhost links
+      /^https?:\/\/localhost/,
+    ]
   })
 //)
