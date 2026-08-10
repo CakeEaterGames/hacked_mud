@@ -45,15 +45,18 @@ This project is not just software. It is an effort to document the process of re
 **Prerequisites:**
 
 - Linux OS
-- Docker 29+
+- [Docker 29+](https://docs.docker.com/engine/install/)
+- [Bun 1.3.8+](https://bun.com/docs/installation)
 
 Basic setup steps:
 
 ```bash
 git clone https://github.com/CakeEaterGames/hacked_mud.git
 cd hacked_mud
-make dev-d
-make logs
+make prepare
+make install
+make x11
+make prod
 ```
 
 Everything that you need to know is in the [documentation](https://cakeeatergames.github.io/hacked_mud/)
