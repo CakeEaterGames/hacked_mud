@@ -13,6 +13,8 @@ hacked mud is a legal custom client for an MMO game [hackmud](https://hackmud.co
 
 It is a tool for game automation. Everything that you can do in-game by hand, you can automate with TypeScript in hacked mud!
 
+Everything that you need to know is in the [documentation](https://cakeeatergames.github.io/hacked_mud/)
+
 ## 📸 Preview
 
 ![Demo](/vitepress/assets/demo.gif)
