@@ -13,6 +13,7 @@ services:
     volumes:
       - /app/node_modules
       - /app/backend/node_modules
+      - /app/shared/node_modules
       - ../backend/src:/app/backend/src:rw
       - ../backend/cache:/app/backend/cache:rw
       - ../shared:/app/shared:rw
@@ -37,6 +38,7 @@ services:
     volumes:
       - /app/node_modules
       - /app/frontend/node_modules
+      - /app/shared/node_modules
       - ../frontend/src:/app/frontend/src:rw
       - ../shared:/app/shared:rw
       - ../backend:/app/backend:rw
