@@ -7,7 +7,7 @@ hero:
   text: Custom hackmud client for full game automation
   tagline: And a guide for reading memory of mono applications
   image:
-    src: /assets/logo.png
+    src: /logo.png
     alt: hacked mud
   actions:
     - theme: brand
