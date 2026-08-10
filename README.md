@@ -5,6 +5,8 @@
 [![Quasar](https://img.shields.io/badge/Quasar-2.16-1976D2?logo=quasar)](https://quasar.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+> Not AI slop! I like emojis! fight me!
+
 ## 🕵️ Introduction
 
 hacked mud is a legal custom client for an MMO game [hackmud](https://hackmud.com/)
