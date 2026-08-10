@@ -7,7 +7,8 @@
   "scripts": {
     "lint:fix": "bun run lint:backend:fix && bun run lint:frontend:fix",
     "lint:backend:fix": "cd backend && bun run lint:fix",
-    "lint:frontend:fix": "cd frontend && bun run lint:fix"
+    "lint:frontend:fix": "cd frontend && bun run lint:fix",
+    "docs:build": "cd vitepress && vitepress dev docs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
