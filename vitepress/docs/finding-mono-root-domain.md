@@ -55,7 +55,9 @@ Key subdirectories/files include:
 - fd/ – A directory listing all open file descriptors and their targets.
 - exe – A symbolic link to the actual executable binary on disk.
 - status – Human-readable summary including PID, memory usage, and state.
-  :::
+:::
+
+TODO Remove this AI slop. This is the only AI piece in the docs
 
 ## Reading the maps
 

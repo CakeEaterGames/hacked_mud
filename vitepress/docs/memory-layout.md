@@ -14,6 +14,7 @@ struct _MonoClass {
   MonoClass *element_class;
   MonoClass *cast_class;
   MonoClass *parent;
+  SomeStruct val;
   //...
 }
 ```
@@ -48,6 +49,12 @@ When I say:
 > You are looking at `MonoClass`
 
 I mean, your reader should be positioned at the location of the struct of type `MonoClass`
+
+When I say:
+
+> Go to the start of `SomeStruct val`
+
+I mean that you need to position your reader at the location of the field `val` (24 in our case). Note that `val` is not a pointer but an inlined struct.
 
 When I say:
 

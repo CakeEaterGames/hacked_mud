@@ -81,15 +81,15 @@ To keep the text compact I will not copy paste C source code but I will paste my
 └────────────────────────────────────────────────────────────────────┘
 </pre>
 
-Each Mono application has its own MonoDomain. It contains Mono assemblies, static variables and heap. 
+Each Mono application has its own MonoDomain. It contains Mono assemblies, static variables and heap.
 
 Go to `char* friendly_name`. Read `ZT string`. Strings are your best friends in this project. If you are reading a string and it comes out as readable text, it means that your offsets are correct and you're doing everything right
 
 Go to `GSList* domain_assemblies`
 
-You are looking at a `GSList`
-
 ## GSList
+
+You are looking at a `GSList`
 
 `GSList` is a [linked list](https://en.wikipedia.org/wiki/Linked_list).
 
@@ -172,7 +172,7 @@ Assemblies can be quite large. So instead of parsing all of them, let's first ge
 [MonoAssemblyName aname](https://github.com/Unity-Technologies/mono/blob/fc8503b2fdeab87730c3f97f61854462298f66ab/mono/metadata/metadata-internals.h#L161) is a struct, not a pointer. It is inlined.
 :::
 
-Goto `MonoAssemblyName aname`. Read a `ZT string`. 
+Goto `MonoAssemblyName aname`. Read a `ZT string`.
 
 We are only interested an assembly with a name `Core`.
 
@@ -263,17 +263,17 @@ Mono assembly is just a container for Mono image. It describes the structures of
 
 We are interested in [MonoInternalHashTable](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/utils/mono-internal-hash.h#L36)
 
-Unsurprisingly, it is a [hash table](https://en.wikipedia.org/wiki/Hash_table). 
+Unsurprisingly, it is a [hash table](https://en.wikipedia.org/wiki/Hash_table).
 
 Read `gint size`. Number of bytes that takes the array at `gpointer* table`.
 
 `num_lines` is `gint size` / `8`. How many elements are in `gpointer* table`
 
-Read `gint num_entries`. (optional) Number of elements in the entire hash table 
+Read `gint num_entries`. (optional) Number of elements in the entire hash table
 
 Read `gpointer* table`. Pointer to an array of pointers to `MonoClassDef`
 
-Go to `gpointer* table` and read `num_lines` pointers 
+Go to `gpointer* table` and read `num_lines` pointers
 
 You now have an array of pointers to `MonoClassDef`
 
@@ -305,7 +305,7 @@ Read `MonoClass* next_class_cache`. It points to the next `MonoClassDef`. If it 
 
 Process `MonoClass klass` as described in the next section
 
-Go to `MonoClass* next_class_cache` 
+Go to `MonoClass* next_class_cache`
 
 Repeat until the end
 
@@ -363,13 +363,76 @@ Mono class is exactly what it sounds like. We have reached the actual class defi
  └───────────────────────────────────────────────────────────────────────────────────┘
 </pre>
 
-TODO Tweak how bitfields are displayed, or just explain 
+Read `guint bitfields1`.
 
-TODO Explain this
+`bitfields1` is an arbitrary name that I assigned myself. This is how it looks in the [mono source code](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-private-definition.h#L44)
 
-```        
-const flags1 = klass.bitfields1; // inited, size_inited, valuetype, enumtype, blittable, unicode, wastypebuilder, is_array_special_interface, is_byreflike
-const isValueType = (flags1 & (1 << 2)) != 0;
-const isEnum = (flags1 & (1 << 3)) != 0;
-const this_arg_type = this.parseFieldType(klass.this_arg);
+```c
+// TODO Is my struct definition incorrect? Where did `int instance_size` go???
+
+guint inited          : 1;
+
+guint size_inited     : 1;
+guint valuetype       : 1; /* derives from System.ValueType */
+guint enumtype        : 1; /* derives from System.Enum */
+guint blittable       : 1; /* class is blittable */
+guint unicode         : 1; /* class uses unicode char when marshalled */
+guint wastypebuilder  : 1; /* class was created at runtime from a TypeBuilder */
+guint is_array_special_interface : 1; /* gtd or ginst of once of the magic interfaces that arrays implement */
+guint is_byreflike    : 1; /* class is a valuetype and has System.Runtime.CompilerServices.IsByRefLikeAttribute */
 ```
+
+Each value is one bit so you need to do some bit shifting. `valuetype` is at bit `2` and `isEnum` is at bit `3`
+
+```
+const isValueType = (bitfields1 & (1 << 2)) != 0;
+const isEnum = (bitfields1 & (1 << 3)) != 0;
+```
+
+With this variables you can tell if a class is a [Enum](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum) or a [ValueType](https://learn.microsoft.com/en-us/dotnet/api/system.valuetype?view=net-10.0)
+
+::: tip Note
+After re reading my code I noticed that I'm not using these values. So it is optional for this guide.
+:::
+
+Read `MonoClass* parent`. It is a pointer to a parent class definition
+
+Go to `char* name`. Read `ZT String`. it is a name of the class
+
+Go to `char* name_space`. Read `ZT String`. it is a namespace in which the class is located
+
+Go to the start of `union _MonoClassSizes sizes` TODO
+
+Go to the start of `MonoType this_arg`. Continue reading [MonoType](#monotype)
+
+Go to `MonoClassRuntimeInfo* runtime_info`. Continue reading [MonoClassRuntimeInfo](#monoclassruntimeinfo)
+
+Go to `MonoClassField* fields`. Continue reading [MonoClassField](#monoclassfield)
+
+## MonoType
+
+You are looking at a [MonoType](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L24)
+
+TODO
+
+## MonoClassRuntimeInfo
+
+You are looking at [MonoClassRuntimeInfo](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L243)
+
+```c
+// TODO convert to ASCII table
+typedef struct {
+	guint16 max_domain;
+	MonoVTable *domain_vtables [MONO_ZERO_LEN_ARRAY];
+} MonoClassRuntimeInfo;
+```
+
+Read `MonoVTable *domain_vtables`. We can later use this value to find objects of this class in heap memory.
+
+## MonoClassField
+
+TODO
+
+## WORK IN PROGRESS! COME BACK LATER
+
+TODO
