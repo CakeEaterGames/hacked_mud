@@ -303,6 +303,8 @@ And also you are looking at [MonoClass](https://github.com/Unity-Technologies/mo
 
 Read `MonoClass* next_class_cache`. It points to the next `MonoClassDef`. If it is `0` you have reached the end
 
+Read `guint32 field_count`. It is the number of fields in this MonoClass
+
 Process `MonoClass klass` as described in the next section
 
 Go to `MonoClass* next_class_cache`
@@ -401,7 +403,7 @@ Go to `char* name`. Read `ZT String`. it is a name of the class
 
 Go to `char* name_space`. Read `ZT String`. it is a namespace in which the class is located
 
-Go to the start of `union _MonoClassSizes sizes` TODO
+Read `union _MonoClassSizes sizes`. It is an [int32 value](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L280) can be used for getting the length of arrays.
 
 Go to the start of `MonoType this_arg`. Continue reading [MonoType](#monotype)
 
@@ -413,25 +415,52 @@ Go to `MonoClassField* fields`. Continue reading [MonoClassField](#monoclassfiel
 
 You are looking at a [MonoType](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L24)
 
-TODO
+<pre class='ascii'>
+┌───────────────────────────────────────────────────────────────┐
+│ MonoType                                                      │
+│ Size: 16 bytes, Alignment: 8 bytes                            │
+├───────────────────────────────────────────────────────────────┤
+│    0-   7 │ Union MonoClass* │ klass     │ 8 bytes   │ <--    │
+│    8-  11 │ unsigned int     │ bitfields │ 4 bytes   │ <--    │
+│   12-  15 │                  │ [padding] │ 4 bytes   │        │
+└───────────────────────────────────────────────────────────────┘
+</pre>
 
 ## MonoClassRuntimeInfo
 
 You are looking at [MonoClassRuntimeInfo](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L243)
 
-```c
-// TODO convert to ASCII table
-typedef struct {
-	guint16 max_domain;
-	MonoVTable *domain_vtables [MONO_ZERO_LEN_ARRAY];
-} MonoClassRuntimeInfo;
-```
+<pre class='ascii'>
+┌───────────────────────────────────────────────────────────────┐
+│ MonoClassRuntimeInfo                                          │
+│ Size: 16 bytes, Alignment: 8 bytes                            │
+├───────────────────────────────────────────────────────────────┤
+│    0-   1 │ guint16      │ max_domain    │ 2 bytes   │        │
+│    2-   7 │              │ [padding]     │ 6 bytes   │        │
+│    8-  15 │ MonoVTable*  │ domain_vtables│ 8 bytes   │ <--    │
+└───────────────────────────────────────────────────────────────┘
+</pre>
 
 Read `MonoVTable *domain_vtables`. We can later use this value to find objects of this class in heap memory.
 
 ## MonoClassField
 
-TODO
+You are looking at an array of [MonoClassField](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/class-internals.h#L150)
+
+Earlier in [MonoClassDef](#monoclassdef) you've read field_count. It is a length of this array.
+
+<pre class='ascii'>
+┌───────────────────────────────────────────────────────────────┐
+│ _MonoClassField                                               │
+│ Size: 32 bytes, Alignment: 8 bytes                            │
+├───────────────────────────────────────────────────────────────┤
+│    0-   7 │ MonoType*   │ type      │ 8 bytes   │ <--         │
+│    8-  15 │ char*       │ name      │ 8 bytes   │ <--         │
+│   16-  23 │ MonoClass*  │ parent    │ 8 bytes   │ <--         │
+│   24-  27 │ int         │ offset    │ 4 bytes   │ <--         │
+│   28-  31 │             │ [padding] │ 4 bytes   │             │
+└───────────────────────────────────────────────────────────────┘
+</pre>
 
 ## WORK IN PROGRESS! COME BACK LATER
 

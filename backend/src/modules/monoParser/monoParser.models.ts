@@ -825,3 +825,17 @@ export const _GSListD = defineStruct({
   ],
 });
 export const _GSListL = new StructLayoutGenerator(_GSListD);
+
+// typedef struct {
+// 	guint16 max_domain;
+// 	/* domain_vtables is indexed by the domain id and the size is max_domain + 1 */
+// 	MonoVTable *domain_vtables [MONO_ZERO_LEN_ARRAY];
+// } MonoClassRuntimeInfo;
+export const MonoClassRuntimeInfoD = defineStruct({
+  name: "MonoClassRuntimeInfo",
+  fields: [
+    { ctype: "guint16", name: "max_domain", type: "uint16" },
+    { ctype: "MonoVTable*", name: "domain_vtables", type: "ptr" },
+  ],
+});
+export const MonoClassRuntimeInfoL = new StructLayoutGenerator(MonoClassRuntimeInfoD);
