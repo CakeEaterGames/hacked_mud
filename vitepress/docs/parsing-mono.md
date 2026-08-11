@@ -5,13 +5,14 @@
 This is the hardest part of this whole guide. Get ready for a long and tedious process. Here is a roadmap:
 
 1. Get the pointer to mono root domain
-2. Parse \_MonoDomain struct and get domain_assemblies filed
-3. Parse \_MonoAssembly struct and get image filed
-4. Parse \_MonoImage struct and get MonoInternalHashTable field
-5. Parse \_MonoInternalHashTable struct and get table field
-6. Parse \_MonoClassDef
-7. Parse \_MonoClassField
-8. Use the collected class information to read actual objects
+2. Parse MonoDomain struct and get domain_assemblies filed
+3. Parse MonoAssembly struct and get image filed
+4. Parse MonoImage struct and get MonoInternalHashTable field
+5. Parse MonoInternalHashTable struct and get table field
+6. Parse MonoClassDef
+7. Parse MonoClassField
+
+By the end of this page you should have definition for all classes of the game. Mono works in such way that the runtime always have the full information about all objects. That's why mono is so "easy" to parse
 
 ## Parsing the instruction
 
@@ -426,6 +427,36 @@ You are looking at a [MonoType](https://github.com/Unity-Technologies/mono/blob/
 └───────────────────────────────────────────────────────────────┘
 </pre>
 
+```c
+struct _MonoType {
+	union {
+		MonoClass *klass; /* for VALUETYPE and CLASS */
+		MonoType *type;   /* for PTR */
+		MonoArrayType *array; /* for ARRAY */
+		MonoMethodSignature *method;
+		MonoGenericParam *generic_param; /* for VAR and MVAR */
+		MonoGenericClass *generic_class; /* for GENERICINST */
+	} data;
+	unsigned int attrs     : 16; /* param attributes or field flags */
+	MonoTypeEnum type      : 8;
+	unsigned int has_cmods : 1;
+	unsigned int byref     : 1;
+	unsigned int pinned    : 1;  /* valid when included in a local var signature */
+};
+```
+
+Read `MonoClass* klass`. It is a pointer to a type of a field
+
+Read `bitfields`. Use these bit shifts to get `isStatic`, `isConstant`, `typeCode`
+
+```
+isStatic = (bitfields & 0x10) == 0x10
+isConstant = (bitfields & 0x40) == 0x40
+typeCode = 0xff & (bitfields >> 16)
+```
+
+TODO What is TypeCode
+
 ## MonoClassRuntimeInfo
 
 You are looking at [MonoClassRuntimeInfo](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L243)
@@ -462,6 +493,21 @@ Earlier in [MonoClassDef](#monoclassdef) you've read field_count. It is a length
 └───────────────────────────────────────────────────────────────┘
 </pre>
 
-## WORK IN PROGRESS! COME BACK LATER
+Go to `MonoType* type`. Continue reading [MonoType](#monotype). You already read it before for the class but now you need to do it for each field of the class
 
-TODO
+Go to `char* name`. Read `ZT String`. It is a name of the class field.
+
+Read `MonoClass* parent`. (Optional) Pointer to the parent class. Can read to double check yourself.
+
+Read `int offset`. It is an offset from the start of the object. The field will be located in memory at `objectPtr`+`offset`. Will be relevant in next page of the guide.
+
+## Conclusion
+
+After traversing all of these structs you should now have the following data
+
+- `Core` Assembly. (Or even all assemblies).
+- Each assembly has Classes
+- Each class has fields
+- Each field has a type and an offset
+
+Using this information you can now parse actual structs in memory. But we need to find them first.
