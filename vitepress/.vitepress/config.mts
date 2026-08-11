@@ -41,6 +41,7 @@ export default //withMermaid(
             { text: 'Memory layout jargon', link: '/docs/memory-layout' },
             { text: 'Finding mono root domain (Linux)', link: '/docs/finding-mono-root-domain' },
             { text: 'Parsing mono', link: '/docs/parsing-mono' },
+            { text: 'Reading objects', link: '/docs/reading-objects' },
           ]
         },
 
