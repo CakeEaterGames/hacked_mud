@@ -21,6 +21,11 @@ export default //withMermaid(
         { text: 'Home', link: '/' },
       ],
 
+      editLink: {
+        pattern: 'https://github.com/CakeEaterGames/hacked_mud/edit/master/vitepress/:path',
+        text: 'Edit this page on GitHub'
+      },
+
       sidebar: [
         {
           text: 'Getting Started',

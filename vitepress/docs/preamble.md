@@ -16,7 +16,7 @@ username@hostname:~$ cat /proc/7738/maps
 But I will not provide code for parsing the result.
 
 ```js
-const range = res.split(' ')[0].split('-') 
+const range = res.split(" ")[0].split("-");
 ```
 
 If the provided information is not enough for you, I invite you to look at the source code of `hacked mud`. It contains all of the concepts explained in this guide and a little more.
@@ -35,7 +35,7 @@ I also hate AI. But I also use AI... Most of the code was written by hand and I 
 
 ## Language
 
-English is not my native language. There are may be typos and grammatical errors. Please open a pull request if you would like to correct something. You can do it on github with a couple of clicks
+English is not my native language. There are may be typos and grammatical errors. Please open a pull request if you would like to correct something. If you scroll to the bottom of each page, there's an `Edit this page on GitHub` button that you can use.
 
 ## Expertise
 
@@ -77,46 +77,48 @@ Why did I use it? It turns your exceptions into types that you can handle. Which
 here's an example of regular TS code
 
 ```ts
-function chain(v:number){
-  let a = prepare(v)
-  let b = refine(a)
-  let c = process(b)
-  return c
+function chain(v: number) {
+  let a = prepare(v);
+  let b = refine(a);
+  let c = process(b);
+  return c;
 }
 
 let res;
 try {
-  res = chain(v)
-} catch(e) {
-  console.error("Something somewhere went wrong. e is of type unknown")
-  console.error(e)
-  res = "BAD"
+  res = chain(v);
+} catch (e) {
+  console.error("Something somewhere went wrong. e is of type unknown");
+  console.error(e);
+  res = "BAD";
 }
 ```
 
 And here's the same code in neverthrow
 
 ```ts
-function chain(v:number) {
+function chain(v: number) {
   return prepare(v)
     .andThen(prepared => refine(prepared))
-    .andThen(refined => process(refined))
+    .andThen(refined => process(refined));
 }
 
-const res = chain()
-  .map(
-    good => good,
-    e => {
-      switch(e.type) {
-        // We have access to all errors in a type safe way
-        case "ERROR_A": return "BAD_A";
-        case "ERROR_B": return "BAD_B";
-        case "ERROR_C": return "BAD_C";
-        case "ERROR_D": return "BAD_D";
-      }
+const res = chain().map(
+  good => good,
+  e => {
+    switch (e.type) {
+      // We have access to all errors in a type safe way
+      case "ERROR_A":
+        return "BAD_A";
+      case "ERROR_B":
+        return "BAD_B";
+      case "ERROR_C":
+        return "BAD_C";
+      case "ERROR_D":
+        return "BAD_D";
     }
-  )
-
+  }
+);
 ```
 
 Looks weird, right? But `e` is now statically typed, and that is a sacrifice that I am willing to make.

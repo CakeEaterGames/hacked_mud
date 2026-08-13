@@ -12,7 +12,7 @@ This was quite a fun project for me but there are still a couple of unexplored a
 
 If you know the answer to any of these questions please let me know! I want this repo to become a goto resource when it comes to writing OOGs for hackmud. Your knowledge can be a missing piece of the puzzle!
 
-You can contact me on discord as `@cake_eater` or send an email to `ruslan.taranov.sakh@gmail.com` Or even better, just open a pull request with your own guide additions.
+You can contact me on discord as `@cake_eater` or send an email to `ruslan.taranov.sakh@gmail.com` Or even better, just open a pull request with your own guide additions. If you scroll to the bottom of each page, there's an `Edit this page on GitHub` button that you can use.
 
 I hope you enjoyed the guide. If you've made it this far, you have my respect!
 
