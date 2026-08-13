@@ -1,17 +1,23 @@
 <template>
   <div class="comments-container">
-    <div ref="giscus"></div>
+    <div ref="giscusContainer"></div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref, watch } from 'vue'
-import { useData } from 'vitepress'
+import { useData, useRoute } from 'vitepress'
 
-const giscus = ref(null)
+const giscusContainer = ref(null)
 const { isDark, page } = useData()
+const route = useRoute()
 
-onMounted(() => {
+function loadGiscus() {
+  if (!giscusContainer.value) return
+
+  // Remove existing Giscus iframe
+  giscusContainer.value.innerHTML = ''
+
   const script = document.createElement('script')
   script.src = 'https://giscus.app/client.js'
   script.setAttribute('data-repo', 'CakeEaterGames/hacked_mud')
@@ -28,8 +34,8 @@ onMounted(() => {
   script.setAttribute('crossorigin', 'anonymous')
   script.async = true
 
-  giscus.value.appendChild(script)
-})
+  giscusContainer.value.appendChild(script)
+}
 
 // Update theme when dark mode changes
 watch(isDark, (dark) => {
@@ -41,12 +47,24 @@ watch(isDark, (dark) => {
     )
   }
 })
+
+// Reload Giscus when route changes
+watch(() => route.path, () => {
+  // Small delay to ensure DOM is updated
+  setTimeout(() => {
+    loadGiscus()
+  }, 100)
+})
+
+onMounted(() => {
+  loadGiscus()
+})
 </script>
 
 <style scoped>
-.comments-container {
+/* .comments-container {
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid var(--vp-c-divider);
-}
+} */
 </style>
