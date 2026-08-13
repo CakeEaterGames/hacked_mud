@@ -257,11 +257,10 @@ export class StructLayoutGenerator<T extends StructDefinition> {
   public visualize(): string {
     const { name, fields, size, alignment } = this.layout;
 
-    const lines = []
+    const lines = [];
     // Fields
     for (let i = 0; i < fields.length; i++) {
-
-      const cols: string[] = []
+      const cols: string[] = [];
       const field = fields[i]!;
       const isPadding = field.name === "__padding";
 
@@ -269,43 +268,43 @@ export class StructLayoutGenerator<T extends StructDefinition> {
       const startOffset = field.offset;
       const endOffset = field.offset + field.size - 1;
       const range = `${startOffset.toString().padStart(4)}-${endOffset.toString().padStart(4)}`;
-      cols.push(range)
+      cols.push(range);
 
       // Format field line
       const namePart = isPadding ? "[padding]" : field.name;
-      cols.push(field.fieldObj.ctype ?? "")
-      cols.push(namePart)
+      cols.push(field.fieldObj.ctype ?? "");
+      cols.push(namePart);
 
       const sizePart = `${field.size} byte${field.size !== 1 ? "s" : ""}`;
-      cols.push(sizePart)
-      cols.push("     ")
+      cols.push(sizePart);
+      cols.push("     ");
 
-      lines.push(cols)
+      lines.push(cols);
     }
 
-    const colSizes = []
+    const colSizes = [];
     for (let c = 0; c < lines[0]!.length; c++) {
-      let m = 1
+      let m = 1;
       for (const line of lines) {
-        m = Math.max(m, line[c]?.length ?? 0)
+        m = Math.max(m, line[c]?.length ?? 0);
       }
-      colSizes.push(m)
+      colSizes.push(m);
     }
 
-    const body = []
+    const body = [];
     for (const line of lines) {
-      const lineRes = []
+      const lineRes = [];
       for (let i = 0; i < line.length; i++) {
         let col = line[i]!;
-        col = col.padEnd(colSizes[i]!, " ")
-        col = " " + col + " "
-        lineRes.push(col)
+        col = col.padEnd(colSizes[i]!, " ");
+        col = " " + col + " ";
+        lineRes.push(col);
       }
 
       body.push("│" + lineRes.join("│") + "│");
     }
 
-    const width = body[0]?.length ?? 0
+    const width = body[0]?.length ?? 0;
 
     const topBorder = `┌${"─".repeat(width - 2)}┐`;
     const bottomBorder = `└${"─".repeat(width - 2)}┘`;
@@ -318,7 +317,7 @@ export class StructLayoutGenerator<T extends StructDefinition> {
     result.push(`│ ${`Size: ${size} bytes, Alignment: ${alignment} bytes`.padEnd(width - 4)} │`);
     result.push(separator);
 
-    result.push(...body)
+    result.push(...body);
 
     // Footer
     result.push(bottomBorder);

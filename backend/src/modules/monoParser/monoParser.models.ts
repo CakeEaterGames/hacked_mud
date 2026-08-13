@@ -840,8 +840,6 @@ export const MonoClassRuntimeInfoD = defineStruct({
 });
 export const MonoClassRuntimeInfoL = new StructLayoutGenerator(MonoClassRuntimeInfoD);
 
-
-
 // NOTE: This is not used
 export const MonoStringD = defineStruct({
   name: "MonoString",
@@ -850,9 +848,6 @@ export const MonoStringD = defineStruct({
     { ctype: "what is this?", name: "some values", type: "ptr" },
     { ctype: "int32", name: "strlength", type: "int32" },
     { ctype: "char[]", name: "data", type: "padding", size: 100 },
-
   ],
 });
 export const MonoStringL = new StructLayoutGenerator(MonoStringD);
-
-
