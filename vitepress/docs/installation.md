@@ -30,7 +30,7 @@ cd hacked_mud
 
 All actions are performed from a Makefile. Run `make help`
 
-Generate en env file by calling `make prepare`
+Generate an env file by calling `make prepare`
 
 ```bash
 make prepare
