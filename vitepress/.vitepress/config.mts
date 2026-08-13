@@ -42,6 +42,7 @@ export default //withMermaid(
             { text: 'Finding mono root domain (Linux)', link: '/docs/finding-mono-root-domain' },
             { text: 'Parsing mono', link: '/docs/parsing-mono' },
             { text: 'Reading objects', link: '/docs/reading-objects' },
+            { text: 'Hacking the mud', link: '/docs/hacking-the-mud' },
           ]
         },
 

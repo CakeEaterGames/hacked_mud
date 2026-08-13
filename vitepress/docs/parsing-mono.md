@@ -455,7 +455,7 @@ isConstant = (bitfields & 0x40) == 0x40
 typeCode = 0xff & (bitfields >> 16)
 ```
 
-TODO What is TypeCode
+`TypeCode` is exactly what it sounds like. It is a type of a value. Look into the [source code](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/blob.h#L13)
 
 ## MonoClassRuntimeInfo
 
