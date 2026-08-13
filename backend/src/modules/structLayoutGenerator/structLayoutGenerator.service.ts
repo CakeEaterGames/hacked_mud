@@ -257,24 +257,11 @@ export class StructLayoutGenerator<T extends StructDefinition> {
   public visualize(): string {
     const { name, fields, size, alignment } = this.layout;
 
-    // Calculate the maximum width needed for the visualization
-    const maxNameLength = Math.max(...fields.map(f => f.name.length), name.length);
-    const width = Math.max(85, maxNameLength + 30); // Minimum width of 60 chars
-
-    const topBorder = `┌${"─".repeat(width - 2)}┐`;
-    const bottomBorder = `└${"─".repeat(width - 2)}┘`;
-    const separator = `├${"─".repeat(width - 2)}┤`;
-
-    const result = [];
-
-    // Header
-    result.push(topBorder);
-    result.push(`│ ${name.padEnd(width - 4)} │`);
-    result.push(`│ ${`Size: ${size} bytes, Alignment: ${alignment} bytes`.padEnd(width - 4)} │`);
-    result.push(separator);
-
+    const lines = []
     // Fields
     for (let i = 0; i < fields.length; i++) {
+
+      const cols: string[] = []
       const field = fields[i]!;
       const isPadding = field.name === "__padding";
 
@@ -282,26 +269,56 @@ export class StructLayoutGenerator<T extends StructDefinition> {
       const startOffset = field.offset;
       const endOffset = field.offset + field.size - 1;
       const range = `${startOffset.toString().padStart(4)}-${endOffset.toString().padStart(4)}`;
+      cols.push(range)
 
       // Format field line
       const namePart = isPadding ? "[padding]" : field.name;
+      cols.push(field.fieldObj.ctype ?? "")
+      cols.push(namePart)
+
       const sizePart = `${field.size} byte${field.size !== 1 ? "s" : ""}`;
-      const content = `${range} │ ${(field.fieldObj.ctype ?? "")?.padEnd(25, " ")} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart.padEnd(9, " ")} │`;
-      // const content = `${range} │ ${field.fieldObj.type.padEnd(10,' ')} │ ${namePart.padEnd(maxNameLength)} │ ${sizePart}`;
+      cols.push(sizePart)
+      cols.push("     ")
 
-      // Draw field with appropriate styling
-      if (isPadding) {
-        result.push(`│ ${content.padEnd(width - 4)} │`);
-        // result.push(`│ ${content.padEnd(width - 4, "░")} │`);
-      } else {
-        result.push(`│ ${content.padEnd(width - 4)} │`);
-      }
-
-      // Add separator between fields (except after the last one)
-      if (i < fields.length - 1) {
-        // result.push(separator);
-      }
+      lines.push(cols)
     }
+
+    const colSizes = []
+    for (let c = 0; c < lines[0]!.length; c++) {
+      let m = 1
+      for (const line of lines) {
+        m = Math.max(m, line[c]?.length ?? 0)
+      }
+      colSizes.push(m)
+    }
+
+    const body = []
+    for (const line of lines) {
+      const lineRes = []
+      for (let i = 0; i < line.length; i++) {
+        let col = line[i]!;
+        col = col.padEnd(colSizes[i]!, " ")
+        col = " " + col + " "
+        lineRes.push(col)
+      }
+
+      body.push("│" + lineRes.join("│") + "│");
+    }
+
+    const width = body[0]?.length ?? 0
+
+    const topBorder = `┌${"─".repeat(width - 2)}┐`;
+    const bottomBorder = `└${"─".repeat(width - 2)}┘`;
+    const separator = `├${"─".repeat(width - 2)}┤`;
+
+    const result = [];
+
+    result.push(topBorder);
+    result.push(`│ ${name.padEnd(width - 4)} │`);
+    result.push(`│ ${`Size: ${size} bytes, Alignment: ${alignment} bytes`.padEnd(width - 4)} │`);
+    result.push(separator);
+
+    result.push(...body)
 
     // Footer
     result.push(bottomBorder);

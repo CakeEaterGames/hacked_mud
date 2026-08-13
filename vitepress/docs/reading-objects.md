@@ -90,9 +90,7 @@ Simply read them in little endian and you have the value of the field.
 
 `CHAR` is a 2 byte `utf16le`
 
-`VALUETYPE` is 2 byte value.
-
-TODO what exactly is VALUETYPE
+`VALUETYPE` is used for `enums` and `structs`. For enums just read 2 bytes. I don't know how it works with structs, because I haven't tried reading structs. Would appreciate help here.
 
 ## CLASS field
 
@@ -114,7 +112,18 @@ GENERICINST is read the same way as CLASS
 
 Go to `pointer`. You are looking at a string object.
 
-TODO add an ascii table
+<pre class='ascii'>
+┌──────────────────────────────────────────────────────────────────────┐
+│ MonoString                                                           │
+│ Size: ??? bytes, Alignment: 8 bytes                                  │
+├──────────────────────────────────────────────────────────────────────┤
+│    0-   7 │ MonoVTable*     │ domain_vtables │ 8 bytes         │     │
+│    8-  15 │ what is this?   │ some values    │ 8 bytes         │     │
+│   16-  19 │ int32           │ strlength      │ 4 bytes         │ <-- │
+│   20- ??? │ char[]          │ data           │ strlength bytes │ <-- │
+└──────────────────────────────────────────────────────────────────────┘
+</pre>
+
 
 Read `strlength`.
 
