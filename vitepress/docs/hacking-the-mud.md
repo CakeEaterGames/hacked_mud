@@ -8,7 +8,9 @@ Roadmap:
 
 1. Decompile the game
 2. Find all Window objects
-3. TODO
+3. Get the shell window object
+4. Find and read the string queue
+5. Get the kernel object and read game state
 
 ## Decompile the game
 
@@ -17,8 +19,6 @@ You can use any tool but I'd advice you to use [dotPeek](https://www.jetbrains.c
 TODO Location of the correct DLL
 
 TODO Screenshot of dotPeek
-
-TODO Draw a schema of the game in escalidraw
 
 ## Reading the shell
 
