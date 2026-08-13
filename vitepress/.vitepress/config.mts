@@ -43,6 +43,7 @@ export default //withMermaid(
             { text: 'Parsing mono', link: '/docs/parsing-mono' },
             { text: 'Reading objects', link: '/docs/reading-objects' },
             { text: 'Hacking the mud', link: '/docs/hacking-the-mud' },
+            { text: 'Post Scriptum', link: '/docs/ps' },
           ]
         },
 

@@ -116,7 +116,7 @@ Goto each `gpointer* data`
 
 You are looking at [MonoAssembly](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L214)
 
-MonoAssembly is a in-memory representation of a .NET dll. If you open hackmud with dotPeek or any other deobfuscator you will see the following assemblies
+MonoAssembly is a in-memory representation of a .NET dll. If you open hackmud with [dotPeek](https://www.jetbrains.com/ru-ru/decompiler/) or any other decompiler you will see the following assemblies
 
 TODO Provide image
 

@@ -129,8 +129,9 @@ TODO how do I even write about this...
 ## Conclusion
 
 By the end of this page you should know:
+
 - How to find objects in memory
 - Read their fields
 - Jump to other objects
 
-You are now fully ready to FINALLY read the state of the game. 
+You are now fully ready to FINALLY read the state of the game.
