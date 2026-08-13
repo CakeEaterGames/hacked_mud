@@ -15,6 +15,10 @@ To run this software you'll need:
 
 When making this software I used Linux Mint, but other X11 based distros should work as well. Wayland is not supported
 
+::: tip Note
+You can run a [virtualbox](https://www.virtualbox.org/) VM with linux. This will work just fine.
+:::
+
 ## Installation
 
 First clone the repo. If you plan to extend the codebase and commit to github, you may want to fork it first.
