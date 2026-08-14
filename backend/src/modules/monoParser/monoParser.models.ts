@@ -840,12 +840,10 @@ export const MonoClassRuntimeInfoD = defineStruct({
 });
 export const MonoClassRuntimeInfoL = new StructLayoutGenerator(MonoClassRuntimeInfoD);
 
-
 // struct _MonoObject {
 // 	MonoVTable *vtable;
 // 	MonoThreadsSync *synchronisation;
 // };
-
 
 // NOTE: This is not used
 export const MonoObjectD = defineStruct({
@@ -857,7 +855,6 @@ export const MonoObjectD = defineStruct({
 });
 export const MonoObjectL = new StructLayoutGenerator(MonoObjectD);
 
-
 // struct _MonoString {
 // 	MonoObject object;
 // 	int32_t length;
@@ -868,20 +865,19 @@ export const MonoObjectL = new StructLayoutGenerator(MonoObjectD);
 export const MonoStringD = defineStruct({
   name: "_MonoString",
   fields: [
-    { ctype: "MonoObject", name: "object", type: "struct", definition:MonoObjectD },
+    { ctype: "MonoObject", name: "object", type: "struct", definition: MonoObjectD },
     { ctype: "int32_t", name: "length", type: "int32" },
     { ctype: "mono_unichar2", name: "chars", type: "padding", size: 100 },
   ],
 });
 export const MonoStringL = new StructLayoutGenerator(MonoStringD);
 
-
 // struct _MonoArray {
 // 	MonoObject obj;
 // 	/* bounds is NULL for szarrays */
 // 	MonoArrayBounds *bounds;
 // 	/* total number of elements of the array */
-// 	mono_array_size_t max_length; 
+// 	mono_array_size_t max_length;
 // 	/* we use mono_64bitaligned_t to ensure proper alignment on platforms that need it */
 // 	mono_64bitaligned_t vector [MONO_ZERO_LEN_ARRAY];
 // };
@@ -897,4 +893,3 @@ export const MonoArrayD = defineStruct({
   ],
 });
 export const MonoArrayL = new StructLayoutGenerator(MonoArrayD);
-
