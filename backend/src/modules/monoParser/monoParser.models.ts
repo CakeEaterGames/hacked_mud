@@ -840,27 +840,61 @@ export const MonoClassRuntimeInfoD = defineStruct({
 });
 export const MonoClassRuntimeInfoL = new StructLayoutGenerator(MonoClassRuntimeInfoD);
 
+
+// struct _MonoObject {
+// 	MonoVTable *vtable;
+// 	MonoThreadsSync *synchronisation;
+// };
+
+
+// NOTE: This is not used
+export const MonoObjectD = defineStruct({
+  name: "_MonoObject",
+  fields: [
+    { ctype: "MonoVTable*", name: "vtable", type: "ptr" },
+    { ctype: "MonoThreadsSync*", name: "synchronisation", type: "ptr" },
+  ],
+});
+export const MonoObjectL = new StructLayoutGenerator(MonoObjectD);
+
+
+// struct _MonoString {
+// 	MonoObject object;
+// 	int32_t length;
+// 	mono_unichar2 chars [MONO_ZERO_LEN_ARRAY];
+// };
+
 // NOTE: This is not used
 export const MonoStringD = defineStruct({
-  name: "MonoString",
+  name: "_MonoString",
   fields: [
-    { ctype: "MonoVTable*", name: "domain_vtables", type: "ptr" },
-    { ctype: "what is this?", name: "some values", type: "ptr" },
-    { ctype: "int32", name: "strlength", type: "int32" },
-    { ctype: "char[]", name: "data", type: "padding", size: 100 },
+    { ctype: "MonoObject", name: "object", type: "struct", definition:MonoObjectD },
+    { ctype: "int32_t", name: "length", type: "int32" },
+    { ctype: "mono_unichar2", name: "chars", type: "padding", size: 100 },
   ],
 });
 export const MonoStringL = new StructLayoutGenerator(MonoStringD);
 
+
+// struct _MonoArray {
+// 	MonoObject obj;
+// 	/* bounds is NULL for szarrays */
+// 	MonoArrayBounds *bounds;
+// 	/* total number of elements of the array */
+// 	mono_array_size_t max_length; 
+// 	/* we use mono_64bitaligned_t to ensure proper alignment on platforms that need it */
+// 	mono_64bitaligned_t vector [MONO_ZERO_LEN_ARRAY];
+// };
+
 // NOTE: This is not used
 export const MonoArrayD = defineStruct({
-  name: "MonoArray",
+  name: "_MonoArray",
   fields: [
-    { ctype: "MonoVTable*", name: "domain_vtables", type: "ptr" },
-    { ctype: "what is this?", name: "some values", type: "ptr" },
-    { ctype: "what is this?", name: "some values", type: "ptr" },
-    { ctype: "int32", name: "elementCount", type: "int32" },
-    { ctype: "void*[]", name: "data", type: "padding", size: 100 },
+    { ctype: "MonoObject", name: "obj", type: "struct", definition: MonoObjectD },
+    { ctype: "MonoArrayBounds*", name: "bounds", type: "ptr" },
+    { ctype: "mono_array_size_t", name: "max_length", type: "int32" },
+    { ctype: "mono_64bitaligned_t", name: "data", type: "padding", size: 100 },
   ],
 });
 export const MonoArrayL = new StructLayoutGenerator(MonoArrayD);
+

@@ -2,26 +2,68 @@
 
 Roadmap for this page:
 
-1. Scan the entire memory to find Window objects
-2. Use the field offsets and field types to read values
-3. Learn how to read basic fields (int, bool, long...)
-4. Learn how to read objects
-5. Learn how to read strings
-6. Learn how to read arrays
+1. Understand how objects are stored
+2. Scan the entire memory to find Window objects
+3. Use the field offsets and field types to read values
+4. Learn how to read basic fields (int, bool, long...)
+5. Learn how to read objects
+6. Learn how to read strings
+7. Learn how to read arrays
 
-## Finding the Objects
+## How objects are stored in memory
 
-On the [previous page](/docs/parsing-mono.html#monoclassruntimeinfo) we got a `domain_vtables` value for each class. Every single C# heap object has this value at offset `0`. Meaning, if we find a `domain_vtables` value somewhere in memory, there's a high chance that it is a start of the object that we're looking for. There will be false positives tho, so you need to verify that you got the right object by reading fields at an offset from `domain_vtables`.
+Look at a [MonoObject](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object.h#L35) source code
+
+```c
+struct _MonoObject {
+	MonoVTable *vtable;
+	MonoThreadsSync *synchronisation;
+};
+```
+
+<pre class='ascii'>
+┌──────────────────────────────────────────────────────────────────┐
+│ _MonoObject                                                      │
+│ Size: 16 bytes, Alignment: 8 bytes                               │
+├──────────────────────────────────────────────────────────────────┤
+│    0-   7 │ MonoVTable*      │ vtable          │ 8 bytes │ <--   │
+│    8-  15 │ MonoThreadsSync* │ synchronisation │ 8 bytes │       │
+└──────────────────────────────────────────────────────────────────┘
+</pre>
+
+The struct doesn't end after the second field. After that field there go all of the object fields at specified [offsets](/docs/parsing-mono.html#monoclassfield) that you you have found on the previous page.
+
+Let's look at the [MonoVTable](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L363)
+
+```c
+/* the interface_offsets array is stored in memory before this struct */
+struct MonoVTable {
+  MonoClass  *klass;
+  // ...
+```
+
+It has a MonoClass right at the start of it.
+
+::: tip Note
+I didn't notice it before writing this guide, but looks like it also has a place for static fields. Maybe I'll look into this later.
+
+```c
+/*vtable contains function pointers to methods or their trampolines, at the
+end there may be a slot containing the pointer to the static fields*/
+gpointer vtable [MONO_ZERO_LEN_ARRAY];
+```
+
+:::
+
+## How to find objects
+
+On the [previous page](/docs/parsing-mono.html#monoclassruntimeinfo) we also got a `domain_vtables` value for each class. Those values match the `vtable` value at the start of each `MonoObject`. Meaning, if we find a `domain_vtables` value somewhere in memory, there's a high chance that it is a start of the object that we're looking for. There will be false positives tho, so you need to verify that you got the right object by reading object fields
 
 You may have a different approach but I recommend to start by finding all `Window` objects. First of all, from the `MonoClasses` that you have collected, find the one with name `Window` and namespace `hackmud`. Get a `domain_vtables` value of that class and an array of [MonoClassFields](/docs/parsing-mono.html#monoclassfield).
 
 Next, go all the way back to the modules that you got on page [Reading the maps](/docs/finding-mono-root-domain.html#reading-the-maps). Get starts and ends of each map, and read the memory of each one. Read 64 bits at a time, since `domain_vtables` is 64 bit. Collect all indexes that have the matching `domain_vtables` value at them.
 
 You now have an array of pointers to potential `Window` objects. Once you'll learn how to read object fields you'll know how to verify if the pointer is correct
-
-::: tip Note
-This method is applicable to all object types, not just the Window object.
-:::
 
 ::: warning HELP
 There also should be a faster way to do this. Theoretically you could find a static field of some object of the program and branch off from it until you'll find the object that you need. That should be `O(1)` complexity, while the described method is `O(n)` complexity. The problem is that I don't know how to read static fields. If you know how to read static fields, please contribute to this project.  
@@ -110,29 +152,24 @@ GENERICINST is read the same way as CLASS
 
 `TypeCode` `STRING` is a `pointer` to a string object. It is NOT a `ZT String`.
 
-Go to `pointer`. You are looking at a string object.
-
-::: warning Help needed
-I can't find the source for this in the Mono source code. Field names are my own interpretation of the data. If you know how this section can be improved, please edit this page.  
-:::
+Go to `pointer`. You are looking at a [MonoString](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object-internals.h#L180).
 
 <pre class='ascii'>
-┌──────────────────────────────────────────────────────────────────────┐
-│ MonoString                                                           │
-│ Size: ??? bytes, Alignment: 8 bytes                                  │
-├──────────────────────────────────────────────────────────────────────┤
-│    0-   7 │ MonoVTable*     │ domain_vtables │ 8 bytes         │     │
-│    8-  15 │ what is this?   │ some values    │ 8 bytes         │     │
-│   16-  19 │ int32           │ strlength      │ 4 bytes         │ <-- │
-│   20- ??? │ char[]          │ data           │ strlength bytes │ <-- │
-└──────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│ _MonoString                                            │
+│ Size: ??? bytes, Alignment: 8 bytes                    │
+├────────────────────────────────────────────────────────┤
+│    0-  15 │ MonoObject    │ object │ 16 bytes  │       │
+│   16-  19 │ int32_t       │ length │ 4 bytes   │ <--   │
+│   20- ??? │ mono_unichar2 │ chars  │ ??? bytes │ <--   │
+└────────────────────────────────────────────────────────┘
 </pre>
 
-Read `strlength`.
+Read `length`.
 
-Read `data`. The length of data is `strlength`\*`2`
+Read `data`. The length of data is `length`\*`2` because it is in utf-16
 
-Each char is a 2 byte `utf16le`. Convert `data` to a string.
+Convert `data` to a utf-16 string.
 
 ## SZARRAY field
 
@@ -140,130 +177,42 @@ Arrays are quite complex. Sorry if not everything makes sense. I'll try my best.
 
 `TypeCode` `SZARRAY` is a `pointer` to an array object.
 
-Go to `pointer`. You are looking at an array object.
-
-::: warning Help needed
-I can't find the source for this in the Mono source code. Field names are my own interpretation of the data. If you know how this section can be improved, please edit this page.  
-:::
+Go to `pointer`. You are looking at a [MonoArray](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object-internals.h#L168).
 
 <pre class='ascii'>
-┌────────────────────────────────────────────────────────────────────────────┐
-│ MonoArray                                                                  │
-│ Size: ??? bytes, Alignment: 8 bytes                                        │
-├────────────────────────────────────────────────────────────────────────────┤
-│    0-   7 │ MonoVTable*   │ arrayDefinition │ 8 bytes              │ <--   │
-│    8-  15 │ what is this? │ some values     │ 8 bytes              │       │
-│   16-  23 │ what is this? │ some values     │ 8 bytes              │       │
-│   24-  27 │ int32         │ elementCount    │ 4 bytes              │ <--   │
-│   28- ??? │ unknown[]     │ data            │ elementCount         │       │
-│                                              * sizes bytes         │ <--   │
-└────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│ _MonoArray                                                       │
+│ Size: ??? bytes, Alignment: 8 bytes                              │
+├──────────────────────────────────────────────────────────────────┤
+│    0-  15 │ MonoObject          │ obj        │ 16 bytes  │ <--   │
+│   16-  23 │ MonoArrayBounds*    │ bounds     │ 8 bytes   │       │
+│   24-  27 │ mono_array_size_t   │ max_length │ 4 bytes   │ <--   │
+│   28- ??? │ mono_64bitaligned_t │ data       │ ??? bytes │ <--   │
+└──────────────────────────────────────────────────────────────────┘
 </pre>
-<!--
-https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/metadata.h#L325 is this relevant?
-
-Is this relevant? I think it is!
-https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object-internals.h#L168
-
-struct _MonoArray {
-	MonoObject obj;
-	/* bounds is NULL for szarrays */
-	MonoArrayBounds *bounds;
-	/* total number of elements of the array */
-	mono_array_size_t max_length;
-	/* we use mono_64bitaligned_t to ensure proper alignment on platforms that need it */
-	mono_64bitaligned_t vector [MONO_ZERO_LEN_ARRAY];
-};
-
-
-It even has a _MonoString!
-https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object-internals.h#L180
-
-struct _MonoString {
-	MonoObject object;
-	int32_t length;
-	mono_unichar2 chars [MONO_ZERO_LEN_ARRAY];
-};
-
-Going deeper, there's a definition for MonoObject
-https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object.h#L35
-
-and Deeper here's a MonoVTable
-https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L363
-
-
-HOLY!
-
-	/* vtable contains function pointers to methods or their trampolines, at the
-	 end there may be a slot containing the pointer to the static fields */
-	gpointer    vtable [MONO_ZERO_LEN_ARRAY];
-
-This is gold!
-
-TODO Explain all of this
-
-Here's what deepseek have to say. This means I am missing another length value between the data and elementCount. That would explain why I need to align the pointer in my code.
-
-
-Here is the C layout with byte offsets for both 32‑bit and 64‑bit Mono ABIs.
-
-```c
-typedef struct {
-    MonoVTable        *vtable;          // 0x00
-    MonoThreadsSync   *synchronisation; // 0x04 (32-bit) / 0x08 (64-bit)
-} MonoObject;
-
-typedef struct {
-    guint32  length;        // 0x00
-    gint32   lower_bound;   // 0x04
-} MonoArrayBounds;           // only used by non-SZARRAY arrays
-
-typedef struct {
-    MonoObject        obj;         // standard Mono object header
-    MonoArrayBounds  *bounds;      // 0x08 / 0x10   (NULL for SZARRAY)
-    guint32           max_length;  // 0x0C / 0x18
-    guint32           length;      // 0x10 / 0x1C
-    gpointer          vector[];    // 0x14 / 0x20   (first element data)
-} MonoArray;
-```
-
-### Offset table
-
-| Field | 32-bit offset | 64-bit offset | Size |
-|---|---:|---:|---:|
-| `vtable` | 0x00 | 0x00 | 4 / 8 |
-| `synchronisation` | 0x04 | 0x08 | 4 / 8 |
-| `bounds` | 0x08 | 0x10 | 4 / 8 |
-| `max_length` | 0x0C | 0x18 | 4 |
-| `length` | 0x10 | 0x1C | 4 |
-| `vector` / element data | 0x14 | 0x20 | element_size × length |
-
-- `0x14` = 20 decimal
-- `0x20` = 32 decimal
-
-For a SZARRAY, `bounds == NULL`. The element data starts immediately at `vector` (after natural alignment).
-`vector` is not an array of pointers; it is raw storage for the actual element type. For example, an `int[]` stores 4‑byte integers starting at that offset, and a `long[]` stores 8‑byte integers starting at that offset on a 64‑bit Mono build.
-
-The two length fields, `max_length` and `length`, are both used internally; for SZARRAY they are typically both set to the number of elements.
-
-
--->
 
 if a Mono program has `bool[]` `string[]` `whatever[]` all of those are 3 new mono classes. `arrayDefinition` points to the MonoClass definition of datatype of this array.
 
-Read `elementCount`. Number of elements in the array.
+Read `max_length`. Number of elements in the array.
 
-Go to `arrayDefinition`. You're looking at a [MonoClass](/docs/parsing-mono.html#monoclass).
+Go to `obj->vtable->klass` and read `element_class*`. A pointer to [MonoClass](/docs/parsing-mono.html#monoclass).
 
-Go to `element_class` of that `arrayDefinition` .You're looking at a [MonoClass](/docs/parsing-mono.html#monoclass) (again)
+::: tip Note
+`obj` is an inlined `MonoObject` struct that has a field `vtable` that is a `MonoVTable`
 
-Read `sizes`. Size of a single array element.
+`klass` is a `MonoClass` and `element_class` is also a `MonoClass`
+
+:::
+
+That `MonoClass* element_class` is a data type of the array
+
+Read `element_class.sizes`. Size of a single array element.
 
 Now go back to our original `SZARRAY`
 
-Read `data`. Each element is `sizes` bytes and there are `elementCount` of them
+Read `data`. Each element is `sizes` bytes and there are `max_length` of them
 
-Since you have the `element_class` with fields and offsets, you can parse it according to the definition.
+Since you have the `element_class` with fields and offsets, you can parse each element according to the definition.
 
 ## Conclusion
 
