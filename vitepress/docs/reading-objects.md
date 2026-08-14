@@ -112,6 +112,10 @@ GENERICINST is read the same way as CLASS
 
 Go to `pointer`. You are looking at a string object.
 
+::: warning Help needed
+I can't find the source for this in the Mono source code. Field names are my own interpretation of the data. If you know how this section can be improved, please edit this page.  
+:::
+
 <pre class='ascii'>
 ┌──────────────────────────────────────────────────────────────────────┐
 │ MonoString                                                           │
@@ -124,7 +128,6 @@ Go to `pointer`. You are looking at a string object.
 └──────────────────────────────────────────────────────────────────────┘
 </pre>
 
-
 Read `strlength`.
 
 Read `data`. The length of data is `strlength`\*`2`
@@ -133,7 +136,134 @@ Each char is a 2 byte `utf16le`. Convert `data` to a string.
 
 ## SZARRAY field
 
-TODO how do I even write about this...
+Arrays are quite complex. Sorry if not everything makes sense. I'll try my best.
+
+`TypeCode` `SZARRAY` is a `pointer` to an array object.
+
+Go to `pointer`. You are looking at an array object.
+
+::: warning Help needed
+I can't find the source for this in the Mono source code. Field names are my own interpretation of the data. If you know how this section can be improved, please edit this page.  
+:::
+
+<pre class='ascii'>
+┌────────────────────────────────────────────────────────────────────────────┐
+│ MonoArray                                                                  │
+│ Size: ??? bytes, Alignment: 8 bytes                                        │
+├────────────────────────────────────────────────────────────────────────────┤
+│    0-   7 │ MonoVTable*   │ arrayDefinition │ 8 bytes              │ <--   │
+│    8-  15 │ what is this? │ some values     │ 8 bytes              │       │
+│   16-  23 │ what is this? │ some values     │ 8 bytes              │       │
+│   24-  27 │ int32         │ elementCount    │ 4 bytes              │ <--   │
+│   28- ??? │ unknown[]     │ data            │ elementCount         │       │
+│                                              * sizes bytes         │ <--   │
+└────────────────────────────────────────────────────────────────────────────┘
+</pre>
+<!--
+https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/metadata.h#L325 is this relevant?
+
+Is this relevant? I think it is!
+https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object-internals.h#L168
+
+struct _MonoArray {
+	MonoObject obj;
+	/* bounds is NULL for szarrays */
+	MonoArrayBounds *bounds;
+	/* total number of elements of the array */
+	mono_array_size_t max_length;
+	/* we use mono_64bitaligned_t to ensure proper alignment on platforms that need it */
+	mono_64bitaligned_t vector [MONO_ZERO_LEN_ARRAY];
+};
+
+
+It even has a _MonoString!
+https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object-internals.h#L180
+
+struct _MonoString {
+	MonoObject object;
+	int32_t length;
+	mono_unichar2 chars [MONO_ZERO_LEN_ARRAY];
+};
+
+Going deeper, there's a definition for MonoObject
+https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object.h#L35
+
+and Deeper here's a MonoVTable
+https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L363
+
+
+HOLY!
+
+	/* vtable contains function pointers to methods or their trampolines, at the
+	 end there may be a slot containing the pointer to the static fields */
+	gpointer    vtable [MONO_ZERO_LEN_ARRAY];
+
+This is gold!
+
+TODO Explain all of this
+
+Here's what deepseek have to say. This means I am missing another length value between the data and elementCount. That would explain why I need to align the pointer in my code.
+
+
+Here is the C layout with byte offsets for both 32‑bit and 64‑bit Mono ABIs.
+
+```c
+typedef struct {
+    MonoVTable        *vtable;          // 0x00
+    MonoThreadsSync   *synchronisation; // 0x04 (32-bit) / 0x08 (64-bit)
+} MonoObject;
+
+typedef struct {
+    guint32  length;        // 0x00
+    gint32   lower_bound;   // 0x04
+} MonoArrayBounds;           // only used by non-SZARRAY arrays
+
+typedef struct {
+    MonoObject        obj;         // standard Mono object header
+    MonoArrayBounds  *bounds;      // 0x08 / 0x10   (NULL for SZARRAY)
+    guint32           max_length;  // 0x0C / 0x18
+    guint32           length;      // 0x10 / 0x1C
+    gpointer          vector[];    // 0x14 / 0x20   (first element data)
+} MonoArray;
+```
+
+### Offset table
+
+| Field | 32-bit offset | 64-bit offset | Size |
+|---|---:|---:|---:|
+| `vtable` | 0x00 | 0x00 | 4 / 8 |
+| `synchronisation` | 0x04 | 0x08 | 4 / 8 |
+| `bounds` | 0x08 | 0x10 | 4 / 8 |
+| `max_length` | 0x0C | 0x18 | 4 |
+| `length` | 0x10 | 0x1C | 4 |
+| `vector` / element data | 0x14 | 0x20 | element_size × length |
+
+- `0x14` = 20 decimal
+- `0x20` = 32 decimal
+
+For a SZARRAY, `bounds == NULL`. The element data starts immediately at `vector` (after natural alignment).
+`vector` is not an array of pointers; it is raw storage for the actual element type. For example, an `int[]` stores 4‑byte integers starting at that offset, and a `long[]` stores 8‑byte integers starting at that offset on a 64‑bit Mono build.
+
+The two length fields, `max_length` and `length`, are both used internally; for SZARRAY they are typically both set to the number of elements.
+
+
+-->
+
+if a Mono program has `bool[]` `string[]` `whatever[]` all of those are 3 new mono classes. `arrayDefinition` points to the MonoClass definition of datatype of this array.
+
+Read `elementCount`. Number of elements in the array.
+
+Go to `arrayDefinition`. You're looking at a [MonoClass](/docs/parsing-mono.html#monoclass).
+
+Go to `element_class` of that `arrayDefinition` .You're looking at a [MonoClass](/docs/parsing-mono.html#monoclass) (again)
+
+Read `sizes`. Size of a single array element.
+
+Now go back to our original `SZARRAY`
+
+Read `data`. Each element is `sizes` bytes and there are `elementCount` of them
+
+Since you have the `element_class` with fields and offsets, you can parse it according to the definition.
 
 ## Conclusion
 

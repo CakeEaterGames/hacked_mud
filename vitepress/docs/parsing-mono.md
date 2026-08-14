@@ -323,7 +323,7 @@ Mono class is exactly what it sounds like. We have reached the actual class defi
  │ _MonoClass                                                                        │
  │ Size: 232 bytes, Alignment: 8 bytes                                               │
  ├───────────────────────────────────────────────────────────────────────────────────┤
- │    0-   7 │ MonoClass*            │ element_class            │ 8 bytes   │        │
+ │    0-   7 │ MonoClass*            │ element_class            │ 8 bytes   │ <--    │
  │    8-  15 │ MonoClass*            │ cast_class               │ 8 bytes   │        │
  │   16-  23 │ MonoClass*            │ supertypes               │ 8 bytes   │        │
  │   24-  25 │ guint16               │ idepth                   │ 2 bytes   │        │
@@ -366,6 +366,8 @@ Mono class is exactly what it sounds like. We have reached the actual class defi
  └───────────────────────────────────────────────────────────────────────────────────┘
 </pre>
 
+Read `MonoClass* element_class`. Only used for arrays and enums. If you'll have a `someType[]` then `element_class` will be a pointer to a `MonoClass` of `someType`
+
 Read `guint bitfields1`.
 
 `bitfields1` is an arbitrary name that I assigned myself. This is how it looks in the [mono source code](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-private-definition.h#L44)
@@ -404,7 +406,7 @@ Go to `char* name`. Read `ZT String`. it is a name of the class
 
 Go to `char* name_space`. Read `ZT String`. it is a namespace in which the class is located
 
-Read `union _MonoClassSizes sizes`. It is an [int32 value](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L280) can be used for getting the length of arrays.
+Read `union _MonoClassSizes sizes`. It is an [int32 value](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L280) contains the size of the struct that can be created from this MonoClass
 
 Go to the start of `MonoType this_arg`. Continue reading [MonoType](#monotype)
 

@@ -851,3 +851,16 @@ export const MonoStringD = defineStruct({
   ],
 });
 export const MonoStringL = new StructLayoutGenerator(MonoStringD);
+
+// NOTE: This is not used
+export const MonoArrayD = defineStruct({
+  name: "MonoArray",
+  fields: [
+    { ctype: "MonoVTable*", name: "domain_vtables", type: "ptr" },
+    { ctype: "what is this?", name: "some values", type: "ptr" },
+    { ctype: "what is this?", name: "some values", type: "ptr" },
+    { ctype: "int32", name: "elementCount", type: "int32" },
+    { ctype: "void*[]", name: "data", type: "padding", size: 100 },
+  ],
+});
+export const MonoArrayL = new StructLayoutGenerator(MonoArrayD);
