@@ -125,6 +125,36 @@ Nah-uh-uh! Not allowed by the game developer! People did get banned for doing th
 - If you don't want to write TypeScript, No problem! There's an exposed REST API with beautiful Scalar documentation. Use any language you want and send API requests.
 - WebSocket notifications. You can connect to a websocket server and hacked mud will notify you about all game state updates.
 
+## ⚙️ Scripting
+
+Here's an example of how you can add your own scripting scenarios. This sample scrapes all T2 corps in the game.
+
+```ts
+async function scan2() {
+  let res = await cmd("cake.scan2")
+  // find all corp names in a script output
+  let corps = execRg(/(cake.scan2 \{.+\})/gm, res)
+
+  // Scan each corp until it finishes
+  for (const c of corps) {
+    while (true) {
+      let res = await cmd(c)
+      if (res.includes("switch corp")) break
+    }
+  }
+
+  this.setScenario("idle");
+}
+```
+
+`cmd` is an async function that sends keystrokes to hackmud and returns a cmd response once the command has finished executing.
+
+`execRg` is a helper function that collects all regex matches in a string and returns them in an array
+
+Here you can see this scenario in action. (Sped up by 6 times because T2 scraping is slow)
+
+![scan2](/assets/scan2Demo.gif)
+
 ## 📖 Learning opportunity
 
 This project is not just software. It is an effort to document the process of reading memory of mono applications. Every step is carefully explained in a [Vitepress documentation](/docs/preamble) so that you could make your own memory reading client if you wanted to. You can learn about:

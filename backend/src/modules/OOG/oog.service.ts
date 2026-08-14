@@ -5,6 +5,7 @@ import type { ExecError } from "@backend/utils/neverthrow";
 import { sleep } from "bun";
 import { CustomError } from "./oog.types";
 import { type Scenario } from "@shared/types/scenario.types";
+import { execRg } from "@backend/utils/regexp";
 
 export class OOG {
   public scenario: Scenario = "idle";
@@ -92,6 +93,9 @@ export class OOG {
         case "hardline":
           await this.hardline();
           break;
+        case "scan2":
+          await this.scan2();
+          break;
       }
     } catch (e) {
       log.error({ e });
@@ -115,6 +119,24 @@ export class OOG {
 
   async hardline() {
     await this.cmd("kernel.hardline");
+    this.setScenario("idle");
+  }
+
+  async scan2() {
+    const res = await this.cmd("cake.scan2");
+    // find all corp names in a script output
+    const corps = execRg(/(cake.scan2 \{.+\})/gm, res);
+
+    log.debug({ corps });
+
+    // Scan each corp until it finishes
+    for (const c of corps) {
+      while (true) {
+        const res = await this.cmd(c);
+        if (res.includes("switch corp")) break;
+      }
+    }
+
     this.setScenario("idle");
   }
 }

@@ -32,6 +32,9 @@ export class OOG {
         case "hardline":
           await this.hardline();
           break;
+        case "scan2":
+          await this.scan2();
+          break;
       }
     } catch (e) {
       log.error({ e });
@@ -44,33 +47,37 @@ export class OOG {
 }
 ```
 
-Here you can add your own scenarios that can also contain their own loops. Let's look at a `HelloWorld` scenario. It sends 3 `#Hello_World_` messages.
+Here you can add your own scenarios that can also contain their own loops. Let's look at a `scan2` scenario.
 
 ```ts
 export class OOG {
-  // ...
-  async HelloWorld() {
-    let num = 1;
-    while (true) {
-      if (!this.client.isRunning()) return;
-      if (num > 3) break;
-      await this.cmd("#Hello_World_" + num);
-      num++;
-      await sleep(1000);
+
+  async scan2() {
+    let res = await this.cmd("cake.scan2")
+    // find all corp names in a script output
+    let corps = execRg(/(cake.scan2 \{.+\})/gm, res)
+
+    // Scan each corp until it finishes
+    for (const c of corps) {
+      while (true) {
+        let res = await this.cmd(c)
+        if (res.includes("switch corp")) break
+      }
     }
+
     this.setScenario("idle");
   }
-  // ...
+
 }
 ```
 
 `cmd` is an async function that sends keystrokes to hackmud and returns a cmd response once the command has finished executing.
 
-```
-TODO Create sample scenario for scraping a t2 corp.
-TODO Include a gif
-TODO Repeat in root readme.md and in vitepress root index.md
-```
+`execRg` is a helper function that collects all regex matches in a string and returns them in an array
+
+Here you can see this scenario in action. (Sped up by 6 times because t2 scraping is slow)
+
+![scan2](/assets/scan2Demo.gif)
 
 You can add your own scenarios in this switch case.
 
