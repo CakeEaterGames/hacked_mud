@@ -84,20 +84,12 @@ I mean:
 
 ## How structs are positioned in memory
 
-If you already know about field alignment, field sizes and pointer math you can skip the remaining part this page.
+I didn't know where to put this piece of info, so I'll put it here 
 
-TODO This part may be redundant. I could just link a YouTube video on the subject
+https://en.wikipedia.org/wiki/Data_structure_alignment 
 
-## Understanding the problem
+The TL;DR is 
+- 2,4,8 bit values can only be positioned at indexes divisible by 2,4,8. If you want to put a pointer at index 1, you can't. It will be aligned at index 8 and have an alignment value of 8.
+- Structs also have their own alignment. They take the maximum alignment value of it's children. If there's a single pointer inside a struct, it will have an alignment of 8 and. If it, for example, only have bytes and int32s, the alignment will be 4.
 
-TODO Remove this?
-
-1. Write a memory walker
-2. Write a struct layout generator
-
-You can
-
-- a. Calculate the offsets by hand and hard code them into the mem reader
-- b. Write a struct layout generator that calculates offsets for you
-
-If you want to keep your sanity I would suggest option b
+Read the wiki if you want to learn more, but for the purpose of the guide, this info is enough

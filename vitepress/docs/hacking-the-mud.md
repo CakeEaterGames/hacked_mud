@@ -58,9 +58,11 @@ Another cool field that you can look at is `window.kernel`. It has a variety of 
 
 `kernel.hardline.hackmodeCountdown.timer.current` is a hardline remaining time.
 
-`kernel.hardline.instructions.m_Text` is a string containing some text related to hardline entering. TODO write what exactly
+`kernel.hardline.instructions.m_Text` is a string containing some text that appears on the screen when you enter the hardline. 
 
 Find all enums of `hardline` object. You can do that by looking for `VALUETYPE` fields. All their names are obfuscated but the enum values are not. Look for 2 enums that contain fields `Mapping` and `ToHardline`. They contain the game state which can be used to know if you are currently in hardline or on the "dial ip" screen.
+
+<!-- TODO Provide the full enums? -->
 
 ## Conclusion
 

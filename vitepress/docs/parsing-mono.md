@@ -372,8 +372,8 @@ Read `guint bitfields1`.
 
 `bitfields1` is an arbitrary name that I assigned myself. This is how it looks in the [mono source code](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-private-definition.h#L44)
 
+<!-- TODO Is my struct definition incorrect? Where did `int instance_size` go??? -->
 ```c
-// TODO Is my struct definition incorrect? Where did `int instance_size` go???
 
 guint inited          : 1;
 
