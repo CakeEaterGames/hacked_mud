@@ -116,9 +116,11 @@ Goto each `gpointer* data`
 
 You are looking at [MonoAssembly](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L214)
 
-MonoAssembly is a in-memory representation of a .NET dll. If you open hackmud with [dotPeek](https://www.jetbrains.com/ru-ru/decompiler/) or any other decompiler you will see the following assemblies
+MonoAssembly is a in-memory representation of a .NET dll. If you open any .NET dll with [dotPeek](https://www.jetbrains.com/ru-ru/decompiler/) or any other decompiler you will see something like these
 
-TODO Provide image
+![a](/assets/dotPeek2.png)
+
+These are just 4 random assemblies from the game. Core being the most important one
 
 Assemblies can be quite large. So instead of parsing all of them, let's first get the name of each one and only parse the one we need.
 
@@ -247,7 +249,7 @@ Mono assembly is just a container for Mono image. It describes the structures of
  │ 1216-1223 │ MonoAssemblyLoadContext*  │ alc                    │ 8 bytes   │      │
  │ 1224-1231 │ GHashTable*               │ method_cache           │ 8 bytes   │      │
  │ 1232-1271 │ MonoInternalHashTable     │ class_cache            │ 40 bytes  │ <--  │
- │ ... and other fields                                                              │                
+ │ ... and other fields                                                              │
  └───────────────────────────────────────────────────────────────────────────────────┘
  ┌───────────────────────────────────────────────────────────────────────────────────┐
  │ _MonoInternalHashTable                                                            │
@@ -367,12 +369,15 @@ Mono class is exactly what it sounds like. We have reached the actual class defi
 </pre>
 
 Read `MonoClass* element_class`. Only used for arrays and enums. If you'll have a `someType[]` then `element_class` will be a pointer to a `MonoClass` of `someType`
+<!-- 
+
+This entire section is kinda complex and not very useful
 
 Read `guint bitfields1`.
 
 `bitfields1` is an arbitrary name that I assigned myself. This is how it looks in the [mono source code](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-private-definition.h#L44)
 
-<!-- TODO Is my struct definition incorrect? Where did `int instance_size` go??? -->
+TODO Is my struct definition incorrect? Where did `int instance_size` go???
 ```c
 
 guint inited          : 1;
@@ -397,8 +402,8 @@ const isEnum = (bitfields1 & (1 << 3)) != 0;
 With this variables you can tell if a class is a [Enum](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/enum) or a [ValueType](https://learn.microsoft.com/en-us/dotnet/api/system.valuetype?view=net-10.0)
 
 ::: tip Note
-After re reading my code I noticed that I'm not using these values. So it is optional for this guide.
-:::
+After re reading my code I noticed that I'm not using these values. So it is optional for this guide
+::: -->
 
 Read `MonoClass* parent`. It is a pointer to a parent class definition
 
@@ -431,19 +436,19 @@ You are looking at a [MonoType](https://github.com/Unity-Technologies/mono/blob/
 
 ```c
 struct _MonoType {
-	union {
-		MonoClass *klass; /* for VALUETYPE and CLASS */
-		MonoType *type;   /* for PTR */
-		MonoArrayType *array; /* for ARRAY */
-		MonoMethodSignature *method;
-		MonoGenericParam *generic_param; /* for VAR and MVAR */
-		MonoGenericClass *generic_class; /* for GENERICINST */
-	} data;
-	unsigned int attrs     : 16; /* param attributes or field flags */
-	MonoTypeEnum type      : 8;
-	unsigned int has_cmods : 1;
-	unsigned int byref     : 1;
-	unsigned int pinned    : 1;  /* valid when included in a local var signature */
+ union {
+  MonoClass *klass; /* for VALUETYPE and CLASS */
+  MonoType *type;   /* for PTR */
+  MonoArrayType *array; /* for ARRAY */
+  MonoMethodSignature *method;
+  MonoGenericParam *generic_param; /* for VAR and MVAR */
+  MonoGenericClass *generic_class; /* for GENERICINST */
+ } data;
+ unsigned int attrs     : 16; /* param attributes or field flags */
+ MonoTypeEnum type      : 8;
+ unsigned int has_cmods : 1;
+ unsigned int byref     : 1;
+ unsigned int pinned    : 1;  /* valid when included in a local var signature */
 };
 ```
 

@@ -16,9 +16,16 @@ Roadmap:
 
 You can use any tool but I'd advice you to use [dotPeek](https://www.jetbrains.com/ru-ru/decompiler/)
 
-TODO Location of the correct DLL
+Find a `Core.dll` file for the game.
 
-TODO Screenshot of dotPeek
+- Windows `C:\Program Files (x86)\Steam\steamapps\common\hackmud\hackmud_win_Data\Managed\Core.dll`
+- Linux `\.steam\debian-installation\steamapps\common\hackmud\hackmud_lin_Data\Managed\Core.dll`
+
+(path can be slightly different)
+
+Open the Core.dll assembly in dotPeek. you should see something like this.
+
+![a](/assets/dotPeek.png)
 
 ## Reading the shell
 
@@ -58,7 +65,7 @@ Another cool field that you can look at is `window.kernel`. It has a variety of 
 
 `kernel.hardline.hackmodeCountdown.timer.current` is a hardline remaining time.
 
-`kernel.hardline.instructions.m_Text` is a string containing some text that appears on the screen when you enter the hardline. 
+`kernel.hardline.instructions.m_Text` is a string containing some text that appears on the screen when you enter the hardline.
 
 Find all enums of `hardline` object. You can do that by looking for `VALUETYPE` fields. All their names are obfuscated but the enum values are not. Look for 2 enums that contain fields `Mapping` and `ToHardline`. They contain the game state which can be used to know if you are currently in hardline or on the "dial ip" screen.
 

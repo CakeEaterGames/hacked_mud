@@ -28,7 +28,12 @@ a6-->|No|a5
 a6-->|Yes|a7[Process the result of the command]-->a1
 ```
 
-TODO: Provide a gif/video of the process
+Here's a demonstration of this process.
+
+1. Getting the corp scripts
+2. Calling each one until it says that the scan is complete
+
+![a](/assets/flush.gif)
 
 ## Limitations
 
