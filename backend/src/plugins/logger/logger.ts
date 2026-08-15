@@ -1,4 +1,10 @@
-import { configure, defaultTextFormatter, getConsoleSink, type LoggerConfig, type LogRecord } from "@logtape/logtape";
+import {
+  configure,
+  defaultTextFormatter,
+  getConsoleSink,
+  type LoggerConfig,
+  type LogRecord,
+} from "@logtape/logtape";
 import { getLogger } from "@logtape/logtape";
 import { getRotatingFileSink, getTimeRotatingFileSink } from "@logtape/file";
 import { getPrettyFormatter } from "@logtape/pretty";
@@ -7,7 +13,7 @@ import { mkdirRecursiveAsync } from "@backend/utils/fs";
 
 const ONE_MB = 0x400 * 0x400;
 
-const logLevel = env.LOGGER_LEVEL 
+const logLevel = env.LOGGER_LEVEL;
 
 function getPretty() {
   return getPrettyFormatter({
