@@ -9,7 +9,7 @@ const { page, frontmatter } = useData()
 
 <template>
   <Layout>
-    <template #doc-footer-before>
+    <template #doc-after>
       <!-- Automatically adds comments to all doc pages -->
       <div v-if="frontmatter.comments !== false" class="comments-wrapper">
         <Comments />
