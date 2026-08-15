@@ -1,11 +1,13 @@
-import { configure, defaultTextFormatter, getConsoleSink, type LogRecord } from "@logtape/logtape";
+import { configure, defaultTextFormatter, getConsoleSink, type LoggerConfig, type LogRecord } from "@logtape/logtape";
 import { getLogger } from "@logtape/logtape";
 import { getRotatingFileSink, getTimeRotatingFileSink } from "@logtape/file";
 import { getPrettyFormatter } from "@logtape/pretty";
-import { isDevelopment } from "../../config";
+import { env, isDevelopment } from "../../config";
 import { mkdirRecursiveAsync } from "@backend/utils/fs";
 
 const ONE_MB = 0x400 * 0x400;
+
+const logLevel = env.LOGGER_LEVEL 
 
 function getPretty() {
   return getPrettyFormatter({
@@ -111,12 +113,12 @@ async function initLogger() {
       loggers: [
         {
           category: "app",
-          lowestLevel: "debug",
+          lowestLevel: logLevel as "debug" | "trace",
           sinks: ["console"],
         },
         {
           category: "http",
-          lowestLevel: "debug",
+          lowestLevel: logLevel as "debug" | "trace",
           sinks: ["console"],
         },
         { category: ["logtape", "meta"], sinks: [] }, //Disabled meta logging
@@ -141,12 +143,12 @@ async function initLogger() {
       loggers: [
         {
           category: "app",
-          lowestLevel: "debug",
+          lowestLevel: logLevel as "debug" | "trace",
           sinks: ["console", "file", "filePretty"],
         },
         {
           category: "http",
-          lowestLevel: "debug",
+          lowestLevel: logLevel as "debug" | "trace",
           sinks: ["file", "console", "filePretty"],
         },
         { category: ["logtape", "meta"], sinks: [] }, //Disabled meta logging

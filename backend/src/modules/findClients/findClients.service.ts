@@ -33,6 +33,7 @@ export abstract class findClientsService {
   static isRepopulating: boolean = false;
   static findClients(): ResultAsync<HackmudValidPid[], ExecError> {
     return execAsync("pgrep -f hackmud").andThen(resp => {
+      log.trace("pgrep -f hackmud {*} ", resp)
       const t = resp.stdout.trim();
       if (!t) {
         return ok([]);
@@ -59,18 +60,27 @@ export abstract class findClientsService {
       pid,
     } satisfies UselessPidError);
 
+    log.trace("Validating PID " + pid)
+
+
     return this.hasMono(pid)
       .andThen(has => {
+        log.trace(pid + " Has mono? " + has)
+
         if (!has) return ue;
         return ok();
       })
       .andThen(_ => execAsync(`cat /proc/${pid}/environ | tr '\\0' '\n' | grep DISPLAY`))
       .map(envs => {
+
+        log.trace(`cat /proc/${pid}/environ | tr '\\0' '\\n' | grep DISPLAY response {*}`, envs)
+
         return Number(envs.stdout.replaceAll("DISPLAY=:", "").trim());
       })
       .andThen(display =>
         execAsync(`DISPLAY=:${display} xdotool search --classname hackmud_lin.x86_64`).map(
           winId => {
+            log.trace(`DISPLAY=:${display} xdotool search --classname hackmud_lin.x86_64 response {*}`, winId)
             return {
               pid,
               windowId: Number(winId.stdout),
