@@ -157,7 +157,7 @@ Here you can see this scenario in action. (Sped up by 6 times because T2 scrapin
 
 ## 📖 Learning opportunity
 
-This project is not just software. It is an effort to document the process of reading memory of mono applications. Every step is carefully explained in a [Vitepress documentation](/docs/preamble) so that you could make your own memory reading client if you wanted to. You can learn about:
+This project is not just software. It is an effort to document the process of reading memory of mono applications. Every step is carefully explained in a [vitepress documentation](/docs/preamble) so that you could make your own memory reading client if you wanted to. You can learn about:
 
 - Parsing [proc maps](https://www.kernel.org/doc/html/latest/filesystems/proc.html) and [elf files](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
 - Getting C# classes from raw bytes
@@ -168,7 +168,7 @@ This project is not just software. It is an effort to document the process of re
 
 **Prerequisites:**
 
-- Linux OS
+- Linux OS with X11 support
 - [Docker 29+](https://docs.docker.com/engine/install/)
 - [Bun 1.3.8+](https://bun.com/docs/installation)
 

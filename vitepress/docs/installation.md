@@ -9,7 +9,7 @@ Run this program at your own risk. Creators of hacked mud or hackmud don't bare 
 
 To run this software you'll need:
 
-- Linux OS
+- Linux OS with X11 support
 - [Docker 29+](https://docs.docker.com/engine/install/)
 - [Bun 1.3.8+](https://bun.com/docs/installation)
 
