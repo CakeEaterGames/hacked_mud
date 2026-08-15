@@ -309,16 +309,8 @@ export class LinkedObject {
     });
   }
 
-  // private async readGenericField(type: MonoFieldType, addr: bigint) {
   private readGenericField(addr: bigint) {
-    // const mr = new MemoryReader(this.pid, type.ptr)
-    // const typeDefPtr = await mr.readPtr() // name possible doesn't make sense
-
-    //TODO
-    //We only need the type param to check this
-    // const generic_type = await this.mono.getClassByAddr(typeDefPtr)!
-    // if (generic_type.is_value_type) return "UNSUPPORTED"
-
+    //TODO This may be incomplete but works for this project
     return this.readObjField(addr);
   }
 }

@@ -320,8 +320,7 @@ export class MonoParser {
     for (let i = 0; i < count; i++) {
       // log("field " + i + " / " + count)
       const r = await this.parseClassField(addr + BigInt(i * _MonoClassFieldL.layout.size));
-      // TODO this is ASS
-      // There's something I fundamentally don't understand about the fields structure
+      // TODO There's something I fundamentally don't understand about the fields structure
       // First fields are parsed ok, but last fields are corrupted sometimes?
       if (r.isErr()) {
         log.warn("Error while parsing fields");

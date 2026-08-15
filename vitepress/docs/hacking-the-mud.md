@@ -69,7 +69,36 @@ Another cool field that you can look at is `window.kernel`. It has a variety of 
 
 Find all enums of `hardline` object. You can do that by looking for `VALUETYPE` fields. All their names are obfuscated but the enum values are not. Look for 2 enums that contain fields `Mapping` and `ToHardline`. They contain the game state which can be used to know if you are currently in hardline or on the "dial ip" screen.
 
-<!-- TODO Provide the full enums? -->
+Here are the full enums. The names will be different for you
+
+```cs
+private enum AEDFKACMIGB
+{
+  PreLoad,
+  StartupText,
+  StartupLogo,
+  Shutdown,
+  ToGUI,
+  GUI,
+  ToHardline,
+  Hardline,
+  ResumeGUIHackmode,
+  ToGUIHackmode,
+  GUIHackmode,
+}
+
+private enum HPHIADJFFOM
+{
+  Mapping,
+  Mapped,
+  Locating,
+  Patching,
+  DialTone,
+  Dialing,
+  Modem,
+  Connecting,
+}
+```
 
 ## Conclusion
 

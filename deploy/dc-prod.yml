@@ -7,9 +7,6 @@ services:
     restart: unless-stopped
     env_file: ".env"
     environment:
-      NODE_ENV: production
-      DATABASE_URL: ${DATABASE_URL}
-      API_BASE_URL: ${API_BASE_URL}
       DISPLAY: ${DISPLAY_TO_USE}
     ports:
       - ${API_PORT}:3000
