@@ -220,7 +220,7 @@ For each `section`
 
 Go to `origin` + `StringSection.sh_offset` + `section.sh_name`
 
-Read `ZT string`. It is a name of the current section.
+Read `NT string`. It is a name of the current section.
 
 ## Reading symbols
 
@@ -258,7 +258,7 @@ Read `st_name`. An offset to a string in the string section that represents the 
 
 Go to `origin` + `StringSection.sh_offset` + `st_name`
 
-Read `ZT string`. It is a name of the current symbol.
+Read `NT string`. It is a name of the current symbol.
 
 Repeat for each symbol.
 

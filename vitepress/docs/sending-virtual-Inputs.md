@@ -65,7 +65,7 @@ Use this to send text:
 DISPLAY=:${display} xdotool type --window ${windowId} --delay 0 "${escapedText}
 ```
 
-Use this to special keys like Enter and Escape:
+Use this to send special keys like Enter and Escape:
 
 ```bash
 DISPLAY=:${display} xdotool key --window ${windowId} ${key}

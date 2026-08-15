@@ -84,7 +84,7 @@ To keep the text compact I will not copy paste C source code but I will paste my
 
 Each Mono application has its own MonoDomain. It contains Mono assemblies, static variables and heap.
 
-Go to `char* friendly_name`. Read `ZT string`. Strings are your best friends in this project. If you are reading a string and it comes out as readable text, it means that your offsets are correct and you're doing everything right
+Go to `char* friendly_name`. Read `NT string`. Strings are your best friends in this project. If you are reading a string and it comes out as readable text, it means that your offsets are correct and you're doing everything right
 
 Go to `GSList* domain_assemblies`
 
@@ -175,7 +175,7 @@ Assemblies can be quite large. So instead of parsing all of them, let's first ge
 [MonoAssemblyName aname](https://github.com/Unity-Technologies/mono/blob/fc8503b2fdeab87730c3f97f61854462298f66ab/mono/metadata/metadata-internals.h#L161) is a struct, not a pointer. It is inlined.
 :::
 
-Goto `MonoAssemblyName aname`. Read a `ZT string`.
+Goto `MonoAssemblyName aname`. Read a `NT string`.
 
 We are only interested an assembly with a name `Core`.
 
@@ -407,9 +407,9 @@ After re reading my code I noticed that I'm not using these values. So it is opt
 
 Read `MonoClass* parent`. It is a pointer to a parent class definition
 
-Go to `char* name`. Read `ZT String`. it is a name of the class
+Go to `char* name`. Read `NT string`. it is a name of the class
 
-Go to `char* name_space`. Read `ZT String`. it is a namespace in which the class is located
+Go to `char* name_space`. Read `NT string`. it is a namespace in which the class is located
 
 Read `union _MonoClassSizes sizes`. It is an [int32 value](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/class-internals.h#L280) contains the size of the struct that can be created from this MonoClass
 
@@ -502,7 +502,7 @@ Earlier in [MonoClassDef](#monoclassdef) you've read field_count. It is a length
 
 Go to `MonoType* type`. Continue reading [MonoType](#monotype). You already read it before for the class but now you need to do it for each field of the class
 
-Go to `char* name`. Read `ZT String`. It is a name of the class field.
+Go to `char* name`. Read `NT string`. It is a name of the class field.
 
 Read `MonoClass* parent`. (Optional) Pointer to the parent class. Can read to double check yourself.
 

@@ -150,7 +150,7 @@ GENERICINST is read the same way as CLASS
 
 ## STRING field
 
-`TypeCode` `STRING` is a `pointer` to a string object. It is NOT a `ZT String`.
+`TypeCode` `STRING` is a `pointer` to a string object. It is NOT a `NT string`.
 
 Go to `pointer`. You are looking at a [MonoString](https://github.com/Unity-Technologies/mono/blob/54681c7b4fdf8316b86063a8e8dcf2a0d99bdd03/mono/metadata/object-internals.h#L180).
 

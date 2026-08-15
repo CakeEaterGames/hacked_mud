@@ -62,19 +62,19 @@ When I say:
 
 I am declaring a variable IN YOUR MIND LMAO. It means I will reference it some time later
 
-## Zero terminated strings
+## Null-terminated strings
 
-Or sometimes it's called a [null terminated string](https://en.wikipedia.org/wiki/Null-terminated_string)
+Here's a [wikipedia article](https://en.wikipedia.org/wiki/Null-terminated_string)
 
 When is say:
 
-> ZT string
+> NT string
 
-I mean "zero terminated string".
+I mean "null terminated string".
 
 When I say:
 
-> Read `ZT string`
+> Read `NT string`
 
 I mean:
 
@@ -84,11 +84,12 @@ I mean:
 
 ## How structs are positioned in memory
 
-I didn't know where to put this piece of info, so I'll put it here 
+I didn't know where to put this piece of info, so I'll put it here
 
-https://en.wikipedia.org/wiki/Data_structure_alignment 
+<https://en.wikipedia.org/wiki/Data_structure_alignment>
 
-The TL;DR is 
+The TL;DR is
+
 - 2,4,8 bit values can only be positioned at indexes divisible by 2,4,8. If you want to put a pointer at index 1, you can't. It will be aligned at index 8 and have an alignment value of 8.
 - Structs also have their own alignment. They take the maximum alignment value of it's children. If there's a single pointer inside a struct, it will have an alignment of 8 and. If it, for example, only have bytes and int32s, the alignment will be 4.
 
