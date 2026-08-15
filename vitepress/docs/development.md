@@ -1,6 +1,6 @@
 # Development
 
-This page is for user who want to modify the code of the hacked mud.
+This page is for user who want to modify the code of the `hacked mud`.
 
 When running in development mode use these commands to run the project in `hot reload` mode.
 

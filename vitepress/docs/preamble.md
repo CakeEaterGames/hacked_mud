@@ -4,7 +4,7 @@ Before we start let's clarify some things.
 
 ## Purpose of the guide
 
-The goal of this guide is to document the process of reading memory of hackmud and other mono applications. It contains detailed instructions with terminal commands, struct definitions and bits of code. It tells you what you need to do, but it doesn't tell you how you should do it. For example, I can say:
+The goal of this guide is to document the process of reading memory of `hackmud` and other mono applications. It contains detailed instructions with terminal commands, struct definitions and bits of code. It tells you what you need to do, but it doesn't tell you how you should do it. For example, I can say:
 
 To get process maps execute this command:
 
@@ -19,7 +19,7 @@ But I will not provide code for parsing the result.
 const range = res.split(" ")[0].split("-");
 ```
 
-If the provided information is not enough for you, I invite you to look at the source code of `hacked mud`. It contains all of the concepts explained in this guide and a little more.
+If the provided information is not enough for you, I invite you to look at the [source code](https://github.com/CakeEaterGames/hacked_mud/tree/master/backend/src) of `hacked mud`. It contains all of the concepts explained in this guide and a little more.
 
 ## AI-Generated Content
 
@@ -43,7 +43,7 @@ I am not an expert in reverse engineering, nor I am an expert in C/C++. I am fig
 
 ## Legality
 
-Everything that is written in this guide complies with [hackmud's rules](https://www.hackmud.com/forums/general_discussion/rules). It is explicitly stated that reading the memory of hackmud is allowed, but memory writing is not allowed.
+Everything that is written in this guide complies with [hackmud's rules](https://www.hackmud.com/forums/general_discussion/rules). It is explicitly stated that reading the memory of `hackmud` is allowed, but memory writing is not allowed.
 
 > Automation on top of the existing game client is currently permitted.
 
@@ -51,13 +51,13 @@ and
 
 > Modifying the game client in any way is not permitted, this includes memory modification, code injection, client file modification, etc, and is considered a 'custom client.'
 
-I will not post hackmud source code here but I will post variable names and class names that you should read. I don't know how strict the rules are so I'll assume they are very strict.
+I will not post `hackmud` source code here but I will post variable names and class names that you should read. I don't know how strict the rules are so I'll assume they are very strict.
 
 > Our client code is not open source. Please be mindful of copyright law.
 
 ## Software stack
 
-hacked mud uses quite a set of tools! You are not required to know how any of them work to understand this guide. Everything made here can be made in any other programming language
+`hacked mud` uses quite a set of tools! You are not required to know how any of them work to understand this guide. Everything made here can be made in any other programming language
 
 - Backend: [ElysiaJS](https://elysiajs.com/) - My new favorite REST API framework that provides type safety and generates OpenAPI for your app
 - Error Handling: [Neverthrow](https://github.com/supermacro/neverthrow) - A library that allows functions to return errors as values
@@ -130,7 +130,7 @@ Why would use TypeScript for something so low level as reading memory? Because I
 ## Glossary
 
 - memreader - Short for memory reader
-- OOG - Out Of Game. Usually refers to a program designed to interact with hackmud as a bot
+- OOG - Out Of Game. Usually refers to a program designed to interact with `hackmud` as a bot
 
 ---
 

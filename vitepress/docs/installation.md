@@ -1,7 +1,7 @@
-# Installation
+# Getting started
 
 ::: warning Disclaimer
-Run this program at your own risk. Creators of hacked mud or hackmud don't bare any responsibility for issues caused by this software.
+Run this program at your own risk. Creators of `hacked mud` or `hackmud` don't bare any responsibility for issues caused by this software.
 [Official hackmud rules](https://www.hackmud.com/forums/general_discussion/rules) state that you should be mindful when running other peoples code on your machine.
 :::
 
@@ -66,7 +66,7 @@ make install
 
 ## Launching
 
-Run `make prod` to launch hacked mud. Press CTRL+C to close hacked mud.
+Run `make prod` to launch `hacked mud`. Press CTRL+C to close `hacked mud`.
 
 Alternatively, run `make prod-d` to launch in detached mode. Run `make prod-logs` to open the logs.
 
@@ -107,7 +107,7 @@ You'll have to run `make x11` once per OS restart
 
 Open the browser at <http://localhost:4435/> (or on whatever port you set earlier)
 
-Open hackmud from steam or launch a hackmud-box container
+Open `hackmud` from steam or launch a hackmud-box container
 
 You will see something like this in your browser
 

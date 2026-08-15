@@ -2,7 +2,7 @@
 
 ## Problem
 
-For those who don't know, [hackmud](https://hackmud.com/) is an MMO where you write scripts in JS to automate almost every aspect of the game and also hack NPCs and other players (it is amazing, go get it!).
+For those who don't know, `hackmud` is an MMO where you write scripts in JS to automate almost every aspect of the game and also hack NPCs and other players (it is amazing, go get it!).
 Some parts of the game are very easily to automated while others are next to impossible.
 
 There are 3 ways to execute actions in the game
@@ -53,7 +53,7 @@ That means that you either
 
 ## Solution
 
-We can keep a hackmud window open and simulate keyboard key presses! We need to imitate a player.
+We can keep a `hackmud` window open and simulate keyboard key presses! We need to imitate a player.
 
 The loop is:
 

@@ -92,7 +92,7 @@ That means that you either
 
 ## 💡 Solution
 
-We can keep a hackmud window open and simulate keyboard key presses! We need to imitate a player.
+We can keep a `hackmud` window open and simulate keyboard key presses! We need to imitate a player.
 
 The loop is:
 
@@ -118,9 +118,9 @@ Nah-uh-uh! Not allowed by the game developer! People did get banned for doing th
 
 ## ✨ Features
 
-- Mono memory reading. This client sits on top of official hackmud client and reads its process memory. This gives you full information about the game state
+- Mono memory reading. This client sits on top of official `hackmud` client and reads its process memory. This gives you full information about the game state
 - It is a full-stack web app, meaning that you can host it and access it remotely
-- You can launch multiple hackmud instances and control them all from one place
+- You can launch multiple `hackmud` instances and control them all from one place
 - Codebase is designed for you to expand. Clone this project and start [editing the OOG class](/docs/ts-integration.html) to automate the game.
 - If you don't want to write TypeScript, No problem! There's an exposed REST API with beautiful Scalar documentation. Use any language you want and send API requests.
 - WebSocket notifications. You can connect to a websocket server and hacked mud will notify you about all game state updates.
@@ -147,7 +147,7 @@ async function scan2() {
 }
 ```
 
-`cmd` is an async function that sends keystrokes to hackmud and returns a cmd response once the command has finished executing.
+`cmd` is an async function that sends keystrokes to `hackmud` and returns a cmd response once the command has finished executing.
 
 `execRg` is a helper function that collects all regex matches in a string and returns them in an array
 

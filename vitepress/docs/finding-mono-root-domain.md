@@ -2,11 +2,11 @@
 
 ## Roadmap
 
-In this section of the guide we will execute a series of linux commands to eventually get the pointer to mono_root_domain of a hackmud process, which is necessary for reading the memory of a mono application.
+In this section of the guide we will execute a series of linux commands to eventually get the pointer to mono_root_domain of a `hackmud` process, which is necessary for reading the memory of a mono application.
 
 here's a rough roadmap of what we need to do:
 
-1. Locate the hackmud process ID(s)
+1. Locate the `hackmud` process ID(s)
 2. Read the process memory maps from /proc
 3. Identify the libmonobdwgc shared library sections
 4. Parse the ELF binary to locate symbols
@@ -26,7 +26,7 @@ username      7738 15.2  3.3 6489560 550288 ?      Sl   Jul26 173:58 /home/usern
 username    137363 44.5 16.2 9290812 2658944 ?     Rl   Jul26 485:17 /home/steam/.local/share/Steam/steamapps/common/hackmud/hackmud_lin.x86_64 -batchmode -silent-crashes -logFile /dev/null -windowed -w 8 -h 8 -si
 ```
 
-I have 2 hackmud instances running. One was launched from the desktop and another was launched in a docker container.
+I have 2 `hackmud` instances running. One was launched from the desktop and another was launched in a docker container.
 We need to parse the strings to get PIDs 7738 and 137363.
 
 ::: tip

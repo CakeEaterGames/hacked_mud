@@ -33,7 +33,7 @@ As described on previous page, find all Window objects. Then read the property `
 
 Get the field with the name `output`.
 
-This object has a single obfuscated `GENERICINST` field. This field is our `Queue<String>` object. The text of the hackmud shell is stored in this object.
+This object has a single obfuscated `GENERICINST` field. This field is our `Queue<String>` object. The text of the `hackmud` shell is stored in this object.
 
 Get these values from queue object:
 
@@ -41,7 +41,7 @@ Get these values from queue object:
 - `_tail` - Index of the tail of the queue
 - `_size` - Size of the Queue
 - `_version` - Version. Every time the queue changes this number gets incremented
-- `_array` - String array where each line is a line in a hackmud shell
+- `_array` - String array where each line is a line in a `hackmud` shell
 
 The newest line in the shell is stored in `array[tail]` and the oldest one in `array[head]`
 
@@ -61,7 +61,7 @@ Now save the pointer to this queue object and read it every time you need to get
 
 Another cool field that you can look at is `window.kernel`. It has a variety of useful things in it
 
-`kernel.mainParser.is_processing` is a boolean value that tells if the hackmud client is currently processing a command. You can't enter anything during this period
+`kernel.mainParser.is_processing` is a boolean value that tells if the `hackmud` client is currently processing a command. You can't enter anything during this period
 
 `kernel.hardline.hackmodeCountdown.timer.current` is a hardline remaining time.
 

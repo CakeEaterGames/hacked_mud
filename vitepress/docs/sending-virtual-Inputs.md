@@ -2,7 +2,7 @@
 
 ## Roadmap
 
-In this section of the guide we will learn how to send virtual key strokes to a hackmud window.
+In this section of the guide we will learn how to send virtual key strokes to a `hackmud` window.
 Here's a rough roadmap of what we need to do:
 
 1. Extract the DISPLAY environment variable
@@ -20,13 +20,12 @@ sudo apt install xdotool  # Debian/Ubuntu
 
 ## Collecting the process info
 
-First we need to collect some info about the hackmud processes
+First we need to collect some info about the `hackmud` processes
 
 [Get the PID if you haven't already](http://10.40.0.126:4436/docs/finding-mono-root-domain.html#getting-pid)
 
-- DISPLAY env variable - Display at which hackmud was launched at
-- WindowID - Window ID of a hackmud client
-
+- DISPLAY env variable - Display at which `hackmud` was launched at
+- WindowID - Window ID of a `hackmud` client
 
 Using the PIDs we can find the DISPLAY variable that was used when the program started
 
@@ -61,11 +60,13 @@ username@hostname:~$ DISPLAY=:95 xdotool search --classname hackmud_lin.x86_64
 You now can use these 2 commands to send inputs to the game.
 
 Use this to send text:
+
 ```bash
 DISPLAY=:${display} xdotool type --window ${windowId} --delay 0 "${escapedText}
 ```
 
 Use this to special keys like Enter and Escape:
+
 ```bash
 DISPLAY=:${display} xdotool key --window ${windowId} ${key}
 ```

@@ -1,6 +1,6 @@
 # Writing scripts
 
-This section of the guide is for people who want to extend the code base of hacked mud.
+This section of the guide is for people who want to extend the code base of `hacked mud`.
 
 ::: tip Note
 You should read all previous pages before reading this
@@ -8,7 +8,7 @@ You should read all previous pages before reading this
 
 ## OOG Class
 
-When a new hackmud client opens hacked mud will try to find it and do a whole lot of memory reading. When all initialization logic is complete the hacked mud will create a new `OOG` object
+When you launch a new `hackmud` client, `hacked mud` will try to find it and do a whole lot of memory reading. When all initialization logic is complete the `hacked mud` will create a new `OOG` object
 
 You can find the `OOG` class in `/backend/src/modules/OOG/oog.service.ts` [GitHub link](https://github.com/CakeEaterGames/hacked_mud/blob/master/backend/src/modules/OOG/oog.service.ts)
 
@@ -71,7 +71,7 @@ export class OOG {
 }
 ```
 
-`cmd` is an async function that sends keystrokes to hackmud and returns a cmd response once the command has finished executing.
+`cmd` is an async function that sends keystrokes to `hackmud` and returns a cmd response once the command has finished executing.
 
 `execRg` is a helper function that collects all regex matches in a string and returns them in an array
 
@@ -87,15 +87,15 @@ If I were you, I'd declare each scenario in a separate module folder. But it is 
 
 ## HackmudClient
 
-In the `OOG` class you can talk to a `client` object that represents a hackmud client.
+In the `OOG` class you can talk to a `client` object that represents a `hackmud` client.
 
 `client.gameState` - Information about game state. It can tell if the client is currently processing a command and can report a hardline state and timer.
 
-`client.shellState.normalizedText` - Contains the contents of the hackmud shell. Can be used in combination with `uncolorShell` to remove the `<color>` tags
+`client.shellState.normalizedText` - Contains the contents of the `hackmud` shell. Can be used in combination with `uncolorShell` to remove the `<color>` tags
 
-`client.gameStats` - An object with unknown fields. Add the data that you want. In this sample is added a name property that is set to the name of the first user of the client. It is useful because it is being sent with a websocket and can be displayed on the frontend.
+`client.gameStats` - An object with unknown fields. Add the data that you want. In this sample I added a name property that is set to the name of the first user of the client. It is useful because it is being sent with a websocket and can be displayed on the frontend.
 
-`client.cmd()` is a function that returns a neverthrow `Result<T,E>`. If you don't want to deal with Result, you can unwrap it like this:
+`client.cmd()` is a function that types a command in a `hackmud` client and returns a neverthrow `Result<T,E>`. If you don't want to deal with Result, you can unwrap it like this:
 
 ```ts
 async function cmd(text: string): Promise<string> {
@@ -111,4 +111,4 @@ async function cmd(text: string): Promise<string> {
 
 ## Conclusion
 
-That's pretty much it! That is all you need to know to start building your logic on top of hacked mud. Let me know if there's anything you found confusing. You can find me in a hackmud discord as `@cake_eater`
+That's pretty much it! That is all you need to know to start building your logic on top of `hacked mud`. Let me know if there's anything you found confusing. You can find me in a `hackmud` discord as `@cake_eater`
