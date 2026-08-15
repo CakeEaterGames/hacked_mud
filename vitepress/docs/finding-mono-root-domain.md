@@ -2,13 +2,13 @@
 
 ## Roadmap
 
-In this section of the guide we will execute a series of linux commands to eventually get the pointer to mono_root_domain of a `hackmud` process, which is necessary for reading the memory of a mono application.
+In this section of the guide we will execute a series of linux commands to eventually get the pointer to `mono_root_domain` of a `hackmud` process, which is necessary for reading the memory of a mono application.
 
 here's a rough roadmap of what we need to do:
 
 1. Locate the `hackmud` process ID(s)
 2. Read the process memory maps from /proc
-3. Identify the libmonobdwgc shared library sections
+3. Identify the `libmonobdwgc` shared library sections
 4. Parse the ELF binary to locate symbols
 5. Extract the `mono_get_root_domain` function address
 
@@ -96,9 +96,9 @@ Parse every line and extract the following values:
 - end - 00201000
 - path - /home/username/.steam/debian-installation/steamapps/common/hackmud/hackmud_lin.x86_64
 
-For now we will only need the libmonobdwgc map, but later on we will need all of them.
+For now we will only need the `libmonobdwgc` map, but later on we will need all of them.
 
-As you can see there are 4 memory mappings for libmonobdwgc-2.0.so.
+As you can see there are 4 memory mappings for `libmonobdwgc-2.0.so`.
 **We need the first executable section (r-xp)**. The `r-xp` segment contains the actual machine code we need to disassemble.
 
 ```bash
@@ -119,7 +119,7 @@ You can either write your own parser or you can install something like elfy js o
 From now On I will be using the [memory layout jargon](/docs/memory-layout.html#language)
 :::
 ::: tip Note
-I will assume you're on a 64bit system so all types are for 64 bits
+I will assume you're on a 64bit system so all types are for a 64 bits OS
 :::
 
 ## Reading ELF Header
