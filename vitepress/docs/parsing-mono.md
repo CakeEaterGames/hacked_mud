@@ -506,7 +506,7 @@ Go to `char* name`. Read `NT string`. It is a name of the class field.
 
 Read `MonoClass* parent`. (Optional) Pointer to the parent class. Can read to double check yourself.
 
-Read `int offset`. It is an offset from the start of the object. The field will be located in memory at `objectPtr`+`offset`. Will be relevant in next page of the guide.
+Read `int offset`. Let's say theres an `object` that is created from the current `MonoClass`. `offset` is an offset from the start of that `object`. The field will be located in memory at `objectPtr`+`offset`. Will be relevant in next page of the guide.
 
 ## Conclusion
 
