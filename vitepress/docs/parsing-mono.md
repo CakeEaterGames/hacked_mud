@@ -104,7 +104,7 @@ You are looking at a `GSList`
  └────────────────────────────────────────────────────────────────────┘
 </pre>
 
-Read `gpointer* data`. Save it. It is a general pointer with no way to know what it is pointing to (: cool, right? It points to [\_MonoAssembly](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L214)
+Read `gpointer* data`. Save it. It is a general pointer with no way to know what it is pointing to (: cool, right? It points to an instance of [\_MonoAssembly](https://github.com/Unity-Technologies/mono/blob/7907d982772c47a9a1c7b676bead1eab1a276825/mono/metadata/metadata-internals.h#L214)
 
 Goto `GSList* next`. If it is zero, you have reached the end of the list.
 
