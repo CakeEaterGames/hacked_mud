@@ -26,7 +26,7 @@ backendAxios.interceptors.response.use(
   }
 );
 
-//Looking for cookies
+// Looking for cookies
 backendAxios.interceptors.response.use(
   (response) => {
     // initAuth()
