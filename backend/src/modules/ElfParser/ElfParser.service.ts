@@ -58,6 +58,7 @@ export class ELFParser {
       .readBytes(this.module.start, Elf64HeaderL.layout.size)
       .andThen(buffer => {
         const header = Elf64HeaderL.parse(buffer);
+        // log.trace({elfHeader:header})
         _e_shstrndx = header.e_shstrndx;
         return toResultAsync(
           this._readSectionHeaders(header.e_shoff, header.e_shentsize, header.e_shnum)
@@ -66,13 +67,16 @@ export class ELFParser {
       .andThen(sectionHeaders => {
         this.sectionHeaders = sectionHeaders;
         // Don't need this actually
-        // return toResultAsync(this._readSectionNames(_e_shstrndx));
-        return okAsync();
+        return toResultAsync(this._readSectionNames(_e_shstrndx));
+        // return okAsync();
       })
-      .andThen(_ => toResultAsync(this._readSymbols()))
+      .andThen(_sections => {
+        // log.trace({ elfSections: _sections })
+        return toResultAsync(this._readSymbols());
+      })
       .andThen(symbols => {
         this.symbols = symbols;
-
+        // log.trace({ elfSymbols: symbols.filter(a => a.st_value !== 0n).map(a => ({ name: a.name, st_value: a.st_value })) })
         return ok({
           symbols,
         });

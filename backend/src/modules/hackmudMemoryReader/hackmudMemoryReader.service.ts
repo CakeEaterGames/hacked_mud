@@ -110,6 +110,7 @@ export class HackmudMemoryReader {
     if (!monoDomain)
       return err({ type: "NULL_POINTER_ERROR", var: "monoDomain" } satisfies NullPointerError);
 
+    // log.trace({monoDomainSymbol: monoDomain})
     const monoParser = new MonoParser(pid, monoModule.start, monoDomain.st_value, mr);
 
     const gameAssemblyRes = await monoParser.parseAssemblyByName("Core");

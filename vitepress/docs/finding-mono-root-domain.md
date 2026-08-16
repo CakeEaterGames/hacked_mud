@@ -176,6 +176,18 @@ Read `e_shentsize`. Size of each section header
 
 Read `e_shstrndx`. Index of a string section. Will make sense in a bit.
 
+```ts
+{
+  ei_mag: 1179403647,
+  ei_class: 2,
+  ei_data: 1,
+  e_shoff: 3854448n,
+  e_shnum: 27,
+  e_shentsize: 64,
+  e_shstrndx: 26
+}
+```
+
 Go to `origin`+`e_shoff`
 
 You are looking at an `ELF section header`. Specifically, you are looking at `e_shnum` section headers in a row
@@ -222,6 +234,41 @@ Go to `origin` + `StringSection.sh_offset` + `section.sh_name`
 
 Read `NT string`. It is a name of the current section.
 
+if you did everything correctly you should get something like this:
+
+```ts
+//...
+{
+  sh_name: 193,
+  sh_type: 1,
+  sh_offset: 3846144n,
+  sh_size: 7904n,
+  name: '.data'
+},
+{
+  sh_name: 199,
+  sh_type: 8,
+  sh_offset: 3854048n,
+  sh_size: 2228552n,
+  name: '.bss'
+},
+{
+  sh_name: 204,
+  sh_type: 1,
+  sh_offset: 3854048n,
+  sh_size: 186n,
+  name: '.comment'
+},
+{
+  sh_name: 1,
+  sh_type: 3,
+  sh_offset: 3854234n,
+  sh_size: 213n,
+  name: '.shstrtab'
+}
+//...
+```
+
 ## Reading symbols
 
 ::: tip Note
@@ -263,6 +310,36 @@ Read `NT string`. It is a name of the current symbol.
 Repeat for each symbol.
 
 And FINALLY find a symbol with a name `mono_get_root_domain` and get its `st_value`
+
+```ts
+//...
+{ name: 'GC_set_log_fd', st_value: 2588751n },
+{ name: 'GC_debug_strndup', st_value: 2553453n },
+{ name: 'mono_unity_set_vprintf_func', st_value: 1463988n },
+{ name: 'monoeg_g_slist_index', st_value: 2497838n },
+{ name: 'mono_get_int32_class', st_value: 1503946n },
+{ name: 'mono_parse_default_optimizations', st_value: 591364n },
+{ name: 'mono_get_byte_class', st_value: 1503874n },
+{ name: 'GC_debug_gcj_malloc', st_value: 2526746n },
+{ name: 'mono_unity_array_object_header_size', st_value: 1470684n },
+{ name: 'GC_have_errors', st_value: 5983720n },
+{ name: 'mono_type_get_array_type', st_value: 1886572n },
+{ name: 'GC_collection_in_progress', st_value: 2543375n },
+{ name: 'mono_get_void_class', st_value: 1503886n },
+{ name: 'mono_md5_update', st_value: 2374770n },
+{ name: 'mono_native_thread_join', st_value: 2458844n },
+{ name: 'GC_process_togglerefs', st_value: 2544475n },
+{ name: 'mono_counter_get_name', st_value: 2387569n },
+{ name: 'GC_set_toggleref_func', st_value: 2559594n },
+{ name: 'monoeg_g_get_prgname', st_value: 2505525n },
+{ name: 'mono_bitset_invert', st_value: 2408256n },
+{ name: 'monoeg_g_utf8_to_utf16_custom_alloc', st_value: 2482201n },
+{ name: 'mono_metadata_free_mh', st_value: 1873014n },
+{ name: 'GC_is_black_listed', st_value: 2523112n },
+//...
+{ name: 'mono_get_root_domain', st_value: 1499837n }, // <-- we need this one
+//...
+```
 
 ## Conclusion
 
