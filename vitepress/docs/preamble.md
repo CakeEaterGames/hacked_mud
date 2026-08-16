@@ -35,7 +35,7 @@ I also hate AI. But I also use AI... Most of the code was written by hand and I 
 
 ## Language
 
-English is not my native language. There are may be typos and grammatical errors. Please open a pull request if you would like to correct something. If you scroll to the bottom of each page, there's an `Edit this page on GitHub` button that you can use.
+English is not my native language. There may be typos and grammatical errors. Please open a pull request if you would like to correct something. If you scroll to the bottom of each page, there's an `Edit this page on GitHub` button that you can use.
 
 ## Expertise
 
